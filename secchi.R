@@ -71,20 +71,23 @@ no.neg<-no.na[no.na$ke>0,]
 
 min_ke<- no.neg %>% 
   group_by(lakeid,year4) %>%
-  slice(which.max(ke))
+  slice(which.min(ke))
+
+##Time series of ke
 
 ggplot(data=no.neg,aes(x=daynum, y=ke,col=as.factor(year4)))+
   geom_point()+
   geom_line()+
   facet_wrap(~lakeid,scales="free")
 
+##min ke by year
+
 ggplot(data=min_ke,aes(x=year4,y=daynum))+
   geom_point()+
   geom_line()+
   facet_wrap(~lakeid,scales="free")
 
-CWP_ke<-min_ke[(min_ke$lakeid == "AL"|min_ke$lakeid =="BM"|
-                  min_ke$lakeid =="ME"|min_ke$lakeid =="MO"),]
+#min ke and max secchi over years
 
 ggplot()+
   geom_point(data=min_ke,aes(x=year4,y=daynum),col="black")+
@@ -93,7 +96,33 @@ ggplot()+
   geom_line(data=max_sec,aes(x=year4,y=daynum),col="red")+
   facet_wrap(~lakeid,scales="free")
 
-ggplot()+
- geom_point(data=max_sec,aes(x=year4,y=daynum),col="red")+
-  geom_line(data=max_sec,aes(x=year4,y=daynum),col="red")+
+
+######################
+
+lt_ex<-read.csv('C:/Program Files/Git/tmp/ntl_phenology/Data/ntl259_v6.csv')
+
+min_ke_2<- lt_ex %>% 
+  group_by(lakeid,year4) %>%
+  slice(which.min(extcoef))
+
+ggplot(data=lt_ex,aes(x=daynum, y=extcoef,col=as.factor(year4)))+
+  geom_point()+
+  geom_line()+
   facet_wrap(~lakeid,scales="free")
+
+ggplot(data=min_ke_2,aes(x=year4,y=daynum))+
+  geom_point()+
+  geom_line()+
+  facet_wrap(~lakeid,scales="free")
+
+
+colors <- c("Max Secchi" = "red", "Min ke" = "black")
+ggplot()+
+  geom_point(data=min_ke_2,aes(x=year4,y=daynum,col="Min Ke"))+
+  geom_line(data=min_ke_2,aes(x=year4,y=daynum,col="Min Ke"))+
+  geom_point(data=max_sec,aes(x=year4,y=daynum,col="Max Secchi"))+
+  geom_line(data=max_sec,aes(x=year4,y=daynum,col="Max Secchi"))+
+  facet_wrap(~lakeid,scales="free")+
+  scale_colour_manual(name="Line Color",
+                      values=c("Max Secchi"="red", "Min Ke"="black"))
+
