@@ -15,7 +15,7 @@ library(sf)
 # download(url, dest="Data/dataset.zip", mode="wb") 
 # unzip("Data/dataset.zip", exdir = "./Data/")
 
-Remove zip file
+# Remove zip file
 file.remove('Data/dataset.zip')
 
 # Read bathymetry shapefiles
