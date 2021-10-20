@@ -141,6 +141,7 @@ library(tidyverse)
 library(rLakeAnalyzer)
 library(lubridate)
 library(zoo)
+library(patchwork)
 
 get_dens <- function(temp, salt){
   dens = 999.842594 + (6.793952 * 10^-2 * temp) - (9.095290 * 10^-3 * temp^2) +
@@ -152,28 +153,64 @@ get_dens <- function(temp, salt){
   return(dens)
 }
 
+bath <- read.csv('Projects/DSI/ntl_phenology/Data/NTLhypsometry.csv')
+bath <- rbind(bath, data.frame('lakeid' = rep('FI',2), 'Depth_m' = c(0,18.9),
+                               'Depth_ft' = c(0,0),'area' = c(874000, 0)))
+
 ntl.id <- unique(dt1$lakeid)
 strat.df <- data.frame('year' = NULL, 'on' = NULL, 'off' = NULL, 'duration' = NULL, 'id' = NULL)
+en.df <- data.frame('sampledate' = NULL, 'energy' = NULL, 'n2' = NULL, 'id' = NULL)
 
 for (name in ntl.id){
+  
   data <- dt1 %>%
     filter(lakeid == name) %>%
+    group_by(sampledate) %>%
+    filter((flagwtemp) == "") %>%
+    filter(sum(!is.na(wtemp))>1) %>%
+    fill(wtemp, .direction = 'up') %>%
+    fill(wtemp, .direction = 'down') %>%
+    # mutate(wtemp = ifelse(row.number() ==1 & is.na(wtemp), lead(wtemp), wtemp)) %>%
+    # mutate(ifelse(is.na(wtemp[which.min(depth)])), wtemp[which.min(depth+1)], wtemp[which.min(depth)]) %>%
     mutate(iwtemp = na.approx(wtemp)) %>%
     mutate(wdens = get_dens(iwtemp, 0)) %>%
     select(year4, sampledate, depth, iwtemp, wtemp, wdens)
   
   for (a in unique(data$year4)){
     
+    hyp <- bath %>%
+      filter(lakeid == name)
+    
     df <- data %>%
       filter(year4 == a) %>%
       group_by(sampledate) %>%
+      distinct(depth, .keep_all = TRUE) %>%
       arrange(depth) %>%
       mutate(dup = duplicated(depth)) %>%
       summarise(metadeps = meta.depths(wtr = iwtemp[which(dup == FALSE)], 
                                        depths = depth[which(dup == FALSE)], slope = 0.1, seasonal = TRUE, mixed.cutoff = 1),
-                thermdep = thermo.depth(wtr = iwtemp[which(dup == FALSE)], depths = depth[which(dup == FALSE)], Smin = 0.1, seasonal = TRUE, index = FALSE,
+                thermdep = thermo.depth(wtr = iwtemp[which(dup == FALSE)], depths = depth[which(dup == FALSE)], 
+                                        Smin = 0.1, seasonal = TRUE, index = FALSE,
                                         mixed.cutoff = 1),
-                densdiff = wdens[which.max(depth)] - wdens[which.min(depth)]) 
+                densdiff = wdens[which.max(depth)] - wdens[which.min(depth)],
+                surfwtemp = iwtemp[which.min(depth)]) 
+    
+    dz = 0.1
+    en <- data %>%
+      filter(year4 == a) %>%
+      group_by(sampledate) %>%
+      arrange(depth) %>%
+      summarise(z = seq(min(depth),max(depth),dz),
+                area = approx(hyp$Depth_m, hyp$area, seq(min(depth), max(depth),dz))$y,
+                density = approx(depth, wdens, seq(min(depth), max(depth),dz))$y,
+                temp = approx(depth, wtemp, seq(min(depth), max(depth),dz))$y) %>%
+      mutate('energy' = (area * dz) * density *temp * 4186,
+             'n2' = c(0,buoyancy.freq(temp, z))) %>%
+      summarise('energy' = sum(energy, na.rm = T)/max(area, na.rm = T),
+                'n2max' = max(n2))
+    
+    
+    df = df %>% mutate(densdiff = ifelse(densdiff > 0.1 && surfwtemp >= 4, densdiff, NA))
     
     df <- df[complete.cases(df),]
     strat.df <- rbind(strat.df, data.frame('year' = a,
@@ -181,13 +218,28 @@ for (name in ntl.id){
                                            'off' = yday(df$sampledate[which.max(df$sampledate)]),
                                            'duration' = yday(df$sampledate[which.max(df$sampledate)]) - yday(df$sampledate[which.min(df$sampledate)]),
                                            'id' = name))
+    en.df <- rbind(en.df, data.frame('sampledate' = en$sampledate, 'energy' = en$energy, 'n2' = en$n2max,
+                                     id = rep(name, nrow(en))))
   }
   
-  m.strat.df <- reshape2::melt(strat.df, id.vars = 'id')
   
 }
 
+m.strat.df <- reshape2::melt(strat.df, id.vars = 'id')
 ggplot(subset(m.strat.df, variable != 'year')) + 
-  geom_density(aes(x = value, col = id, fill = id, alpha = 0.5)) +
+  geom_density(aes(x = value, col = id, fill = id), alpha = 0.5) +
   facet_wrap(~ factor(variable))
 
+g1 <- ggplot(en.df) + 
+  geom_line(aes(sampledate, energy, col = id))+
+  geom_point(aes(sampledate, energy, col = id))+
+  facet_wrap(~ id, ncol =1) +
+  theme_minimal()
+
+g2 <- ggplot(en.df) + 
+  geom_line(aes(sampledate, n2, col = id))+
+  geom_point(aes(sampledate, n2, col = id))+
+  facet_wrap(~ id, ncol =1) +
+  theme_minimal()
+
+g1 | g2 + plot_layout(guides = 'collect')
