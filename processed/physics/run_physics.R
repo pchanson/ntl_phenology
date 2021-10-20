@@ -167,6 +167,7 @@ for (name in ntl.id){
     filter(lakeid == name) %>%
     group_by(sampledate) %>%
     filter((flagwtemp) == "") %>%
+    filter(!is.na(wtemp)) %>%
     filter(sum(!is.na(wtemp))>1) %>%
     fill(wtemp, .direction = 'up') %>%
     fill(wtemp, .direction = 'down') %>%
@@ -185,10 +186,10 @@ for (name in ntl.id){
       filter(year4 == a) %>%
       group_by(sampledate) %>%
       distinct(depth, .keep_all = TRUE) %>%
-      arrange(depth) %>%
+      # arrange(depth) %>%
       mutate(dup = duplicated(depth)) %>%
-      summarise(metadeps = meta.depths(wtr = iwtemp[which(dup == FALSE)], 
-                                       depths = depth[which(dup == FALSE)], slope = 0.1, seasonal = TRUE, mixed.cutoff = 1),
+      summarise(#metadeps = meta.depths(wtr = iwtemp[which(dup == FALSE)], 
+                 #                      depths = depth[which(dup == FALSE)], slope = 0.1, seasonal = TRUE, mixed.cutoff = 1),
                 thermdep = thermo.depth(wtr = iwtemp[which(dup == FALSE)], depths = depth[which(dup == FALSE)], 
                                         Smin = 0.1, seasonal = TRUE, index = FALSE,
                                         mixed.cutoff = 1),
@@ -210,7 +211,7 @@ for (name in ntl.id){
                 'n2max' = max(n2))
     
     
-    df = df %>% mutate(densdiff = ifelse(densdiff > 0.1 && surfwtemp >= 4, densdiff, NA))
+    df = df %>% mutate(densdiff = ifelse(densdiff > 0.1 & surfwtemp >= 4, densdiff, NA))
     
     df <- df[complete.cases(df),]
     strat.df <- rbind(strat.df, data.frame('year' = a,
