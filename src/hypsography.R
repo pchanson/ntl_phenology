@@ -29,30 +29,27 @@ nhd.sum = nhd %>% mutate(area = st_area(.)) %>%
   select(lakeid, Depth_m, Depth_ft, area)
 
 # Read bathymetry shapefiles
-mendota = st_read('GIS/mendota_bathy.shp') %>% 
+mendota = st_read('GIS/mendota-contours-all.shp') %>% 
   st_set_crs(st_crs(nhd)) %>% 
   mutate(lakeid = "ME") %>% 
-  rename(Depth_m = DEPTH_M, Depth_ft = DEPTH_FT) %>% 
   mutate(area = st_area(.)) %>% 
   group_by(lakeid, Depth_m, Depth_ft) %>% 
   summarise(area = sum(area)) %>% 
   st_drop_geometry() %>% 
   select(lakeid, Depth_m, Depth_ft, area)
 
-monona = st_read('GIS/monona_bathy.shp') %>% 
+monona = st_read('GIS/monona-contours-all.shp') %>% 
   st_set_crs(st_crs(nhd)) %>% 
-  mutate(lakeid = "MO", Depth_m = ID * 0.3048) %>% 
-  rename(Depth_ft = ID) %>% 
+  mutate(lakeid = "MO") %>% 
   mutate(area = st_area(.)) %>% 
   group_by(lakeid, Depth_m, Depth_ft) %>% 
   summarise(area = sum(area)) %>% 
   st_drop_geometry() %>% 
   select(lakeid, Depth_m, Depth_ft, area)
 
-wingra = st_read('GIS/wingra_bathy.shp') %>% 
+wingra = st_read('GIS/wingra-contours-all.shp') %>% 
   st_set_crs(st_crs(nhd)) %>% 
-  mutate(lakeid = "WI", Depth_m = ID * 0.3048) %>% 
-  rename(Depth_ft = ID) %>% 
+  mutate(lakeid = "WI") %>% 
   mutate(area = st_area(.)) %>% 
   group_by(lakeid, Depth_m, Depth_ft) %>% 
   summarise(area = sum(area)) %>% 
