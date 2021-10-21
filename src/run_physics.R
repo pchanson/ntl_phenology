@@ -353,7 +353,10 @@ g <- ggplot(df) +
   facet_wrap(~ (id)) +
   xlab('') + ylab('Density')+
   theme_minimal() ; g
+
 ggsave(file = '../Figures/phenology.png', g, dpi = 500, width =9, height = 8)
+ggsave(file = '../Figures/phenology.pdf', g, width =9, height = 8)
+
 
 ggplot(subset(df, id == 'ME' & year >=1995)) + 
     stat_density_ridges(aes(x = value, y= variable, col = variable, fill = variable), 
