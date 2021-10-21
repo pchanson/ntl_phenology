@@ -84,3 +84,5 @@ data2_max <- data2_max[, c("lakeid","year4","daynum","sampledate","depth","chlor
 
 data1_max$depth<-as.character(data1_max$depth)
 all_chla_data<-rbind(data1_max,data2_max)
+
+#write.csv(all_chla_data, "chla_epi_max.csv")
