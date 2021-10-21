@@ -338,7 +338,7 @@ g <- ggplot(df) +
                       alpha = 0.5, quantile_lines = T, quantiles = 2) +
   scale_x_date(labels = date_format("%b")) +
   facet_wrap(~ (id)) +
-  xlab('DOY') + ylab('Density')+
+  xlab('') + ylab('Density')+
   theme_minimal() ; g
 ggsave(file = 'Projects/DSI/ntl_phenology/Figures/phenology.png', g, dpi = 500, width =9, height = 8)
 
