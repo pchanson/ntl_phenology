@@ -147,6 +147,7 @@ library(patchwork)
 library(gganimate)
 library(ggridges)
 library(pracma)
+library(scales)
 
 get_dens <- function(temp, salt){
   dens = 999.842594 + (6.793952 * 10^-2 * temp) - (9.095290 * 10^-3 * temp^2) +
@@ -336,15 +337,11 @@ ggplot(df) +
 df$id <- factor(df$id, levels= (c("AL","BM","CB", "CR","SP", "TB", "TR","FI","ME","MO", "WI")))
 df$variable <- factor(df$variable, levels= rev(c("iceoff", "on", "clearwater", "daphnia", "stability", "anoxia", "energy","off", "iceon")))
 
-library(scales)
-df %>%
-  ggplot() +
-  geom_point(aes(x = as.Date(yday, origin = as.Date('2019-01-01')), y = temp)) +
-  scale_x_date(labels = date_format("%b"))
-
 ggplot(df) + 
-  stat_density_ridges(aes(x = value, y= variable, col = variable, fill = variable), 
+  stat_density_ridges(aes(x = as.Date(value, origin = as.Date('2019-01-01')), 
+                          y= variable, col = variable, fill = variable), 
                       alpha = 0.5, quantile_lines = T, quantiles = 2) +
+  scale_x_date(labels = date_format("%b")) +
   facet_wrap(~ (id)) +
   xlab('DOY') + ylab('Density')+
   theme_minimal() 
