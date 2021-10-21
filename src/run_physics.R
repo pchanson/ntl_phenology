@@ -311,17 +311,17 @@ secchi.df <- read_csv('Projects/DSI/ntl_phenology/Data/Secchi_data') %>%
 m.light.df <- reshape2::melt(secchi.df, id.vars = c('id','decade', 'year'))
 
 # chla
-chla.df <- read_csv('Projects/DSI/ntl_phenology/chla_epi_max.csv') %>%
-  rename(id = lakeid, year = year4, clearwater = daynum) %>%
+chla.df <- read_csv('Projects/DSI/ntl_phenology/Data/chla_epi_max.csv') %>%
+  rename(id = lakeid, year = year4, chla = daynum) %>%
   mutate(decade = year - year %%3) %>%
-  select(id, clearwater, decade, year)
-m.light.df <- reshape2::melt(secchi.df, id.vars = c('id','decade', 'year'))
+  select(id, chla, decade, year)
+m.chla.df <- reshape2::melt(chla.df, id.vars = c('id','decade', 'year'))
 
 c.strat.df = strat.df[c('straton','stratoff','energy','stability', 'anoxia','id', 'year')]
 c.strat.df$decade = strat.df$year - strat.df$year%% 3
 m.strat.df <- reshape2::melt(c.strat.df, id.vars = c('id','decade', 'year'))
 
-df = rbind(m.strat.df, m.daphnia.df, m.light.df, m.ice.df)
+df = rbind(m.strat.df, m.daphnia.df, m.light.df, m.ice.df, m.chla.df)
 
 ggplot(df) + 
   geom_density(aes(x = value, col = variable, fill = variable), alpha = 0.5) +
@@ -330,7 +330,7 @@ ggplot(df) +
   theme_minimal() 
 
 df$id <- factor(df$id, levels= (c("AL","BM","CB", "CR","SP", "TB", "TR","FI","ME","MO", "WI")))
-df$variable <- factor(df$variable, levels= rev(c("iceoff", "straton", "clearwater", "daphnia", "stability", "anoxia", "energy","stratoff", "iceon")))
+df$variable <- factor(df$variable, levels= rev(c("iceoff", "straton", "clearwater", "daphnia", "stability","chla", "anoxia", "energy","stratoff", "iceon")))
 
 g <- ggplot(df) + 
   stat_density_ridges(aes(x = as.Date(value, origin = as.Date('2019-01-01')), 
