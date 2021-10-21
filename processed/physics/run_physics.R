@@ -158,8 +158,11 @@ bath <- rbind(bath, data.frame('lakeid' = rep('FI',2), 'Depth_m' = c(0,18.9),
                                'Depth_ft' = c(0,0),'area' = c(874000, 0)))
 
 ntl.id <- unique(dt1$lakeid)
-strat.df <- data.frame('year' = NULL, 'on' = NULL, 'off' = NULL, 'duration' = NULL, 'id' = NULL)
+strat.df <- data.frame('year' = NULL, 'on' = NULL, 'off' = NULL, 'duration' = NULL,
+                       'energy' = NULL, 'stability' = NULL, 'id' = NULL)
 en.df <- data.frame('sampledate' = NULL, 'energy' = NULL, 'n2' = NULL, 'id' = NULL)
+
+therm.df <- data.frame('sampledate' = NULL, 'thermdepth_m' = NULL, 'id' = NULL)
 
 for (name in ntl.id){
   
@@ -196,6 +199,8 @@ for (name in ntl.id){
                 densdiff = wdens[which.max(depth)] - wdens[which.min(depth)],
                 surfwtemp = iwtemp[which.min(depth)]) 
     
+    therm.df <- rbind(therm.df, data.frame('sampledate' = df$sampledate, 'thermdepth_m' = df$thermdep, 'id' = name))
+    
     dz = 0.1
     en <- data %>%
       filter(year4 == a) %>%
@@ -218,6 +223,8 @@ for (name in ntl.id){
                                            'on' = yday(df$sampledate[which.min(df$sampledate)]),
                                            'off' = yday(df$sampledate[which.max(df$sampledate)]),
                                            'duration' = yday(df$sampledate[which.max(df$sampledate)]) - yday(df$sampledate[which.min(df$sampledate)]),
+                                           'energy' = yday(en$sampledate[which.max(en$energy)]),
+                                           'stability' = yday(en$sampledate[which.max(en$n2max)]),
                                            'id' = name))
     en.df <- rbind(en.df, data.frame('sampledate' = en$sampledate, 'energy' = en$energy, 'n2' = en$n2max,
                                      id = rep(name, nrow(en))))
@@ -226,10 +233,16 @@ for (name in ntl.id){
   
 }
 
-m.strat.df <- reshape2::melt(strat.df, id.vars = 'id')
-ggplot(subset(m.strat.df, variable != 'year')) + 
-  geom_density(aes(x = value, col = id, fill = id), alpha = 0.5) +
-  facet_wrap(~ factor(variable))
+str(therm.df)
+write.csv(therm.df, file ='Projects/DSI/ntl_phenology/processed/physics/thermocline.csv', quote = F, row.names = F)
+
+c.strat.df = strat.df[c('on','off','energy','stability','id')]
+m.strat.df <- reshape2::melt(c.strat.df, id.vars = 'id')
+
+ggplot(m.strat.df) + 
+  geom_density(aes(x = value, col = variable, fill = variable), alpha = 0.5) +
+  facet_wrap(~ factor(id)) +
+  theme_minimal()
 
 g1 <- ggplot(en.df) + 
   geom_line(aes(sampledate, energy, col = id))+
