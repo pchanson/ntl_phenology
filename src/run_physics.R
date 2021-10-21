@@ -1,3 +1,8 @@
+# remove everything from workspace
+rm(list = ls())
+
+setwd(dirname(rstudioapi::getSourceEditorContext()$path))
+
 # Package ID: knb-lter-ntl.29.8 Cataloging System:https://pasta.lternet.edu.
 # Data set title: North Temperate Lakes LTER: Physical Limnology of Primary Study Lakes 1981 - current.
 # Data set creator:    - Center for Limnology 
@@ -159,7 +164,7 @@ get_dens <- function(temp, salt){
   return(dens)
 }
 
-bath <- read.csv('Projects/DSI/ntl_phenology/Data/NTLhypsometry.csv')
+bath <- read.csv('../Data/NTLhypsometry.csv')
 bath <- rbind(bath, data.frame('lakeid' = rep('FI',2), 'Depth_m' = c(0,18.9),
                                'Depth_ft' = c(0,0),'area' = c(874000, 0)))
 
@@ -269,7 +274,7 @@ for (name in ntl.id){
 }
 
 str(therm.df)
-write.csv(therm.df, file ='Projects/DSI/ntl_phenology/Data/thermocline.csv', quote = F, row.names = F)
+write.csv(therm.df, file ='../Data/thermocline.csv', quote = F, row.names = F)
 
 
 g1 <- ggplot(en.df) + 
@@ -288,14 +293,14 @@ g1 | g2 + plot_layout(guides = 'collect')
 
 
 # daphnia
-daphnia.df <- read_csv('Projects/DSI/ntl_phenology/Data/max_daphnia_biomass.csv') %>%
+daphnia.df <- read_csv('../Data/max_daphnia_biomass.csv') %>%
   rename(id = lakeid, daphnia = doy, year = year4) %>%
   mutate(decade = year - year%% 3) %>%
   select(id, daphnia, decade, year)
 m.daphnia.df <- reshape2::melt(daphnia.df, id.vars = c('id','decade', 'year'))
 
 # ice
-ice.df <- read_csv('Projects/DSI/ntl_phenology/Data/ntl_icedatescombo.csv') %>%
+ice.df <- read_csv('../Data/ntl_icedatescombo.csv') %>%
   filter(lakeid != 'LR') %>%
   filter(year >= 1979) %>%
   rename(id = lakeid, year = year, iceon = firsticeYDAY, iceoff = lasticeYDAY) %>%
@@ -304,24 +309,24 @@ ice.df <- read_csv('Projects/DSI/ntl_phenology/Data/ntl_icedatescombo.csv') %>%
 m.ice.df <- reshape2::melt(ice.df, id.vars = c('id','decade', 'year'))
 
 # light
-secchi.df <- read_csv('Projects/DSI/ntl_phenology/Data/Secchi_data') %>%
+secchi.df <- read_csv('../Data/Secchi_data') %>%
   rename(id = lakeid, year = year4, clearwater = daynum) %>%
   mutate(decade = year - year %%3) %>%
   select(id, clearwater, decade, year)
 m.light.df <- reshape2::melt(secchi.df, id.vars = c('id','decade', 'year'))
 
 # chla
-chla.df <- read_csv('Projects/DSI/ntl_phenology/chla_epi_max.csv') %>%
-  rename(id = lakeid, year = year4, clearwater = daynum) %>%
+chla.df <- read_csv('../Data/chla_epi_max.csv') %>%
+  rename(id = lakeid, year = year4, chla = daynum) %>%
   mutate(decade = year - year %%3) %>%
-  select(id, clearwater, decade, year)
-m.light.df <- reshape2::melt(secchi.df, id.vars = c('id','decade', 'year'))
+  select(id, chla, decade, year)
+m.chla.df <- reshape2::melt(chla.df, id.vars = c('id','decade', 'year'))
 
 c.strat.df = strat.df[c('straton','stratoff','energy','stability', 'anoxia','id', 'year')]
 c.strat.df$decade = strat.df$year - strat.df$year%% 3
 m.strat.df <- reshape2::melt(c.strat.df, id.vars = c('id','decade', 'year'))
 
-df = rbind(m.strat.df, m.daphnia.df, m.light.df, m.ice.df)
+df = rbind(m.strat.df, m.daphnia.df, m.light.df, m.ice.df, m.chla.df)
 
 ggplot(df) + 
   geom_density(aes(x = value, col = variable, fill = variable), alpha = 0.5) +
@@ -330,7 +335,7 @@ ggplot(df) +
   theme_minimal() 
 
 df$id <- factor(df$id, levels= (c("AL","BM","CB", "CR","SP", "TB", "TR","FI","ME","MO", "WI")))
-df$variable <- factor(df$variable, levels= rev(c("iceoff", "straton", "clearwater", "daphnia", "stability", "anoxia", "energy","stratoff", "iceon")))
+df$variable <- factor(df$variable, levels= rev(c("iceoff", "straton", "clearwater", "daphnia", "stability","chla", "anoxia", "energy","stratoff", "iceon")))
 
 g <- ggplot(df) + 
   stat_density_ridges(aes(x = as.Date(value, origin = as.Date('2019-01-01')), 
@@ -338,9 +343,9 @@ g <- ggplot(df) +
                       alpha = 0.5, quantile_lines = T, quantiles = 2) +
   scale_x_date(labels = date_format("%b")) +
   facet_wrap(~ (id)) +
-  xlab('DOY') + ylab('Density')+
+  xlab('') + ylab('Density')+
   theme_minimal() ; g
-ggsave(file = 'Projects/DSI/ntl_phenology/Figures/phenology.png', g, dpi = 500, width =9, height = 8)
+ggsave(file = '../Figures/phenology.png', g, dpi = 500, width =9, height = 8)
 
 ggplot(subset(df, id == 'ME' & year >=1995)) + 
     stat_density_ridges(aes(x = value, y= variable, col = variable, fill = variable), 
@@ -348,15 +353,15 @@ ggplot(subset(df, id == 'ME' & year >=1995)) +
     facet_wrap(~ factor(decade)) +
     xlab('DOY') + ylab('Density')+
     theme_minimal() 
-
-nx = 3
-for (i in unique(df$year)[1:(length(unique(df$year))-nx)]){
-  g <- ggplot(subset(df, year %in% c(i:(i+nx)))) + 
-    geom_density(aes(x = value, col = variable, fill = variable), alpha = 0.5) +
-    facet_wrap(~ factor(id)) +
-    xlab('DOY') + ylab('Density')+
-    theme_minimal() + 
-    ggtitle(paste0(i)); g
-  
-  ggsave(file = paste0('Projects/DSI/ntl_phenology/processed/physics/pheno_',i,'.png'), g, dpi = 500, width =9, height = 8)
-}
+# 
+# nx = 3
+# for (i in unique(df$year)[1:(length(unique(df$year))-nx)]){
+#   g <- ggplot(subset(df, year %in% c(i:(i+nx)))) + 
+#     geom_density(aes(x = value, col = variable, fill = variable), alpha = 0.5) +
+#     facet_wrap(~ factor(id)) +
+#     xlab('DOY') + ylab('Density')+
+#     theme_minimal() + 
+#     ggtitle(paste0(i)); g
+#   
+#   ggsave(file = paste0('Projects/DSI/ntl_phenology/processed/physics/pheno_',i,'.png'), g, dpi = 500, width =9, height = 8)
+# }
