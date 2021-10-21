@@ -50,6 +50,7 @@ ggplot(data=data2_max,aes(x=year4,y=daynum))+
   geom_line()+
   facet_wrap(~lakeid,scales="free")
 
+
 ggplot(data=data2_max,aes(x=daynum))+
   geom_density()+
   facet_wrap(~lakeid,scales="free")
