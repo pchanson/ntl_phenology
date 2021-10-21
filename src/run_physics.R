@@ -164,7 +164,7 @@ bath <- rbind(bath, data.frame('lakeid' = rep('FI',2), 'Depth_m' = c(0,18.9),
                                'Depth_ft' = c(0,0),'area' = c(874000, 0)))
 
 ntl.id <- unique(dt1$lakeid)
-strat.df <- data.frame('year' = NULL, 'on' = NULL, 'off' = NULL, 'duration' = NULL,
+strat.df <- data.frame('year' = NULL, 'straton' = NULL, 'stratoff' = NULL, 'duration' = NULL,
                        'energy' = NULL, 'stability' = NULL, 'anoxia' = NULL, 'id' = NULL)
 en.df <- data.frame('sampledate' = NULL, 'energy' = NULL, 'n2' = NULL, 'id' = NULL)
 
@@ -255,8 +255,8 @@ for (name in ntl.id){
     
     df <- df[complete.cases(df),]
     strat.df <- rbind(strat.df, data.frame('year' = a,
-                                           'on' = yday(df$sampledate[which.min(df$sampledate)]),
-                                           'off' = yday(df$sampledate[which.max(df$sampledate)]),
+                                           'straton' = yday(df$sampledate[which.min(df$sampledate)]),
+                                           'stratoff' = yday(df$sampledate[which.max(df$sampledate)]),
                                            'duration' = yday(df$sampledate[which.max(df$sampledate)]) - yday(df$sampledate[which.min(df$sampledate)]),
                                            'energy' = yday(en$sampledate[which.max(en$energy)]),
                                            'stability' = yday(en$sampledate[which.max(en$n2max)]),
@@ -269,7 +269,7 @@ for (name in ntl.id){
 }
 
 str(therm.df)
-write.csv(therm.df, file ='Projects/DSI/ntl_phenology/processed/physics/thermocline.csv', quote = F, row.names = F)
+write.csv(therm.df, file ='Projects/DSI/ntl_phenology/Data/thermocline.csv', quote = F, row.names = F)
 
 
 g1 <- ggplot(en.df) + 
@@ -290,7 +290,7 @@ g1 | g2 + plot_layout(guides = 'collect')
 # daphnia
 daphnia.df <- read_csv('Projects/DSI/ntl_phenology/Data/max_daphnia_biomass.csv') %>%
   rename(id = lakeid, daphnia = doy, year = year4) %>%
-  mutate(decade = year - year%% 10 ) %>%
+  mutate(decade = year - year%% 3) %>%
   select(id, daphnia, decade, year)
 m.daphnia.df <- reshape2::melt(daphnia.df, id.vars = c('id','decade', 'year'))
 
@@ -299,22 +299,55 @@ ice.df <- read_csv('Projects/DSI/ntl_phenology/Data/ntl_icedatescombo.csv') %>%
   filter(lakeid != 'LR') %>%
   filter(year >= 1979) %>%
   rename(id = lakeid, year = year, iceon = firsticeYDAY, iceoff = lasticeYDAY) %>%
-  mutate(decade = year - year %%10) %>%
+  mutate(decade = year - year %%3) %>%
   select(id, iceon, iceoff, decade, year)
 m.ice.df <- reshape2::melt(ice.df, id.vars = c('id','decade', 'year'))
 
 # light
 secchi.df <- read_csv('Projects/DSI/ntl_phenology/Data/Secchi_data') %>%
   rename(id = lakeid, year = year4, clearwater = daynum) %>%
-  mutate(decade = year - year %%10) %>%
+  mutate(decade = year - year %%3) %>%
   select(id, clearwater, decade, year)
 m.light.df <- reshape2::melt(secchi.df, id.vars = c('id','decade', 'year'))
 
-c.strat.df = strat.df[c('on','off','energy','stability', 'anoxia','id', 'year')]
-c.strat.df$decade = strat.df$year - strat.df$year%% 10 
+# chla
+chla.df <- read_csv('Projects/DSI/ntl_phenology/chla_epi_max.csv') %>%
+  rename(id = lakeid, year = year4, clearwater = daynum) %>%
+  mutate(decade = year - year %%3) %>%
+  select(id, clearwater, decade, year)
+m.light.df <- reshape2::melt(secchi.df, id.vars = c('id','decade', 'year'))
+
+c.strat.df = strat.df[c('straton','stratoff','energy','stability', 'anoxia','id', 'year')]
+c.strat.df$decade = strat.df$year - strat.df$year%% 3
 m.strat.df <- reshape2::melt(c.strat.df, id.vars = c('id','decade', 'year'))
 
 df = rbind(m.strat.df, m.daphnia.df, m.light.df, m.ice.df)
+
+ggplot(df) + 
+  geom_density(aes(x = value, col = variable, fill = variable), alpha = 0.5) +
+  facet_wrap(~ factor(id)) +
+  xlab('DOY') + ylab('Density')+
+  theme_minimal() 
+
+df$id <- factor(df$id, levels= (c("AL","BM","CB", "CR","SP", "TB", "TR","FI","ME","MO", "WI")))
+df$variable <- factor(df$variable, levels= rev(c("iceoff", "straton", "clearwater", "daphnia", "stability", "anoxia", "energy","stratoff", "iceon")))
+
+g <- ggplot(df) + 
+  stat_density_ridges(aes(x = as.Date(value, origin = as.Date('2019-01-01')), 
+                          y= variable, col = variable, fill = variable), 
+                      alpha = 0.5, quantile_lines = T, quantiles = 2) +
+  scale_x_date(labels = date_format("%b")) +
+  facet_wrap(~ (id)) +
+  xlab('DOY') + ylab('Density')+
+  theme_minimal() ; g
+ggsave(file = 'Projects/DSI/ntl_phenology/Figures/phenology.png', g, dpi = 500, width =9, height = 8)
+
+ggplot(subset(df, id == 'ME' & year >=1995)) + 
+    stat_density_ridges(aes(x = value, y= variable, col = variable, fill = variable), 
+                        alpha = 0.5, quantile_lines = T, quantiles = 2) +
+    facet_wrap(~ factor(decade)) +
+    xlab('DOY') + ylab('Density')+
+    theme_minimal() 
 
 nx = 3
 for (i in unique(df$year)[1:(length(unique(df$year))-nx)]){
@@ -327,28 +360,3 @@ for (i in unique(df$year)[1:(length(unique(df$year))-nx)]){
   
   ggsave(file = paste0('Projects/DSI/ntl_phenology/processed/physics/pheno_',i,'.png'), g, dpi = 500, width =9, height = 8)
 }
-
-ggplot(df) + 
-  geom_density(aes(x = value, col = variable, fill = variable), alpha = 0.5) +
-  facet_wrap(~ factor(id)) +
-  xlab('DOY') + ylab('Density')+
-  theme_minimal() 
-
-df$id <- factor(df$id, levels= (c("AL","BM","CB", "CR","SP", "TB", "TR","FI","ME","MO", "WI")))
-df$variable <- factor(df$variable, levels= rev(c("iceoff", "on", "clearwater", "daphnia", "stability", "anoxia", "energy","off", "iceon")))
-
-ggplot(df) + 
-  stat_density_ridges(aes(x = as.Date(value, origin = as.Date('2019-01-01')), 
-                          y= variable, col = variable, fill = variable), 
-                      alpha = 0.5, quantile_lines = T, quantiles = 2) +
-  scale_x_date(labels = date_format("%b")) +
-  facet_wrap(~ (id)) +
-  xlab('DOY') + ylab('Density')+
-  theme_minimal() 
-
-ggplot(subset(df, id == 'ME')) + 
-    stat_density_ridges(aes(x = value, y= variable, col = variable, fill = variable), 
-                        alpha = 0.5, quantile_lines = T, quantiles = 2) +
-    facet_wrap(~ factor(decade)) +
-    xlab('DOY') + ylab('Density')+
-    theme_minimal() 
