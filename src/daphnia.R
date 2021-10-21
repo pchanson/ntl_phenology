@@ -13,6 +13,8 @@ zoops_north <- read_csv(infile2, quote ='"',guess_max = 100000) %>%
 zoops_all = bind_rows(zoops, zoops_north) %>% 
   mutate(lakeid = ifelse(lakeid == "Tr", "TR", lakeid))
 
+write_csv(zoops_all, "./Data/ntl_allzoops_raw.csv")
+
 daph_spp = c("DAPHNIA", "DAPHNIA AMBIGUA", "DAPHNIA DENTIFERA", "DAPHNIA DUBIA", "DAPHNIA LONGIREMIS", "DAPHNIA MENDOTAE", "DAPHNIA PARVULA", "DAPHNIA PULICARIA", "DAPHNIA RETROCURVA")
 
 zoops_all %>% 
@@ -87,6 +89,4 @@ max_biomass %>%
   geom_histogram() +
   facet_grid(rows=vars(lakeid))
   
-
-
-
+write_csv(max_biomass, "./Data/max_daphnia_biomass.csv")
