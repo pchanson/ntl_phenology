@@ -10,7 +10,7 @@ library(data.table)
 nuts<-read_csv('C:/Program Files/Git/tmp/ntl_phenology/Data/ntl1_v9_1.csv')
 nuts$sampledate<-mdy(nuts$sampledate)
 
-thermo<-read_csv('C:/Program Files/Git/tmp/ntl_phenology/processed/physics/thermocline.csv')
+thermo<-read_csv('C:/Program Files/Git/tmp/ntl_phenology/Data/thermocline.csv')
 names<-c("sampledate","thermdepth_m","lakeid")
 setnames(thermo,names)
 
@@ -44,3 +44,24 @@ ggplot(data=epi,aes(x=daynum, y=nh4_sloh,col=as.factor(year4)))+
   geom_point()+
   geom_line()+
   facet_wrap(~lakeid,scales="free")
+
+
+ggplot(data=epi,aes(x=daynum, y=doc,col=as.factor(year4)))+
+  geom_point()+
+  geom_line()+
+  ylim(0,30)+
+  facet_wrap(~lakeid,scales="free")
+
+epi_less<-epi[epi$doc<30,]
+
+doc_mean<- epi_less %>% 
+  group_by(lakeid,year4) %>%
+  dplyr::summarize_if(is.numeric,mean,na.rm=T)
+
+doc<-doc_mean[,c("lakeid","year4","daynum")]
+
+ggplot(data=doc,aes(x=daynum))+
+  geom_density()+
+  facet_wrap(~lakeid,scales="free")
+
+write.csv(doc,"../Data/doc.csv")
