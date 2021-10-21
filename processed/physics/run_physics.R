@@ -135,6 +135,8 @@ detach(dt1)
 # install.packages('rLakeAnalyzer')
 # install.packages('lubridate')
 # install.packages('zoo')
+# devtools::install_github('thomasp85/gganimate')
+# install.packages('ggridges')
 
 library(NTLlakeloads)
 library(tidyverse)
@@ -142,6 +144,9 @@ library(rLakeAnalyzer)
 library(lubridate)
 library(zoo)
 library(patchwork)
+library(gganimate)
+library(ggridges)
+library(pracma)
 
 get_dens <- function(temp, salt){
   dens = 999.842594 + (6.793952 * 10^-2 * temp) - (9.095290 * 10^-3 * temp^2) +
@@ -159,7 +164,7 @@ bath <- rbind(bath, data.frame('lakeid' = rep('FI',2), 'Depth_m' = c(0,18.9),
 
 ntl.id <- unique(dt1$lakeid)
 strat.df <- data.frame('year' = NULL, 'on' = NULL, 'off' = NULL, 'duration' = NULL,
-                       'energy' = NULL, 'stability' = NULL, 'id' = NULL)
+                       'energy' = NULL, 'stability' = NULL, 'anoxia' = NULL, 'id' = NULL)
 en.df <- data.frame('sampledate' = NULL, 'energy' = NULL, 'n2' = NULL, 'id' = NULL)
 
 therm.df <- data.frame('sampledate' = NULL, 'thermdepth_m' = NULL, 'id' = NULL)
@@ -180,10 +185,28 @@ for (name in ntl.id){
     mutate(wdens = get_dens(iwtemp, 0)) %>%
     select(year4, sampledate, depth, iwtemp, wtemp, wdens)
   
+  data.o2 <- dt1 %>%
+    filter(lakeid == name) %>%
+    group_by(sampledate) %>%
+    filter((flagwtemp) == "") %>%
+    filter(!is.na(o2)) %>%
+    filter(sum(!is.na(o2))>1) %>%
+    fill(o2, .direction = 'up') %>%
+    fill(o2, .direction = 'down') %>%
+    # mutate(wtemp = ifelse(row.number() ==1 & is.na(wtemp), lead(wtemp), wtemp)) %>%
+    # mutate(ifelse(is.na(wtemp[which.min(depth)])), wtemp[which.min(depth+1)], wtemp[which.min(depth)]) %>%
+    mutate(io2 = na.approx(o2)) %>%
+    select(year4, sampledate, depth, io2, o2)
+  
+  
   for (a in unique(data$year4)){
     
     hyp <- bath %>%
       filter(lakeid == name)
+    if (max(data$depth) > max(hyp$Depth_m)){
+      hyp <- rbind(hyp, hyp[nrow(hyp),])
+      hyp$Depth_m[nrow(hyp)] <- max(data$depth)
+    }
     
     df <- data %>%
       filter(year4 == a) %>%
@@ -201,6 +224,8 @@ for (name in ntl.id){
     
     therm.df <- rbind(therm.df, data.frame('sampledate' = df$sampledate, 'thermdepth_m' = df$thermdep, 'id' = name))
     
+    border <- floor(mean(df$thermdep, na.rm = T))
+    
     dz = 0.1
     en <- data %>%
       filter(year4 == a) %>%
@@ -215,6 +240,15 @@ for (name in ntl.id){
       summarise('energy' = sum(energy, na.rm = T)/max(area, na.rm = T),
                 'n2max' = max(n2))
     
+    an <- data.o2 %>%
+      filter(year4 == a) %>%
+      group_by(sampledate) %>%
+      arrange(depth) %>%
+      summarise(z = seq(min(depth),max(depth),dz),
+                area = approx(hyp$Depth_m, hyp$area, seq(min(depth), max(depth),dz))$y,
+                do = approx(depth, o2, seq(min(depth), max(depth), dz))$y) %>%
+      filter(z >= border & !is.na(do)) %>%
+      summarise('do' = abs(trapz(z * area, do)))
     
     df = df %>% mutate(densdiff = ifelse(densdiff > 0.1 & surfwtemp >= 4, densdiff, NA))
     
@@ -225,24 +259,17 @@ for (name in ntl.id){
                                            'duration' = yday(df$sampledate[which.max(df$sampledate)]) - yday(df$sampledate[which.min(df$sampledate)]),
                                            'energy' = yday(en$sampledate[which.max(en$energy)]),
                                            'stability' = yday(en$sampledate[which.max(en$n2max)]),
+                                           'anoxia' = yday(an$sampledate[which.min(an$do)]),
                                            'id' = name))
     en.df <- rbind(en.df, data.frame('sampledate' = en$sampledate, 'energy' = en$energy, 'n2' = en$n2max,
                                      id = rep(name, nrow(en))))
   }
-  
   
 }
 
 str(therm.df)
 write.csv(therm.df, file ='Projects/DSI/ntl_phenology/processed/physics/thermocline.csv', quote = F, row.names = F)
 
-c.strat.df = strat.df[c('on','off','energy','stability','id')]
-m.strat.df <- reshape2::melt(c.strat.df, id.vars = 'id')
-
-ggplot(m.strat.df) + 
-  geom_density(aes(x = value, col = variable, fill = variable), alpha = 0.5) +
-  facet_wrap(~ factor(id)) +
-  theme_minimal()
 
 g1 <- ggplot(en.df) + 
   geom_line(aes(sampledate, energy, col = id))+
@@ -257,3 +284,74 @@ g2 <- ggplot(en.df) +
   theme_minimal()
 
 g1 | g2 + plot_layout(guides = 'collect')
+
+
+# daphnia
+daphnia.df <- read_csv('Projects/DSI/ntl_phenology/Data/max_daphnia_biomass.csv') %>%
+  rename(id = lakeid, daphnia = doy, year = year4) %>%
+  mutate(decade = year - year%% 10 ) %>%
+  select(id, daphnia, decade, year)
+m.daphnia.df <- reshape2::melt(daphnia.df, id.vars = c('id','decade', 'year'))
+
+# ice
+ice.df <- read_csv('Projects/DSI/ntl_phenology/Data/ntl_icedatescombo.csv') %>%
+  filter(lakeid != 'LR') %>%
+  filter(year >= 1979) %>%
+  rename(id = lakeid, year = year, iceon = firsticeYDAY, iceoff = lasticeYDAY) %>%
+  mutate(decade = year - year %%10) %>%
+  select(id, iceon, iceoff, decade, year)
+m.ice.df <- reshape2::melt(ice.df, id.vars = c('id','decade', 'year'))
+
+# light
+secchi.df <- read_csv('Projects/DSI/ntl_phenology/Data/Secchi_data') %>%
+  rename(id = lakeid, year = year4, clearwater = daynum) %>%
+  mutate(decade = year - year %%10) %>%
+  select(id, clearwater, decade, year)
+m.light.df <- reshape2::melt(secchi.df, id.vars = c('id','decade', 'year'))
+
+c.strat.df = strat.df[c('on','off','energy','stability', 'anoxia','id', 'year')]
+c.strat.df$decade = strat.df$year - strat.df$year%% 10 
+m.strat.df <- reshape2::melt(c.strat.df, id.vars = c('id','decade', 'year'))
+
+df = rbind(m.strat.df, m.daphnia.df, m.light.df, m.ice.df)
+
+nx = 3
+for (i in unique(df$year)[1:(length(unique(df$year))-nx)]){
+  g <- ggplot(subset(df, year %in% c(i:(i+nx)))) + 
+    geom_density(aes(x = value, col = variable, fill = variable), alpha = 0.5) +
+    facet_wrap(~ factor(id)) +
+    xlab('DOY') + ylab('Density')+
+    theme_minimal() + 
+    ggtitle(paste0(i)); g
+  
+  ggsave(file = paste0('Projects/DSI/ntl_phenology/processed/physics/pheno_',i,'.png'), g, dpi = 500, width =9, height = 8)
+}
+
+ggplot(df) + 
+  geom_density(aes(x = value, col = variable, fill = variable), alpha = 0.5) +
+  facet_wrap(~ factor(id)) +
+  xlab('DOY') + ylab('Density')+
+  theme_minimal() 
+
+df$id <- factor(df$id, levels= (c("AL","BM","CB", "CR","SP", "TB", "TR","FI","ME","MO", "WI")))
+df$variable <- factor(df$variable, levels= rev(c("iceoff", "on", "clearwater", "daphnia", "stability", "anoxia", "energy","off", "iceon")))
+
+library(scales)
+df %>%
+  ggplot() +
+  geom_point(aes(x = as.Date(yday, origin = as.Date('2019-01-01')), y = temp)) +
+  scale_x_date(labels = date_format("%b"))
+
+ggplot(df) + 
+  stat_density_ridges(aes(x = value, y= variable, col = variable, fill = variable), 
+                      alpha = 0.5, quantile_lines = T, quantiles = 2) +
+  facet_wrap(~ (id)) +
+  xlab('DOY') + ylab('Density')+
+  theme_minimal() 
+
+ggplot(subset(df, id == 'ME')) + 
+    stat_density_ridges(aes(x = value, y= variable, col = variable, fill = variable), 
+                        alpha = 0.5, quantile_lines = T, quantiles = 2) +
+    facet_wrap(~ factor(decade)) +
+    xlab('DOY') + ylab('Density')+
+    theme_minimal() 
