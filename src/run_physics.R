@@ -324,6 +324,7 @@ m.chla.df <- reshape2::melt(chla.df, id.vars = c('id','decade', 'year'))
 
 # doc
 doc.df <- read_csv('../Data/doc.csv') %>%
+  filter(!is.na(lakeid)) %>%
   rename(id = lakeid, year = year4, doc = daynum) %>%
   mutate(decade = year - year %%3) %>%
   select(id, doc, decade, year)
