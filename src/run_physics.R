@@ -322,11 +322,19 @@ chla.df <- read_csv('../Data/chla_epi_max.csv') %>%
   select(id, chla, decade, year)
 m.chla.df <- reshape2::melt(chla.df, id.vars = c('id','decade', 'year'))
 
+# doc
+doc.df <- read_csv('../Data/doc.csv') %>%
+  filter(!is.na(lakeid)) %>%
+  rename(id = lakeid, year = year4, doc = daynum) %>%
+  mutate(decade = year - year %%3) %>%
+  select(id, doc, decade, year)
+m.doc.df <- reshape2::melt(doc.df, id.vars = c('id','decade', 'year'))
+
 c.strat.df = strat.df[c('straton','stratoff','energy','stability', 'anoxia','id', 'year')]
 c.strat.df$decade = strat.df$year - strat.df$year%% 3
 m.strat.df <- reshape2::melt(c.strat.df, id.vars = c('id','decade', 'year'))
 
-df = rbind(m.strat.df, m.daphnia.df, m.light.df, m.ice.df, m.chla.df)
+df = rbind(m.strat.df, m.daphnia.df, m.light.df, m.ice.df, m.chla.df, m.doc.df)
 
 ggplot(df) + 
   geom_density(aes(x = value, col = variable, fill = variable), alpha = 0.5) +
@@ -335,7 +343,7 @@ ggplot(df) +
   theme_minimal() 
 
 df$id <- factor(df$id, levels= (c("AL","BM","CB", "CR","SP", "TB", "TR","FI","ME","MO", "WI")))
-df$variable <- factor(df$variable, levels= rev(c("iceoff", "straton", "clearwater", "daphnia", "stability","chla", "anoxia", "energy","stratoff", "iceon")))
+df$variable <- factor(df$variable, levels= rev(c("iceoff", "straton", "clearwater", "daphnia", "chla", "doc", "anoxia","stability", "energy","stratoff", "iceon")))
 
 g <- ggplot(df) + 
   stat_density_ridges(aes(x = as.Date(value, origin = as.Date('2019-01-01')), 
