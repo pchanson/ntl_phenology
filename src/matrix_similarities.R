@@ -76,6 +76,6 @@ ggplot(sim.df %>% arrange(year)) +
 ggplot(sim.df %>% arrange(year), aes(year, (as.numeric(eigenvalue)))) +
   geom_point(aes(year, (as.numeric(eigenvalue)), col =id)) +
   geom_line(aes(year, (as.numeric(eigenvalue)), col = id)) +
-  geom_smooth()+
+  geom_smooth(method = lm, formula = y ~ splines::bs(x, 3), se = FALSE)+
   # facet_wrap(~ id, ncol = 1)+
   theme_bw()
