@@ -82,7 +82,8 @@ daphnia_biomass %>%
 
 max_biomass = daphnia_biomass %>% 
   group_by(lakeid, year4) %>% 
-  slice_max(daphnia_biomass)
+  slice_max(daphnia_biomass, with_ties = FALSE) 
+  
   
 max_biomass %>% 
   ggplot(aes(x=doy, fill=lakeid)) +
