@@ -139,7 +139,8 @@ for (name in ntl.id){
       summarise(z = seq(min(depth),max(depth),dz),
                 area = approx(hyp$Depth_m, hyp$area, seq(min(depth), max(depth),dz))$y,
                 do = approx(depth, o2, seq(min(depth), max(depth), dz))$y) %>%
-      filter(z >= border & !is.na(do)) %>%
+      # filter(z >= border & !is.na(do)) %>%
+      filter(!is.na(do) & sampledate > yday(df$sampledate[which.min(df$sampledate)])) %>%
       summarise('do' = abs(trapz(z * area, do)))
     
     df = df %>% mutate(densdiff = ifelse(densdiff > 0.1 & surfwtemp >= 4, densdiff, NA))
@@ -228,15 +229,4 @@ df$variable <- factor(df$variable, levels= rev(c("iceoff", "straton", "clearwate
 
 write.csv(df, file ='../Data/phenology_data.csv', quote = F, row.names = F)
 
-g <- ggplot(df) + 
-  stat_density_ridges(aes(x = as.Date(value, origin = as.Date('2019-01-01')), 
-                          y= variable, col = variable, fill = variable), 
-                      alpha = 0.5, quantile_lines = T, quantiles = 2) +
-  scale_x_date(labels = date_format("%b")) +
-  facet_wrap(~ (id)) +
-  xlab('') + ylab('Density')+
-  theme_minimal() ; g
-
-ggsave(file = '../Figures/phenology.png', g, dpi = 500, width =9, height = 8)
-ggsave(file = '../Figures/phenology.pdf', g, width =9, height = 8)
 

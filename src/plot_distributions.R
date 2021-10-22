@@ -3,7 +3,20 @@ rm(list = ls())
 
 setwd(dirname(rstudioapi::getSourceEditorContext()$path))
 
-df <- load.csv('../Data/phenology_data.csv')
+library(tidyverse)
+library(rLakeAnalyzer)
+library(lubridate)
+library(zoo)
+library(patchwork)
+library(gganimate)
+library(ggridges)
+library(pracma)
+library(scales)
+
+df <- read_csv('../Data/phenology_data.csv')
+
+df$id <- factor(df$id, levels= (c("AL","BM","CB", "CR","SP", "TB", "TR","FI","ME","MO", "WI")))
+df$variable <- factor(df$variable, levels= rev(c("iceoff", "straton", "clearwater", "daphnia", "chla", "doc", "anoxia","stability", "energy","stratoff", "iceon")))
 
 g <- ggplot(df) + 
   stat_density_ridges(aes(x = as.Date(value, origin = as.Date('2019-01-01')), 
