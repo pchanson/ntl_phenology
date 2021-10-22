@@ -132,6 +132,11 @@ for (name in ntl.id){
       summarise('energy' = sum(energy, na.rm = T)/max(area, na.rm = T),
                 'n2max' = max(n2))
     
+    
+    df = df %>% mutate(densdiff = ifelse(densdiff > 0.1 & surfwtemp >= 4, densdiff, NA))
+    
+    df <- df[complete.cases(df),]
+    
     an <- data.o2 %>%
       filter(year4 == a) %>%
       group_by(sampledate) %>%
@@ -139,13 +144,10 @@ for (name in ntl.id){
       summarise(z = seq(min(depth),max(depth),dz),
                 area = approx(hyp$Depth_m, hyp$area, seq(min(depth), max(depth),dz))$y,
                 do = approx(depth, o2, seq(min(depth), max(depth), dz))$y) %>%
-      # filter(z >= border & !is.na(do)) %>%
-      filter(!is.na(do) & sampledate > yday(df$sampledate[which.min(df$sampledate)])) %>%
+      filter(z >= border & !is.na(do)) %>%
+      # filter(!is.na(do) & sampledate > (df$sampledate[which.min(df$sampledate)])) %>%
       summarise('do' = abs(trapz(z * area, do)))
-    
-    df = df %>% mutate(densdiff = ifelse(densdiff > 0.1 & surfwtemp >= 4, densdiff, NA))
-    
-    df <- df[complete.cases(df),]
+
     strat.df <- rbind(strat.df, data.frame('year' = a,
                                            'straton' = yday(df$sampledate[which.min(df$sampledate)]),
                                            'stratoff' = yday(df$sampledate[which.max(df$sampledate)]),

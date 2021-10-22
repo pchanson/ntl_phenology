@@ -16,12 +16,19 @@ library(Matrix)
 library(RColorBrewer)
 library(corrplot)
 
+all.vars = c('straton', 'stratoff', 'energy', 'stability', 'anoxia',
+             'iceon', 'iceoff', 'daphnia', 'clearwater', 'chla', 'doc')
+
 df <- read_csv('../Data/phenology_data.csv') %>%
   filter(variable != 'clearwater')
 
 df <- read_csv('../Data/phenology_data.csv') %>%
   filter(variable %in% c('straton', 'stratoff', 'energy', 'stability', 'anoxia',
                          'iceon', 'iceoff'))
+
+df <- read_csv('../Data/phenology_data.csv') %>%
+  filter(variable %in% c('straton', 'stratoff', 'energy', 'stability', 'anoxia',
+                         'iceon', 'iceoff', 'daphnia', 'chla', 'doc'))
 
 str(df)
 
@@ -52,8 +59,8 @@ for (d in lake.id){
       
       sim.df <- rbind(sim.df, data.frame('year' = i, 
                                          'id' = d,
-                                         'eigenvalue' = sum(eigen(x)$values),
-                                         'eigenvector' = sum(eigen(x)$vector)))
+                                         'eigenvalue' = max(eigen(x)$values),
+                                         'eigenvector' = max(eigen(x)$vector)))
     }
     
     df.space[[match(i,unique(df$year))]] = x
@@ -82,13 +89,22 @@ ggplot(sim.df %>% arrange(year), aes(year, (as.numeric(eigenvalue)))) +
   scale_color_brewer(palette = "Paired") +
   theme_bw()
 
+ggplot(sim.df %>% arrange(year), aes(year, (as.numeric(eigenvector)))) +
+  geom_point(aes(year, scale(as.numeric(eigenvector)), col =id, group = id)) +
+  geom_line(aes(year, scale(as.numeric(eigenvector)), col = id, group = id)) +
+  # geom_smooth(method = lm, formula = y ~ splines::bs(x, 3), se = FALSE)+
+  # facet_wrap(~ id, ncol = 1)+
+  scale_color_brewer(palette = "Paired") +
+  theme_bw()
+
 d.sim.df = sim.df %>% 
-  group_by(id, year) %>%
+  group_by(id) %>%
   mutate(diff = c(0,diff((eigenvalue))))
 
 ggplot(d.sim.df %>% arrange(year)) +
   geom_point(aes(year, as.numeric((diff)), group = id, col =id)) +
   geom_line(aes(year, as.numeric((diff)), group = id, col =id)) +
+  scale_color_brewer(palette = "Paired") +
   # facet_wrap(~ id, ncol = 1)+
   theme_bw()
 
