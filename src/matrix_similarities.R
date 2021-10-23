@@ -16,6 +16,22 @@ library(Matrix)
 library(RColorBrewer)
 library(corrplot)
 
+
+mat <- matrix(data= c(0,50,100,50,0,70,100,70,0), ncol=3)
+eigen(mat)$value
+
+mat <- matrix(data= c(0,20,80,20,0,70,80,70,0), ncol=3)
+eigen(mat)$value
+
+mat <- matrix(data= c(0,50,120,50,0,90,120,90,0), ncol=3)
+eigen(mat)$value
+
+mat <- matrix(data= c(0,10,120,50,0,50,120,50,0), ncol=3)
+eigen(mat)$value
+
+mat <- matrix(data= c(0,10,120,10,0,10,120,10,0), ncol=3)
+eigen(mat)$value
+
 all.vars = c('straton', 'stratoff', 'energy', 'stability', 'anoxia',
              'iceon', 'iceoff', 'daphnia', 'clearwater', 'chla', 'doc')
 
@@ -140,6 +156,44 @@ for (m in lake.id){
       ggtitle(paste0('Pearson ', pear))
     corr.m[match(m,lake.id),match(n,lake.id)] = pear
     ggsave(file = paste0('../Figures/eigenvalues/',m,'_',n,'.png'), g, dpi = 500, width =9, height = 3)
+  }
+}
+
+str(corr.m)
+
+colnames(corr.m) <- lake.id
+rownames(corr.m) <- lake.id
+corrplot(corr.m, method="circle")
+
+
+
+
+
+lake.id = c('AL', 'BM','CR', 'SP','TR','CB', 'TB', 'FI', 'ME', 'MO', 'WI')
+corr.m <- matrix(NA, nrow = length(lake.id), ncol = length(lake.id))
+for (m in lake.id){
+  for (n in lake.id){
+    dit = sim.df %>% filter(id == m) %>% arrange(year)
+    dat =  sim.df %>% filter(id == n) %>% arrange(year)
+    error <- try(cor(dit$eigenvector, dat$eigenvector,  method = "pearson", use = "complete.obs"), silent = T)
+    if (class(error) == "try-error"){
+      pear = NaN
+    }else{
+      pear = cor(dit$eigenvector, dat$eigenvector,  method = "pearson", use = "complete.obs")
+    }
+    g <- ggplot() +
+      geom_point(data = sim.df %>% filter(id == m) %>% arrange(year),aes(year, (as.numeric(eigenvector)), col=m, group = id)) +
+      geom_line(data = sim.df %>% filter(id == m) %>% arrange(year), aes(year, (as.numeric(eigenvector)), col = m, group = id)) +
+      # geom_smooth(method = lm, formula = y ~ splines::bs(x, 3), se = FALSE)+
+      # facet_wrap(~ id, ncol = 1)+
+      geom_point(data = sim.df %>% filter(id == n) %>% arrange(year),aes(year, (as.numeric(eigenvector)), col =n, group = id)) +
+      geom_line(data = sim.df %>% filter(id == n) %>% arrange(year), aes(year, (as.numeric(eigenvector)), col = n, group = id)) +
+      ylab('eigenvector') + xlab('')+
+      scale_color_brewer(palette = "Set2") +
+      theme_bw() +
+      ggtitle(paste0('Pearson ', pear))
+    corr.m[match(m,lake.id),match(n,lake.id)] = pear
+    ggsave(file = paste0('../Figures/eigenvectors/',m,'_',n,'.png'), g, dpi = 500, width =9, height = 3)
   }
 }
 
