@@ -1,0 +1,46 @@
+---
+title: ''
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r libraries, echo=FALSE}
+library(tidyverse)
+```
+
+
+## Remove flags from LTER zoop data
+```{r}
+# note: this file is from src/daphnia.R; only read in and bind the N and S lakes together; there are no error flags
+data_raw = read_csv("../../../Data/ntl_allzoops_raw.csv")
+# cols to check:
+#   towdepth: consistent over years?
+#   species_name: any to be combined?
+#   density: "reasonable" - highly dynamic okay; check orders of magnitude and for NAs (any missing consistently in years?)
+#   individuals_measured: any big changes over the years?
+#   avg_length: reasonable? fill gaps
+```
+
+## Do data checks
+```{r tow depth}
+#   towdepth: consistent over years?
+tow_depths = data_raw %>% 
+  select(lakeid, year4, sampledate, station, towdepth) %>% 
+  unique()
+
+tow_depths %>% 
+  filter(!is.na(towdepth)) %>% 
+  ggplot(aes(x=sampledate, y=towdepth, color=as.factor(station))) +
+  geom_line() +
+  geom_point() +
+  facet_grid(rows=vars(lakeid), scales="free_y") +
+  theme_bw()
+
+# changes a little bit
+# TODO: check if tow depth goes into calculation of density, or if LTER already does this for density colum
+# TODO: check if/why northern lake tow depths are NA
+```
+

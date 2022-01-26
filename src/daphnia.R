@@ -50,22 +50,36 @@ daphnia_all %>%
   table()
 
 # calcualte spp-specific mean lengths
-mean_lengths = daphnia_all %>% 
+mean_lengths_sppLake = daphnia_all %>% 
   group_by(lakeid, species_name) %>% 
   summarise(mean_length = mean(avg_length, na.rm=T))
 
 daphnia_all = daphnia_all %>% 
-  left_join(mean_lengths) %>% 
+  left_join(mean_lengths_sppLake) %>% 
   mutate(avg_length_filled = ifelse(!is.na(avg_length), avg_length, mean_length))
 
 sum(is.na(daphnia_all$avg_length_filled)) # still missing lengths; fill with overall mean length
 
-overall_mean = mean(daphnia_all$avg_length, na.rm=T)
+daphnia_all %>% 
+  filter(is.na(avg_length_filled)) %>% 
+  select(lakeid, species_name) %>% 
+  table()
+
+# fill by spp instead of just overall
+mean_lengths_spp = daphnia_all %>% 
+  group_by(species_name) %>% 
+  summarise(mean_length_overall = mean(avg_length, na.rm=T))
+
+# overall_mean = mean(daphnia_all$avg_length, na.rm=T)
 
 daphnia_all = daphnia_all %>%
-  mutate(avg_length_filled = ifelse(!is.na(avg_length_filled), avg_length_filled, overall_mean)) %>% 
+  left_join(mean_lengths_spp) %>% 
+  mutate(avg_length_filled = ifelse(!is.na(avg_length_filled), avg_length_filled, mean_length_overall)) %>% 
   mutate(avg_biomass_filled = exp(log(M) + B*log(avg_length_filled))) %>% 
   mutate(total_biomass_filled = density*avg_biomass_filled)
+
+# a couple places were individual were measured but density is NA; likely data entry error or a 0; okay to leave
+daphnia_all %>% filter(is.na(total_biomass_filled)) %>% View()
 
 # calc date-averaged biomass
 daphnia_biomass = daphnia_all %>% 
@@ -75,9 +89,11 @@ daphnia_biomass = daphnia_all %>%
 
 # look at a plot
 daphnia_biomass %>% 
-  filter(lakeid == "AL") %>% 
+  filter(lakeid == "ME") %>% 
   ggplot(aes(x=doy, y=daphnia_biomass, color=lakeid)) + 
   geom_line() +
+  geom_point() +
+  theme_bw() +
   facet_wrap(~year4)
 
 max_biomass = daphnia_biomass %>% 
