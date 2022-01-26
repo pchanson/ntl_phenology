@@ -40,6 +40,19 @@ g = plot_df %>%
 ggsave(file = '../Figures/within_year_phenology.png', g, dpi = 500, width =9, height = 8)
 ggsave(file = '../Figures/within_year_phenology.pdf', g, width =9, height = 8)
 
+g2 = 
+plot_df %>% 
+  filter(id %in% c("ME", "BM", "CB", "AL")) %>%
+  ggplot() +
+  geom_density_ridges(aes(x=value, y=id, fill=id)) + 
+  facet_grid(cols=vars(name)) + 
+  geom_vline(xintercept = 0) + 
+  ggtitle("A:B = days between A and B") +
+  xlab("Days between A and B") +
+  theme_minimal() +
+  lims(x=c(-365, 365)) +
+  theme(axis.text = element_text(size=4))
+
 # construct matrix
 all_var_combos = expand.grid(var_order, var_order)
 all_lake_years = unique(phen_dates_wide[, c("id", "year")])

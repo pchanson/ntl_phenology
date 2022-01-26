@@ -139,6 +139,11 @@ dates_phys_wide_complete = na.omit(dates_phys_wide)
 pca_phys = prcomp(dates_phys_wide_complete[, 3:ncol(dates_phys_wide)], scale=T, center=T)
 
 get_eig(pca_phys)
+fviz_pca_var(pca_phys,
+             col.var = "contrib", # Color by contributions to the PC
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE     # Avoid text overlapping
+)
 
 
 fviz_eig(pca_phys_res)
@@ -161,6 +166,8 @@ pca_phys_res$PC3 = pca_phys$x[,3]
 pca_phys_res$PC4 = pca_phys$x[,4]
 
 pca_phys_res$id = factor(pca_phys_res$id, levels = c('AL', 'BM','CR', 'SP','TR','CB', 'TB', 'FI', 'ME', 'MO', 'WI'), ordered = T)
+
+fviz_eig(pca_phys)
 
 
 # calc correlation of pca1
