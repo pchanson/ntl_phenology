@@ -40,7 +40,36 @@ tow_depths %>%
   theme_bw()
 
 # changes a little bit
-# TODO: check if tow depth goes into calculation of density, or if LTER already does this for density colum
-# TODO: check if/why northern lake tow depths are NA
+# TODONE: check if tow depth goes into calculation of density, or if LTER already does this for density column
+# TODONE: check if/why northern lake tow depths are NA
+#     NOTE: -northern lakes are number per liter, volumetrically corrected; samples are collected at standard depths pooled before counting
+#           -northern lakes metadata: https://portal.edirepository.org/nis/metadataviewer?packageid=knb-lter-ntl.37.36
+
+# TODO: -southern lakes are number per m^2; need to divide by (tow depth * 1000) to get number per L
+#       -southern lakes metadata: https://portal.edirepository.org/nis/metadataviewer?packageid=knb-lter-ntl.90.31
+
+```
+
+```{r spp names, results='asis'}
+# species_name: any to be combined?
+# read in matched coefs and equations, do fuzzy matching, check equations/coefs
+names_fromLTER = read_csv("../../../Data/zoop_mass_coefs/Mass_Calc_LTER_uploaded_formulasFormatted.csv")
+names_matched = read_csv("../../../Data/zoop_mass_coefs/mass_coefs_matched.csv")
+
+names_matched$Origin_Spp_Name = "na"
+names_matched$Origin_formula = "na"
+for(i in 1:nrow(names_matched)){
+  cur_ind = agrep(names_matched[i, "species_name"], names_fromLTER$species, ignore.case = TRUE, value=F)
+  if(length(cur_ind) > 0){
+    names_matched[i, "Origin_Spp_Name"] = paste(pull(names_fromLTER[cur_ind, "species"]), collapse="::")
+    names_matched[i, "Origin_formula"] =  paste(unique(pull(names_fromLTER[cur_ind, "mass_formula"])), collapse="::")
+  }
+
+}
+names_matched %>% 
+  select(species_name, Origin_Spp_Name, eqn, c1, c2, c3, Origin_formula) # %>% 
+  # write_csv("../../../Data/zoop_mass_coefs/matched_names_and_formulas_toCheck.csv")
+  
+# TODO: check file above to make sure all match up
 ```
 
