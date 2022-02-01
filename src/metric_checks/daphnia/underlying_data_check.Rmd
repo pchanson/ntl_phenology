@@ -71,5 +71,7 @@ names_matched %>%
   # write_csv("../../../Data/zoop_mass_coefs/matched_names_and_formulas_toCheck.csv")
   
 # TODO: check file above to make sure all match up
+#     -Make sure "complex" (e.g., TRICHOCERCA) is coded correctly with powers
+
 ```
 
