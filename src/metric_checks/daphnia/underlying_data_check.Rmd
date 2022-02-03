@@ -73,5 +73,168 @@ for(i in 1:nrow(names_matched)){
 # TODO: check file above to make sure all match up
 #     -Make sure "complex" (e.g., TRICHOCERCA) is coded correctly with powers
 
+# TODO: above eqns/coefficients checked and fixed, update to use "mass_coefs_matched_v2.csv" in calculation script
 ```
+
+```{r, fig.height=10}
+#   density: "reasonable" - highly dynamic okay; check orders of magnitude and for NAs (any missing consistently in years?)
+
+# read in the groups and look at this by group - too many spp to do individually
+group_info = read_csv("../../../Data/zoop_mass_coefs/mass_coefs_matched_v2.csv")
+
+data_comb = left_join(data_raw,
+                      group_info %>% select(species_name, larger_group))
+
+# data_comb %>% 
+#   filter(is.na(larger_group)) %>% 
+#   select(species_name) %>% 
+#   distinct() ## -> good; only those expecting
+
+data_comb %>% 
+  filter(!is.na(larger_group)) %>% 
+  group_by(lakeid, year4, larger_group) %>% 
+  summarise(summed_density = sum(density, na.rm=T)) %>% 
+  ggplot(aes(x=year4, y=summed_density)) +
+  geom_line() + 
+  geom_point() + 
+  facet_wrap(~lakeid+larger_group, ncol=3, scales="free_y", labeller = label_wrap_gen(multi_line=FALSE))
+  
+# TODO: look into:
+#   - spikes in CB:  CLADOCERA and COPEPOD (both 1983), and ROTIFERA (1985)
+#   - MO: lower copepods in most of 2000s?
+#   - TB: highest/spike in CLADOCERA in last year?; spike in COPEPODA and ROTIFERA in 2007
+```
+
+```{r, fig.width=15}
+#   - spikes in CB:  CLADOCERA and COPEPOD (both 1983), and ROTIFERA (1985)
+data_comb %>% 
+  filter(!is.na(larger_group) & larger_group == "CLADOCERA" & lakeid == "CB") %>% 
+  filter(year4 < 1986) %>% 
+  ggplot(aes(x=sampledate, y=density)) +
+  geom_line() +
+  geom_point() +
+  facet_wrap(~species_name, scales = "free_y") # caused by big jump in bosmina
+
+data_comb %>% 
+  filter(!is.na(larger_group) & species_name == "BOSMINIDAE" & lakeid == "CB") %>% 
+  filter(year4 < 1986) %>% 
+  ggplot(aes(x=sampledate, y=density)) +
+  geom_line() +
+  geom_point() # error? winter spike in bosmina?
+# TODO: see if consequential after computing biomass; if so probably toss as outlier
+
+
+data_comb %>% 
+  filter(!is.na(larger_group) & larger_group == "COPEPODA" & lakeid == "CB") %>% 
+  filter(year4 < 1986) %>% 
+  ggplot(aes(x=sampledate, y=density)) +
+  geom_line() +
+  geom_point() +
+  facet_wrap(~species_name, scales = "free_y") # period of high copepod nauplii
+
+data_comb %>% 
+  filter(!is.na(larger_group) & species_name == "COPEPOD NAUPLII" & lakeid == "CB") %>% 
+  filter(year4 < 1986) %>% 
+  ggplot(aes(x=sampledate, y=density)) +
+  geom_line() +
+  geom_point() # looks to be in June 1983; also elevated before and after
+# TODO: see if has big impact on biomass; but probably leave in regardless
+
+data_comb %>% 
+  filter(!is.na(larger_group) & larger_group == "ROTIFERA" & lakeid == "CB") %>% 
+  filter(year4 < 1986) %>% 
+  ggplot(aes(x=sampledate, y=density)) +
+  geom_line() +
+  geom_point() +
+  facet_wrap(~species_name, scales = "free_y") # need to dump minor taxa
+
+minor_rot_taxa = data_comb %>% 
+  filter(!is.na(larger_group) & larger_group == "ROTIFERA" & lakeid == "CB") %>% 
+  filter(year4 < 1986) %>% 
+  group_by(species_name) %>% 
+  summarise(max_density = max(density, na.rm=T)) %>% 
+  filter(max_density < 10) %>% 
+  pull(species_name)
+
+data_comb %>% 
+  filter(!is.na(larger_group) & larger_group == "ROTIFERA" & lakeid == "CB" & 
+           !(species_name %in% minor_rot_taxa)) %>% 
+  filter(year4 < 1986) %>% 
+  ggplot(aes(x=sampledate, y=density)) +
+  geom_line() +
+  geom_point() +
+  facet_wrap(~species_name, scales = "free_y") # driven by KERATELLA TAUROCEPHALA & POLYARTHRA REMATA, and a couple other look to high on the same dates
+# TODO: See if they stick out as much after calculating biomass; but probably leave in regardless
+
+```
+```{r, fig.height=10}
+#   - MO: lower copepods in most of 2000s?
+data_comb %>% 
+  filter(!is.na(larger_group) & larger_group == "COPEPODA" & lakeid == "MO") %>% 
+  filter(year4 %in% 1995:2015) %>% 
+  ggplot(aes(x=sampledate, y=density)) +
+  geom_line() +
+  geom_point() +
+  facet_wrap(~species_name, nrow=5, scales = "free_y") # some weirdness in spp starting/stopping part way through (prob. methods/ppl counting change); and there is a "jump up" for some spp in ~2011
+
+# TODO: probably okay to group into biomass and look at peak date within this group as no comparing biomass/density between years
+# TODO: does the prop of total biomass that COPEPODs change in these years?
+
+# TODO: do cladocerans have jumps?
+data_comb %>% 
+  filter(!is.na(larger_group) & larger_group == "CLADOCERA" & lakeid == "MO") %>% 
+  filter(year4 %in% 1995:2015) %>% 
+  ggplot(aes(x=sampledate, y=density)) +
+  geom_line() +
+  geom_point() +
+  facet_wrap(~species_name, nrow=5, scales = "free_y") # No obvious changes; would be interesting to look at dominance of different cladocerans (and copepods and rotifers) within and across lakes
+```
+```{r}
+#   - TB: highest/spike in CLADOCERA in last year?; spike in COPEPODA and ROTIFERA in 2007
+data_comb %>% 
+  filter(!is.na(larger_group) & larger_group == "CLADOCERA" & lakeid == "TB") %>% 
+  filter(year4 %in% 2015:2020) %>% 
+  ggplot(aes(x=sampledate, y=density)) +
+  geom_line() +
+  geom_point() +
+  facet_wrap(~species_name, nrow=5, scales = "free_y") # last few samples 2019 have much higher BOSMINIDAE, but not clearly an outlier (it's a trend)
+# TODO: see how much this affects biomass; but probably leave as is
+
+data_comb %>% 
+  filter(!is.na(larger_group) & larger_group == "COPEPODA" & lakeid == "TB") %>% 
+  filter(year4 %in% 2002:2012) %>% 
+  ggplot(aes(x=sampledate, y=density)) +
+  geom_line() +
+  geom_point() +
+  facet_wrap(~species_name, nrow=5, scales = "free_y") # elevated nauplii; probably good to leave as is
+
+minor_rot_taxa = data_comb %>% 
+  filter(!is.na(larger_group) & larger_group == "ROTIFERA" & lakeid == "TB") %>% 
+  filter(year4 %in% 2002:2012) %>% 
+  group_by(species_name) %>% 
+  summarise(max_dens = max(density, na.rm=T)) %>% 
+  filter(max_dens < 10) %>% 
+  pull(species_name)
+
+data_comb %>% 
+  filter(!is.na(larger_group) & larger_group == "ROTIFERA" & lakeid == "TB" &
+           !(species_name %in% minor_rot_taxa)) %>% 
+  filter(year4 %in% 2002:2012) %>% 
+  ggplot(aes(x=sampledate, y=density)) +
+  geom_line() +
+  geom_point() +
+  facet_wrap(~species_name, nrow=5, scales = "free_y") # A couple high KERATELLA HIEMALIS and KERATELLA TAUROCEPHALA
+# TODO: see if this impacts overall zoop biomass calc; probably good to leave as is
+```
+
+
+```{r}
+#   individuals_measured: any big changes over the years?
+```
+
+```{r}
+#   avg_length: reasonable? fill gaps
+
+```
+
 
