@@ -66,9 +66,9 @@ for(i in 1:nrow(names_matched)){
   }
 
 }
-names_matched %>% 
-  select(species_name, Origin_Spp_Name, eqn, c1, c2, c3, Origin_formula) # %>% 
-  # write_csv("../../../Data/zoop_mass_coefs/matched_names_and_formulas_toCheck.csv")
+# names_matched %>% 
+#   select(species_name, Origin_Spp_Name, eqn, c1, c2, c3, Origin_formula)  %>%
+#   write_csv("../../../Data/zoop_mass_coefs/matched_names_and_formulas_toCheck_secondTry.csv")
   
 # TODO: check file above to make sure all match up
 #     -Make sure "complex" (e.g., TRICHOCERCA) is coded correctly with powers
