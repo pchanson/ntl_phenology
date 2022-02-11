@@ -55,11 +55,27 @@ ggplot(data=data2_max,aes(x=daynum))+
   geom_density()+
   facet_wrap(~lakeid,scales="free")
 
+data_check<-data1_sub[data1_sub$lakeid=="AL",]
+
+ggplot(data=data_check,aes(x=daynum, y=chlor,col=as.factor(year4)))+
+  geom_point()+
+  geom_line()+
+  facet_wrap(year4~.,scales="free")
+
+data_check<-data2_sub[data2_sub$lakeid=="ME",]
+
+ggplot(data=data_check,aes(x=daynum, y=correct_chl_fluor,col=as.factor(year4)))+
+  geom_point()+
+  geom_line()+
+  facet_wrap(year4~.,scales="free")
+
+##########################
 
 ggplot(data=data1_mean,aes(x=daynum, y=chlor,col=as.factor(year4)))+
   geom_point()+
   geom_line()+
   facet_wrap(~lakeid,scales="free")
+
 
 ggplot(data=data2_mean,aes(x=daynum, y=correct_chl_fluor,col=as.factor(year4)))+
   geom_point()+
