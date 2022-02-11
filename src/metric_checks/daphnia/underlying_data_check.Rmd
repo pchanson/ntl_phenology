@@ -177,7 +177,7 @@ data_comb %>%
   geom_point() +
   facet_wrap(~species_name, nrow=5, scales = "free_y") # some weirdness in spp starting/stopping part way through (prob. methods/ppl counting change); and there is a "jump up" for some spp in ~2011
 
-# TODO: probably okay to group into biomass and look at peak date within this group as no comparing biomass/density between years
+# TODO: probably okay to group into biomass and look at peak date within this group as not comparing biomass/density between years
 # TODO: does the prop of total biomass that COPEPODs change in these years?
 
 # TODO: do cladocerans have jumps?
