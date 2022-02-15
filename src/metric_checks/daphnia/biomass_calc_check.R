@@ -3,7 +3,7 @@
 library(tidyverse)
 
 # data
-data_raw = read_csv("../../../Data/ntl_allzoops_raw.csv")
+data_raw = read_csv("../../../Data/ntl_allzoops_raw_v2.csv")
 # biomass calc coefs
 coefs_matched = read_csv( "../../../Data/zoop_mass_coefs/mass_coefs_matched_v2.csv")
 coefs_matched %>% 
@@ -31,12 +31,165 @@ data_comb %>%
 lake_means = data_comb %>% 
   group_by(species_name, lakeid) %>% 
   summarise(mean_length_lake = mean(avg_length, na.rm=T))
-
 # overall means
 overall_means = read_csv("../../../Data/zoop_cleaned_data/overall_mean_lengths_filled.csv")
 
+# do the filling
+data_comb = left_join(data_comb, lake_means)
+data_comb = left_join(data_comb, overall_means)
+data_comb = data_comb %>% 
+  mutate(avg_length = ifelse(is.na(avg_length), mean_length_lake, avg_length))
 
+data_comb %>% 
+  filter(is.na(avg_length)) %>% 
+  select(lakeid, species_name) %>% 
+  unique() %>% View()
+data_comb = data_comb %>% 
+  mutate(avg_length = ifelse(is.na(avg_length), mean_length_overall, avg_length))
+data_comb %>% 
+  filter(is.na(avg_length)) %>% 
+  select(lakeid, species_name) %>% 
+  unique() %>% View() # looks good
+
+# do the biomass calc
+table(data_comb$eqn, useNA = 'ifany')
+data_comb %>% filter(is.na(eqn)) %>% pull(species_name) %>% table()
+inds_const = !is.na(data_comb$eqn) & data_comb$eqn == "const" 
+inds_pow = !is.na(data_comb$eqn) & data_comb$eqn == "pow" 
+inds_exp = !is.na(data_comb$eqn) & data_comb$eqn == "exp" 
+inds_comp = !is.na(data_comb$eqn) & data_comb$eqn == "complex"
+
+# apply the equations
+data_comb$mass = NA
+data_comb$mass = as.numeric(data_comb$mass)
+
+data_comb[inds_const, "mass"] = pull(data_comb[inds_const, "c1"])
+data_comb[inds_pow, "mass"] = pull(data_comb[inds_pow, "c1"]) * pull(data_comb[inds_pow, "avg_length"]) ^  pull(data_comb[inds_pow, "c2"])
+
+data_comb[inds_exp, "mass"] = exp(pull(data_comb[inds_exp, "c1"]) + pull(data_comb[inds_exp, "c2"]) * log(pull(data_comb[inds_exp, "avg_length"])))
+
+data_comb[inds_comp, "mass"] = pull(data_comb[inds_comp, "c1"]) * pull(data_comb[inds_comp, "avg_length"]) * ((pull(data_comb[inds_comp, "c2"]) *  pull(data_comb[inds_comp, "avg_length"])) ^  2)
+
+# see if these worked
+data_comb %>% 
+  filter(!is.na(c1) & is.na(mass)) %>% 
+  pull(species_name) %>% 
+  table(useNA = 'ifany') # looks good; just the ones expecting
+
+# get density in same units
+data_comb$density_nPerL = as.numeric(NA)
+# make sure all S lakes have towdepth
+data_comb %>% 
+  filter(is.na(towdepth)) %>% 
+  pull(lakeid) %>% 
+  table() # good; only the northern lakes have missing towdepths
+N_lakes = c("AL", "BM", "CB", "CR", "SP", "TB", "TR")
+data_comb = data_comb %>% 
+  mutate(density_nPerL = ifelse(lakeid %in% N_lakes, density, density / (1000 * towdepth)))
+
+# calc biomass
+data_comb$biomass_perL = data_comb$mass * data_comb$density_nPerL
+
+# calc grouped totals
+zoop_grouped_biomass = data_comb %>% 
+  group_by(lakeid, year4, sampledate, larger_group) %>% 
+  summarise(total_biomass = sum(biomass_perL, na.rm=T)) %>% 
+  ungroup() %>% 
+  filter(!is.na(larger_group))
+
+# add zeros
+all_combos = zoop_grouped_biomass %>% 
+  # group_by(lakeid, sampledate) %>% 
+  expand(nesting(lakeid, sampledate, year4), larger_group)
+
+zoop_grouped_biomass_filled = full_join(zoop_grouped_biomass, all_combos)
+zoop_grouped_biomass_filled = zoop_grouped_biomass_filled %>% 
+  mutate(total_biomass = ifelse(is.na(total_biomass), 0, total_biomass))
+
+zoop_grouped_biomass_filled %>% 
+  filter(lakeid == "ME") %>% 
+  ggplot(aes(x=sampledate, y=total_biomass)) +
+    geom_area(aes(color = larger_group, fill=larger_group)) +
+    facet_wrap(~year4, scales="free") +
+  theme_bw()
+
+zoop_total_biomass = data_comb %>% 
+  group_by(lakeid, sampledate) %>% 
+  summarise(total_biomass = sum(biomass_perL, na.rm=T)) %>% 
+  mutate(larger_group = "TOTAL") %>% 
+  ungroup()
+
+# pull out / calculate just daphnia
+
+
+
+
+
+# # ========================================================
+# # Old code - used to check and re-create the raw data file w/out duplicating N lakes data
+# # ========================================================
+# data_comb %>% 
+#   filter(is.na(density_nPerL)) %>% 
+#   View() #TODONE: issues: BM 2007, 2017; CR 2008; MO 2006; SP 2006, 2012; TB 2008; TR 2006, 2007, 2008
+# # all have dates where many species have NA density, but either individuals measured or avg_lengths taht are entered...
+# # Question: are there "actual" measurements with density values on those same dates?
+# # Answer: -> some have all NA's, some just missing a few spp that had measurements but no densities; summing over a given data should solve
+# # TODO / NOTE: summing all NAs w/ na.rm=T will give a 0; make sure to replace with NA
 # 
+# check_data = data_comb %>% 
+#   filter(is.na(density_nPerL)) %>% 
+#   select(lakeid, sampledate) %>% 
+#   unique() %>% 
+#   left_join(data_comb) %>% 
+#   arrange(lakeid, sampledate, species_name)
+# 
+# View(check_data) # some lake-sampledates have all NAs for density; others just missing one spp; 
+# # TODONE: all have duplicates for lengths; did I make them or are they in original data? -> my issue in making raw data file in daphnia.R; fixed on "Old Code" below
+# check_data_raw = data_comb %>% 
+#   filter(is.na(density_nPerL)) %>% 
+#   select(lakeid, sampledate) %>% 
+#   unique() %>%
+#   left_join(data_raw)
+# nrow(check_data)
+# nrow(check_data_raw) # same; issue is with original data
+# nrow(unique(check_data)) # roughly half of data are duplicates; TODO is that true of all data?
+# nrow(unique(data_comb)) # 51588
+# nrow(data_comb) # NOT GOOD: lots of data are duplicates?
+# nrow(unique(data_raw)) # TODONE: issue is present in "../../../Data/ntl_allzoops_raw.csv"; did I make the duplicates when I created it or are they in underlying data? -> I made the duplicates, probably by bind_rows()-ing twice; fixed below in "Old Code"
+
+
+# check original files
+# library(NTLlakeloads)
+# zoops = loadLTERzooplankton() # doesn't work; need to use libcurl
+# inUrl1 <- "https://pasta.lternet.edu/package/data/eml/knb-lter-ntl/90/31/5880c7ba184589e239aec9c55f9d313b"
+# infile1 <- tempfile()
+# download.file(inUrl1, infile1, method = "libcurl")
+# zoops_south <- read_csv(infile1, skip = 1, quote = "\"", guess_max = 1e+05, 
+#                         col_names = c("lakeid", "year4", "sample_date", "station", 
+#                                       "towdepth", "species_code", "species_name", "density", 
+#                                       "individuals_measured", "avg_length")) %>% rename(sampledate = sample_date)
+# 
+# inUrl2  <- "https://pasta.lternet.edu/package/data/eml/knb-lter-ntl/37/36/c4b652eea76cd431ac5fd3562b1837ee" 
+# infile2 <- tempfile() 
+# download.file(inUrl2,infile2,method="libcurl")
+# 
+# zoops_north <- read_csv(infile2, quote ='"',guess_max = 100000) %>%
+#   rename(sampledate = sample_date)
+# 
+# nrow(zoops_south)
+# nrow(unique(zoops_south)) # south lakes are okay
+# nrow(zoops_north)
+# nrow(unique(zoops_north)) # also okay???
+# 
+# zoops_all = bind_rows(zoops_south, zoops_north) %>% 
+#   mutate(lakeid = ifelse(lakeid == "Tr", "TR", lakeid))
+# nrow(zoops_all) 
+# nrow(unique(zoops_all)) # also okay...
+# 
+# nrow(zoops_all) + nrow(zoops_north)
+# nrow(data_comb) # must have rbinded the north lakes data 2x in making original file
+# write_csv(zoops_all, "../../../Data/ntl_allzoops_raw_v2.csv")
+
 # # ========================================================
 # # Old code - used to fill in missing lengths
 # # ========================================================
