@@ -107,10 +107,10 @@ zoop_grouped_biomass_filled = zoop_grouped_biomass_filled %>%
   mutate(total_biomass = ifelse(is.na(total_biomass), 0, total_biomass))
 
 zoop_grouped_biomass_filled %>% 
-  filter(lakeid == "ME") %>% 
+  filter(lakeid == "AL") %>% 
   ggplot(aes(x=sampledate, y=total_biomass)) +
-    geom_area(aes(color = larger_group, fill=larger_group)) +
-    facet_wrap(~year4, scales="free") +
+  geom_area(aes(color = larger_group, fill=larger_group)) +
+  facet_wrap(~year4, scales="free_x") +
   theme_bw()
 
 zoop_total_biomass = data_comb %>% 
@@ -120,9 +120,26 @@ zoop_total_biomass = data_comb %>%
   ungroup()
 
 # pull out / calculate just daphnia
+daphnia_spp = c("DAPHNIA", "DAPHNIA AMBIGUA", "DAPHNIA DENTIFERA", "DAPHNIA DUBIA", "DAPHNIA LONGIREMIS", "DAPHNIA MENDOTAE", "DAPHNIA PARVULA", "DAPHNIA PULICARIA", "DAPHNIA RETROCURVA")
 
+daphnia_grouped_biomass = data_comb %>% 
+  filter(species_name %in% daphnia_spp) %>% 
+  group_by(lakeid, year4, sampledate) %>% 
+  summarise(total_biomass = sum(biomass_perL, na.rm=T)) %>% 
+  ungroup() %>% 
+  mutate(larger_group = "DAPHNIA")
 
+daphnia_grouped_biomass %>% 
+  filter(lakeid == "AL") %>% 
+  ggplot(aes(x=sampledate, y=total_biomass)) +
+  geom_area(aes(color = larger_group, fill=larger_group)) +
+  facet_wrap(~year4, scales="free_x") +
+  theme_bw()
 
+# save files
+write_csv(data_comb, "../../../Data/ntl_all_zoop_info_species_level.csv")
+write_csv(zoop_grouped_biomass_filled, "../../../Data/ntl_cladocera_copepoda_rotifera_biomass.csv")
+write_csv(daphnia_grouped_biomass, "../../../Data/ntl_daphnia_biomass.csv")
 
 
 # # ========================================================
