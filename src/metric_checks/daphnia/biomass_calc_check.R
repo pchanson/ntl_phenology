@@ -1,6 +1,7 @@
 # Do the biomass calculations and then do check ID'd in underlying_data_check.Rmd
 
 library(tidyverse)
+library(ggridges)
 
 # data
 data_raw = read_csv("../../../Data/ntl_allzoops_raw_v2.csv")
@@ -136,10 +137,58 @@ daphnia_grouped_biomass %>%
   facet_wrap(~year4, scales="free_x") +
   theme_bw()
 
-# save files
-write_csv(data_comb, "../../../Data/ntl_all_zoop_info_species_level.csv")
-write_csv(zoop_grouped_biomass_filled, "../../../Data/ntl_cladocera_copepoda_rotifera_biomass.csv")
-write_csv(daphnia_grouped_biomass, "../../../Data/ntl_daphnia_biomass.csv")
+# # save files
+# write_csv(data_comb, "../../../Data/ntl_all_zoop_info_species_level.csv")
+# write_csv(zoop_grouped_biomass_filled, "../../../Data/ntl_cladocera_copepoda_rotifera_biomass.csv")
+# write_csv(daphnia_grouped_biomass, "../../../Data/ntl_daphnia_biomass.csv")
+
+# calc DOY of max biomass
+zoop_max = zoop_total_biomass %>% 
+  mutate(year4 = lubridate::year(sampledate)) %>% 
+  group_by(lakeid, year4) %>% 
+  slice_max(total_biomass)
+
+daphnia_max = daphnia_grouped_biomass %>% 
+  group_by(lakeid, year4) %>% 
+  slice_max(total_biomass)
+
+both_max = bind_rows(zoop_max, daphnia_max) %>% 
+  rename(group=larger_group)
+
+# plot each lake
+lakes = c("AL", "TR", "BM", "CR", "SP", "TB", "CB", "ME", "MO", "WI", "FI")
+
+pdf("../../../Figures/zoop_biomass_larger_groups.pdf", width=11, height=8.5)
+for(i in 1:length(lakes)){
+  p = zoop_grouped_biomass_filled %>% 
+    filter(lakeid == lakes[i]) %>% 
+    ggplot(aes(x=sampledate, y=total_biomass)) +
+    geom_area(aes(fill=larger_group)) +
+    facet_wrap(~year4, scales="free_x") +
+    theme_bw() +
+    ggtitle(paste(lakes[i], "Zoop Biomass", sep=" - "))
+  maxes = both_max %>% 
+    filter(lakeid == lakes[i]) %>% 
+    mutate(sampledate=ifelse(group == "DAPHNIA", sampledate + 2, sampledate - 2))
+  p = p +
+    geom_vline(data=maxes, mapping=aes(color=group, xintercept=sampledate), size=1.05) +
+    labs(color="Max. Biomass")
+  print(p)
+}
+dev.off()
+
+# TODONE: plot of distribution of biomass of different groups by lake
+zoop_grouped_biomass_filled %>% 
+  bind_rows(zoop_total_biomass) %>% 
+  mutate(lakeid = factor(lakeid, levels = lakes, ordered = T)) %>% 
+  mutate(total_biomass = ifelse(larger_group != "TOTAL" & total_biomass > 800, 800, total_biomass)) %>% 
+  mutate(total_biomass = ifelse(larger_group == "TOTAL" & total_biomass > 1000, 1000, total_biomass)) %>% 
+  ggplot(aes(x=total_biomass, y=lakeid, fill=lakeid)) +
+  geom_density_ridges( stat = "binline", bins = 40, scale = 0.95, draw_baseline = FALSE) +
+  facet_wrap(~larger_group, scales="free_x") +
+  theme_bw()
+
+# TODO: checks from underlying_data_check.Rmd
 
 
 # # ========================================================
