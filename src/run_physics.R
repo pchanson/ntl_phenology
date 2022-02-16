@@ -14,8 +14,25 @@ dt1 <- read_csv(infile3, skip = 1, quote = "\"", guess_max = 1e+05,
                                    "depth", "rep", "sta", "event", "wtemp", "o2", "o2sat", 
                                    "deck", "light", "frlight", "flagdepth", "flagwtemp", 
                                    "flago2", "flago2sat", "flagdeck", "flaglight", "flagfrlight"))
-dt1
    
+
+# high-frequency data
+inUrl2  <- "https://pasta.lternet.edu/package/data/eml/knb-lter-ntl/130/29/63d0587cf326e83f57b054bf2ad0f7fe" 
+infile2 <- tempfile()
+try(download.file(inUrl2,infile2,method="curl"))
+dt2 <-read.csv(infile2,header=F 
+               ,skip=1
+               ,sep=","  
+               ,quot='"' 
+               , col.names=c(
+                 "sampledate",     
+                 "year4",     
+                 "month",     
+                 "daynum",     
+                 "hour",     
+                 "depth",     
+                 "wtemp",     
+                 "flag_wtemp"    ), check.names=TRUE)
 
 # packages
 # install.packages('devtools')
@@ -60,6 +77,12 @@ en.df <- data.frame('sampledate' = NULL, 'energy' = NULL, 'n2' = NULL, 'id' = NU
 
 therm.df <- data.frame('sampledate' = NULL, 'thermdepth_m' = NULL, 'id' = NULL)
 
+strat.df_hf <- data.frame('year' = NULL, 'straton' = NULL, 'stratoff' = NULL, 'duration' = NULL,
+                       'energy' = NULL, 'stability' = NULL, 'id' = NULL)
+en.df_hf <- data.frame('sampledate' = NULL, 'energy' = NULL, 'n2' = NULL, 'id' = NULL)
+
+therm.df_hf <- data.frame('sampledate' = NULL, 'thermdepth_m' = NULL, 'id' = NULL)
+
 for (name in ntl.id){
   print(name)
   
@@ -76,6 +99,24 @@ for (name in ntl.id){
     mutate(iwtemp = na.approx(wtemp)) %>%
     mutate(wdens = get_dens(iwtemp, 0)) %>%
     select(year4, sampledate, depth, iwtemp, wtemp, wdens)
+  
+  if (name == 'ME'){
+    data_hf <- dt2 %>%
+      mutate(sampledate = as.POSIXct(sampledate)) %>%
+      group_by(sampledate) %>%
+      mutate(flagwtemp = ifelse(length(dt2$flag_wtemp[1]) == 1, NA, 999)) %>%
+      filter(is.na(flagwtemp)) %>%
+      filter(!is.na(wtemp)) %>%
+      filter(sum(!is.na(wtemp))>1) %>%
+      fill(wtemp, .direction = 'up') %>%
+      fill(wtemp, .direction = 'down') %>%
+      # mutate(wtemp = ifelse(row.number() ==1 & is.na(wtemp), lead(wtemp), wtemp)) %>%
+      # mutate(ifelse(is.na(wtemp[which.min(depth)])), wtemp[which.min(depth+1)], wtemp[which.min(depth)]) %>%
+      mutate(iwtemp = na.approx(wtemp)) %>%
+      mutate(wdens = get_dens(iwtemp, 0)) %>%
+      select(year4, sampledate, depth, iwtemp, wtemp, wdens)
+  }
+
   
   data.o2 <- dt1 %>%
     filter(lakeid == name) %>%
@@ -158,6 +199,56 @@ for (name in ntl.id){
                                            'id' = name))
     en.df <- rbind(en.df, data.frame('sampledate' = en$sampledate, 'energy' = en$energy, 'n2' = en$n2max,
                                      id = rep(name, nrow(en))))
+    
+    if (name == 'ME' && (a %in% data_hf$year4)){
+      df_hf <- data_hf %>%
+        filter(year4 == a) %>%
+        group_by(sampledate) %>%
+        distinct(depth, .keep_all = TRUE) %>%
+        # arrange(depth) %>%
+        mutate(dup = duplicated(depth)) %>%
+        summarise(#metadeps = meta.depths(wtr = iwtemp[which(dup == FALSE)], 
+          #                      depths = depth[which(dup == FALSE)], slope = 0.1, seasonal = TRUE, mixed.cutoff = 1),
+          thermdep = thermo.depth(wtr = iwtemp[which(dup == FALSE)], depths = depth[which(dup == FALSE)], 
+                                  Smin = 0.1, seasonal = TRUE, index = FALSE,
+                                  mixed.cutoff = 1),
+          densdiff = wdens[which.max(depth)] - wdens[which.min(depth)],
+          surfwtemp = iwtemp[which.min(depth)]) 
+      
+      therm.df_hf <- rbind(therm.df_hf, data.frame('sampledate' = df_hf$sampledate, 'thermdepth_m' = df_hf$thermdep, 'id' = name))
+      
+      border <- floor(mean(df_hf$thermdep, na.rm = T))
+      
+      dz = 0.1
+      en_hf <- data_hf %>%
+        filter(year4 == a) %>%
+        group_by(sampledate) %>%
+        arrange(depth) %>%
+        summarise(z = seq(min(depth),max(depth),dz),
+                  area = approx(hyp$Depth_m, hyp$area, seq(min(depth), max(depth),dz))$y,
+                  density = approx(depth, wdens, seq(min(depth), max(depth),dz))$y,
+                  temp = approx(depth, wtemp, seq(min(depth), max(depth),dz))$y) %>%
+        mutate('energy' = (area * dz) * density *temp * 4186,
+               'n2' = c(0,buoyancy.freq(temp, z))) %>%
+        summarise('energy' = sum(energy, na.rm = T)/max(area, na.rm = T),
+                  'n2max' = max(n2))
+      
+      
+      df_hf = df_hf %>% mutate(densdiff = ifelse(densdiff > 0.1 & surfwtemp >= 4, densdiff, NA))
+      
+      df_hf <- df_hf[complete.cases(df_hf),]
+      
+      
+      strat.df_hf <- rbind(strat.df_hf, data.frame('year' = a,
+                                             'straton' = yday(df_hf$sampledate[which.min(df_hf$sampledate)]),
+                                             'stratoff' = yday(df_hf$sampledate[which.max(df_hf$sampledate)]),
+                                             'duration' = yday(df_hf$sampledate[which.max(df_hf$sampledate)]) - yday(df_hf$sampledate[which.min(df_hf$sampledate)]),
+                                             'energy' = yday(en_hf$sampledate[which.max(en_hf$energy)]),
+                                             'stability' = yday(en_hf$sampledate[which.max(en_hf$n2max)]),
+                                             'id' = name))
+      en.df_hf <- rbind(en.df_hf, data.frame('sampledate' = en_hf$sampledate, 'energy' = en_hf$energy, 'n2' = en_hf$n2max,
+                                       id = rep(name, nrow(en_hf))))
+    }
   }
   
 }
@@ -219,15 +310,45 @@ doc.df <- read_csv('../Data/doc.csv') %>%
   select(id, doc, decade, year)
 m.doc.df <- reshape2::melt(doc.df, id.vars = c('id','decade', 'year'))
 
+# physics
 c.strat.df = strat.df[c('straton','stratoff','energy','stability', 'anoxia','id', 'year')]
 c.strat.df$decade = strat.df$year - strat.df$year%% 3
 m.strat.df <- reshape2::melt(c.strat.df, id.vars = c('id','decade', 'year'))
 
+# hf physics
+c.strat.df_hf = strat.df_hf[c('straton','stratoff','energy','stability', 'id', 'year')]
+c.strat.df_hf$decade = strat.df_hf$year - strat.df_hf$year%% 3
+m.strat.df_hf <- reshape2::melt(c.strat.df_hf, id.vars = c('id','decade', 'year'))
+
+# combine everything
 df = rbind(m.strat.df, m.daphnia.df, m.light.df, m.ice.df, m.chla.df, m.doc.df)
 
 
 df$id <- factor(df$id, levels= (c("AL","BM","CB", "CR","SP", "TB", "TR","FI","ME","MO", "WI")))
 df$variable <- factor(df$variable, levels= rev(c("iceoff", "straton", "clearwater", "daphnia", "chla", "doc", "anoxia","stability", "energy","stratoff", "iceon")))
+
+df_hf = rbind(m.strat.df_hf)
+
+df_hf$id <- factor(df_hf$id, levels= (c("ME")))
+df_hf$variable <- factor(df_hf$variable, levels= rev(c("straton", "stability", "energy","stratoff")))
+
+# compare biweekly physics with hf physics
+df_comp1 <- df %>% 
+  filter(id == 'ME') %>%
+  mutate(id = 'ME_biweekly')
+df_comp2 <- df_hf %>%
+  mutate(id = 'ME_hf')
+df_comp <- rbind(df_comp1, df_comp2)
+
+ggplot(df_comp) + 
+  stat_density_ridges(aes(x = as.Date(value, origin = as.Date('2019-01-01')), 
+                          y= variable, col = variable, fill = variable), 
+                      alpha = 0.5, quantile_lines = T, quantiles = 2) +
+  scale_x_date(labels = date_format("%b")) +
+  facet_wrap(~ (id)) +
+  xlab('') + ylab('Density')+
+  theme_minimal() 
+
 
 write.csv(df, file ='../Data/phenology_data.csv', quote = F, row.names = F)
 
