@@ -185,6 +185,15 @@ daynum_max_comb %>%
   ggtitle("Chl Peak Timing") +
   theme(legend.position = c(0.75, 0.08), legend.direction = "horizontal")
 
+daynum_max_comb_out = daynum_max_comb %>% 
+  rename(year = year4, metric = period) %>% 
+  select(-chlor) %>% 
+  mutate(metric = ifelse(metric == "all", "chlor_all", metric)) %>% 
+  mutate(metric = ifelse(metric == "fall", "chlor_fall", metric)) %>% 
+  mutate(metric = ifelse(metric == "spring", "chlor_spring", metric))%>% 
+  select(lakeid, metric, sampledate, year, daynum)
+
+# write_csv(daynum_max_comb_out, "../../../Data/final_metric_data/chlorophyll_maxes.csv")
 
 # plot time series with peaks
 daynum_max_comb2 = daynum_max_comb %>% 

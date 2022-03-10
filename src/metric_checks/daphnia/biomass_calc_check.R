@@ -155,6 +155,17 @@ daphnia_max = daphnia_grouped_biomass %>%
 both_max = bind_rows(zoop_max, daphnia_max) %>% 
   rename(group=larger_group)
 
+# WRITE results
+both_max_out = both_max %>% 
+  rename(metric = group, year = year4) %>% 
+  select(-total_biomass) %>% 
+  mutate(metric = ifelse(metric == "TOTAL", "total_zoop_biomass", metric)) %>% 
+  mutate(metric = ifelse(metric == "DAPHNIA", "daphnia_biomass", metric)) %>% 
+  mutate(daynum = lubridate::yday(sampledate)) %>% 
+  select(lakeid, metric, sampledate, year, daynum)
+
+# write_csv(both_max_out, "../../../Data/final_metric_data/zooplankton_max_biomass.csv")
+
 # plot each lake
 lakes = c("AL", "TR", "BM", "CR", "SP", "TB", "CB", "ME", "MO", "WI", "FI")
 
@@ -189,6 +200,7 @@ zoop_grouped_biomass_filled %>%
   theme_bw()
 
 # TODO: checks from underlying_data_check.Rmd
+# TODO: maybe exclude first and last sample from max calculation?
 
 
 # # ========================================================
