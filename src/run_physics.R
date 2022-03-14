@@ -330,6 +330,7 @@ m.strat.df_out = m.strat.df %>%
   mutate(sampledate = as.Date(daynum, origin = paste0((year-1), "-12-31"))) %>% 
   select(lakeid, metric, sampledate, year, daynum)
 
+# NOTE: this currently contains anoxia; will likely change / be separate file, if so would need to filter it out
 write_csv(m.strat.df_out, "../Data/final_metric_data/physics.csv")
 
 m.ice.df_out = m.ice.df %>% 
