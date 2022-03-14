@@ -323,6 +323,23 @@ m.strat.df_hf <- reshape2::melt(c.strat.df_hf, id.vars = c('id','decade', 'year'
 # combine everything
 df = rbind(m.strat.df, m.daphnia.df, m.light.df, m.ice.df, m.chla.df, m.doc.df)
 
+# write physics data frames
+m.strat.df_out = m.strat.df %>% 
+  rename(lakeid = id, metric = variable, daynum = value) %>% 
+  select(-decade) %>% 
+  mutate(sampledate = as.Date(daynum, origin = paste0((year-1), "-12-31"))) %>% 
+  select(lakeid, metric, sampledate, year, daynum)
+
+write_csv(m.strat.df_out, "../Data/final_metric_data/physics.csv")
+
+m.ice.df_out = m.ice.df %>% 
+  rename(lakeid = id, metric = variable, daynum = value) %>% 
+  select(-decade) %>% 
+  mutate(sampledate = as.Date(daynum, origin = paste0((year-1), "-12-31"))) %>% 
+  select(lakeid, metric, sampledate, year, daynum)
+
+write_csv(m.ice.df_out, "../Data/final_metric_data/ice.csv")
+
 
 df$id <- factor(df$id, levels= (c("AL","BM","CB", "CR","SP", "TB", "TR","FI","ME","MO", "WI")))
 df$variable <- factor(df$variable, levels= rev(c("iceoff", "straton", "clearwater", "daphnia", "chla", "doc", "anoxia","stability", "energy","stratoff", "iceon")))
