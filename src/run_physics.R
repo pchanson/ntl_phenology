@@ -1,3 +1,25 @@
+# packages
+# install.packages('devtools')
+# devtools::install_github('hdugan/NTLlakeloads')
+# install.packages('tidyr')
+# install.packages('tidyverse')
+# install.packages('rLakeAnalyzer')
+# install.packages('lubridate')
+# install.packages('zoo')
+# devtools::install_github('thomasp85/gganimate')
+# install.packages('ggridges')
+
+library(NTLlakeloads)
+library(tidyverse)
+library(rLakeAnalyzer)
+library(lubridate)
+library(zoo)
+library(patchwork)
+library(gganimate)
+library(ggridges)
+library(pracma)
+library(scales)
+
 # remove everything from workspace
 rm(list = ls())
 
@@ -34,27 +56,7 @@ dt2 <-read.csv(infile2,header=F
                  "wtemp",     
                  "flag_wtemp"    ), check.names=TRUE)
 
-# packages
-# install.packages('devtools')
-# devtools::install_github('hdugan/NTLlakeloads')
-# install.packages('tidyr')
-# install.packages('tidyverse')
-# install.packages('rLakeAnalyzer')
-# install.packages('lubridate')
-# install.packages('zoo')
-# devtools::install_github('thomasp85/gganimate')
-# install.packages('ggridges')
 
-library(NTLlakeloads)
-library(tidyverse)
-library(rLakeAnalyzer)
-library(lubridate)
-library(zoo)
-library(patchwork)
-library(gganimate)
-library(ggridges)
-library(pracma)
-library(scales)
 
 get_dens <- function(temp, salt){
   dens = 999.842594 + (6.793952 * 10^-2 * temp) - (9.095290 * 10^-3 * temp^2) +
@@ -72,7 +74,7 @@ bath <- rbind(bath, data.frame('lakeid' = rep('FI',2), 'Depth_m' = c(0,18.9),
 
 ntl.id <- unique(dt1$lakeid)
 strat.df <- data.frame('year' = NULL, 'straton' = NULL, 'stratoff' = NULL, 'duration' = NULL,
-                       'energy' = NULL, 'stability' = NULL, 'anoxia' = NULL, 'id' = NULL)
+                       'energy' = NULL, 'stability' = NULL, 'anoxia' = NULL, 'anoxia_summer' = NULL, 'id' = NULL)
 en.df <- data.frame('sampledate' = NULL, 'energy' = NULL, 'n2' = NULL, 'id' = NULL)
 
 therm.df <- data.frame('sampledate' = NULL, 'thermdepth_m' = NULL, 'id' = NULL)
@@ -132,7 +134,11 @@ for (name in ntl.id){
     select(year4, sampledate, depth, io2, o2)
   
   
-  for (a in unique(data$year4)){
+  # Some years only have a couple of samples
+  useYears = data |> group_by(year4, sampledate) |> tally() |> 
+    group_by(year4) |> tally() |> filter(n >= 5) |> pull(year4)
+  
+  for (a in useYears){
     
     hyp <- bath %>%
       filter(lakeid == name)
@@ -196,6 +202,7 @@ for (name in ntl.id){
                                            'energy' = yday(en$sampledate[which.max(en$energy)]),
                                            'stability' = yday(en$sampledate[which.max(en$n2max)]),
                                            'anoxia' = yday(an$sampledate[which.min(an$do)]),
+                                           'anoxia_summer' = yday(an[an$sampledate > df$sampledate[which.min(df$sampledate)],]$sampledate[which.min(an[an$sampledate > df$sampledate[which.min(df$sampledate)],]$do)]), #omg this is awful but it works
                                            'id' = name))
     en.df <- rbind(en.df, data.frame('sampledate' = en$sampledate, 'energy' = en$energy, 'n2' = en$n2max,
                                      id = rep(name, nrow(en))))
@@ -311,7 +318,7 @@ doc.df <- read_csv('../Data/doc.csv') %>%
 m.doc.df <- reshape2::melt(doc.df, id.vars = c('id','decade', 'year'))
 
 # physics
-c.strat.df = strat.df[c('straton','stratoff','energy','stability', 'anoxia','id', 'year')]
+c.strat.df = strat.df[c('straton','stratoff','energy','stability', 'anoxia','anoxia_summer','id', 'year')]
 c.strat.df$decade = strat.df$year - strat.df$year%% 3
 m.strat.df <- reshape2::melt(c.strat.df, id.vars = c('id','decade', 'year'))
 
@@ -343,12 +350,22 @@ write_csv(m.ice.df_out, "../Data/final_metric_data/ice.csv")
 
 
 df$id <- factor(df$id, levels= (c("AL","BM","CB", "CR","SP", "TB", "TR","FI","ME","MO", "WI")))
-df$variable <- factor(df$variable, levels= rev(c("iceoff", "straton", "clearwater", "daphnia", "chla", "doc", "anoxia","stability", "energy","stratoff", "iceon")))
+df$variable <- factor(df$variable, levels= rev(c("iceoff", "straton", "clearwater", "daphnia", "chla", "doc", "anoxia", "anoxia_summer","stability", "energy","stratoff", "iceon")))
 
 df_hf = rbind(m.strat.df_hf)
 
 df_hf$id <- factor(df_hf$id, levels= (c("ME")))
 df_hf$variable <- factor(df_hf$variable, levels= rev(c("straton", "stability", "energy","stratoff")))
+
+ggplot(df) + 
+  stat_density_ridges(aes(x = as.Date(value, origin = as.Date('2019-01-01')), 
+                          y= variable, col = variable, fill = variable), 
+                      alpha = 0.5, quantile_lines = T, quantiles = 2) +
+  scale_x_date(labels = date_format("%b")) +
+  facet_wrap(~ (id)) +
+  xlab('') + ylab('Density')+
+  theme_minimal() 
+# ggsave('../Figures/phenology_all.png', width = 8, height = 5, dpi = 500)
 
 # compare biweekly physics with hf physics
 df_comp1 <- df %>% 
