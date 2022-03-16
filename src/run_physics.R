@@ -15,7 +15,7 @@ library(rLakeAnalyzer)
 library(lubridate)
 library(zoo)
 library(patchwork)
-library(gganimate)
+# library(gganimate)
 library(ggridges)
 library(pracma)
 library(scales)
@@ -25,38 +25,19 @@ rm(list = ls())
 
 setwd(dirname(rstudioapi::getSourceEditorContext()$path))
 
+# Load NTL LTER long term physical lake data
 # Package ID: knb-lter-ntl.29.29 Cataloging System:https://pasta.edirepository.org.
 # Data set title: North Temperate Lakes LTER: Physical Limnology of Primary Study Lakes 1981 - current.
-
 inUrl3 <- "https://pasta.lternet.edu/package/data/eml/knb-lter-ntl/29/29/03e232a1b362900e0f059859abe8eb97"
 infile3 <- tempfile()
 download.file(inUrl3, infile3, method = "curl")
-dt1 <- read_csv(infile3, skip = 1, quote = "\"", guess_max = 1e+05, 
-                     col_names = c("lakeid", "year4", "daynum", "sampledate", 
-                                   "depth", "rep", "sta", "event", "wtemp", "o2", "o2sat", 
-                                   "deck", "light", "frlight", "flagdepth", "flagwtemp", 
-                                   "flago2", "flago2sat", "flagdeck", "flaglight", "flagfrlight"))
-   
+dt1 <- read_csv(infile3)
 
 # high-frequency data
 inUrl2  <- "https://pasta.lternet.edu/package/data/eml/knb-lter-ntl/130/29/63d0587cf326e83f57b054bf2ad0f7fe" 
 infile2 <- tempfile()
 try(download.file(inUrl2,infile2,method="curl"))
-dt2 <-read.csv(infile2,header=F 
-               ,skip=1
-               ,sep=","  
-               ,quot='"' 
-               , col.names=c(
-                 "sampledate",     
-                 "year4",     
-                 "month",     
-                 "daynum",     
-                 "hour",     
-                 "depth",     
-                 "wtemp",     
-                 "flag_wtemp"    ), check.names=TRUE)
-
-
+dt2 <-read_csv(infile2)
 
 get_dens <- function(temp, salt){
   dens = 999.842594 + (6.793952 * 10^-2 * temp) - (9.095290 * 10^-3 * temp^2) +
@@ -68,9 +49,10 @@ get_dens <- function(temp, salt){
   return(dens)
 }
 
-bath <- read.csv('../Data/NTLhypsometry.csv')
-bath <- rbind(bath, data.frame('lakeid' = rep('FI',2), 'Depth_m' = c(0,18.9),
-                               'Depth_ft' = c(0,0),'area' = c(874000, 0)))
+# Load bathymetry
+bath <- read_csv('../Data/NTLhypsometry.csv') |> 
+  bind_rows(data.frame('lakeid' = rep('FI',2), 'Depth_m' = c(0,18.9),
+                       'Depth_ft' = c(0,0),'area' = c(874000, 0)))
 
 ntl.id <- unique(dt1$lakeid)
 strat.df <- data.frame('year' = NULL, 'straton' = NULL, 'stratoff' = NULL, 'duration' = NULL,
