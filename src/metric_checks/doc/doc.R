@@ -120,15 +120,50 @@ nSamples = nuts_clean_avg %>%
   group_by(lakeid, year4) %>% 
   summarise(N = n())
 
+# TODONE: check this (any with 1, 2, 3, etc.?)
+## next smallest group is 4 samples in a year; going with that is okay
+
 good_years = nSamples %>% 
   filter(N > 1) %>% 
   select(-N)
 
-out = left_join(good_years, peaks_ag)
+# TODO: deal with years with multiple peaks (see secchi.R)
+doc_singlePeak = peaks_ag %>% 
+  group_by(lakeid, year4) %>% 
+  summarise(N = n()) %>% 
+  filter(N == 1) %>% 
+  select(-N)
+
+doc_multPeaks = peaks_ag %>% 
+  group_by(lakeid, year4) %>% 
+  summarise(N = n()) %>% 
+  filter(N != 1) %>% 
+  select(-N)
+
+hold_peaks = list()
+for(i in 1:nrow(doc_multPeaks)){
+  cur_ly = peaks_ag %>% 
+    filter(lakeid == doc_multPeaks$lakeid[i] &
+             year4 == doc_multPeaks$year4[i]) %>% 
+    arrange(daynum)
+  N = ceiling(nrow(cur_ly) / 2)
+  hold_peaks[[i]] = cur_ly[N,]
+}
+all_multpeak_LYs = bind_rows(hold_peaks)
+
+out_peaks_clean = bind_rows(
+  doc_singlePeak %>% left_join(peaks_ag), 
+  all_multpeak_LYs
+) %>% 
+  arrange(lakeid, year4)
+
+
+
+out = left_join(good_years, out_peaks_clean)
 out = out %>% 
   mutate(metric = "doc") %>% 
   select(lakeid, metric, sampledate, year4, daynum) %>% 
-  rename(year=year4)
+  rename(year=year4) 
 
 write_csv(out,  "../../../Data/final_metric_data/doc.csv")
                 
