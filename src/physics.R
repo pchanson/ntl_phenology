@@ -157,19 +157,18 @@ strat.df.wide = strat.df |> select(-duration) |>
   mutate(daynum = yday(sampledate)) 
 # write_csv(strat.df.wide, "Data/final_metric_data/physics.csv")
 
-
-test = read_csv('Data/final_metric_data/physics.csv')
-
-for (name in unique(dt1$lakeid)){
-  p1 = ggplot(strat.df.wide |> filter(lakeid == name)) +
-     geom_point(aes(x = year, y = daynum)) +
-      geom_line(aes(x = year, y = daynum)) +
-      geom_point(data = test |> filter(lakeid == name), aes(x = year, y = daynum), col = 'blue') +
-      geom_line(data = test |> filter(lakeid == name), aes(x = year, y = daynum), col = 'blue') +
-      facet_wrap(~metric) +
-      labs(title = name)
-  print(p1)
-}
+# Plot comparison with old data file
+# test = read_csv('Data/final_metric_data/physics.csv')
+# for (name in unique(dt1$lakeid)){
+#   p1 = ggplot(strat.df.wide |> filter(lakeid == name)) +
+#      geom_point(aes(x = year, y = daynum)) +
+#       geom_line(aes(x = year, y = daynum)) +
+#       geom_point(data = test |> filter(lakeid == name), aes(x = year, y = daynum), col = 'blue') +
+#       geom_line(data = test |> filter(lakeid == name), aes(x = year, y = daynum), col = 'blue') +
+#       facet_wrap(~metric) +
+#       labs(title = name)
+#   print(p1)
+# }
 
 
 
