@@ -118,7 +118,7 @@ for (name in unique(dt1$lakeid)){
   
   # Get oxygen
   an <- data.o2.lake %>%
-    group_by(year, sampledate, thermdep) %>%
+    group_by(year, sampledate) %>%
     arrange(depth) %>%
     summarise(z = seq(min(depth),max(depth),dz),
               area = approx(hyp$Depth_m, hyp$area, seq(min(depth), max(depth),dz))$y,
