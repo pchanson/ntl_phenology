@@ -22,7 +22,8 @@ download.file(inUrl3, infile3, method = "curl")
 dt1 <- read_csv(infile3) 
 # Only use common depths
 usedepths = dt1 |> group_by(depth) |> tally() |> filter(n >= 500) |> pull(depth)
-dt1 = dt1 |> filter(depth %in% usedepths)
+dt1 = dt1 |> filter(depth %in% usedepths) |> 
+  filter(year4 >= 1982)
 
 get_dens <- function(temp, salt){
   dens = 999.842594 + (6.793952 * 10^-2 * temp) - (9.095290 * 10^-3 * temp^2) +
@@ -119,11 +120,11 @@ for (name in unique(dt1$lakeid)){
   # Get oxygen
   an <- data.o2.lake %>%
     group_by(year, sampledate) %>%
-    arrange(depth) %>%
     summarise(z = seq(min(depth),max(depth),dz),
               area = approx(hyp$Depth_m, hyp$area, seq(min(depth), max(depth),dz))$y,
               do = approx(depth, o2, seq(min(depth), max(depth), dz))$y) %>%
-    summarise('do' = abs(trapz(1 * area, do)))
+    # summarise('do' = abs(trapz(z * area, do)))
+    summarise('do' = sum(dz * area * do))
   
   # Final stratification data.frame
   strat.df =  df.lake |> group_by(year) |>  
@@ -158,17 +159,17 @@ strat.df.wide = strat.df |> select(-duration) |>
 # write_csv(strat.df.wide, "Data/final_metric_data/physics.csv")
 
 # Plot comparison with old data file
-# test = read_csv('Data/final_metric_data/physics.csv')
-# for (name in unique(dt1$lakeid)){
-#   p1 = ggplot(strat.df.wide |> filter(lakeid == name)) +
-#      geom_point(aes(x = year, y = daynum)) +
-#       geom_line(aes(x = year, y = daynum)) +
-#       geom_point(data = test |> filter(lakeid == name), aes(x = year, y = daynum), col = 'blue') +
-#       geom_line(data = test |> filter(lakeid == name), aes(x = year, y = daynum), col = 'blue') +
-#       facet_wrap(~metric) +
-#       labs(title = name)
-#   print(p1)
-# }
+test = read_csv('Data/final_metric_data/physics.csv')
+for (name in unique(dt1$lakeid)){
+  p1 = ggplot(strat.df.wide |> filter(lakeid == name)) +
+     geom_point(aes(x = year, y = daynum)) +
+      geom_line(aes(x = year, y = daynum)) +
+      geom_point(data = test |> filter(lakeid == name), aes(x = year, y = daynum), col = 'blue') +
+      geom_line(data = test |> filter(lakeid == name), aes(x = year, y = daynum), col = 'blue') +
+      facet_wrap(~metric) +
+      labs(title = name)
+  print(p1)
+}
 
 
 
