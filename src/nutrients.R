@@ -30,25 +30,25 @@ lternuts.flagged = read_csv('Data/ntl1_v9_1.csv') %>%
                           TRUE ~ item))
 
 # Load thermocline depth
-thermo <- read_csv('Data/thermocline.csv') |> 
+thermo <- read_csv('Data/thermocline.csv') %>% 
   rename(lakeid = id)
 
 # Load stratification dates
-strat = read_csv('Data/final_metric_data/physics.csv') |> 
-  filter(metric == 'straton') |> 
+strat = read_csv('Data/final_metric_data/physics.csv') %>% 
+  filter(metric == 'straton') %>% 
   select(lakeid, year4 =year , stratday = daynum)
 
 
 # restrict to epilimnion and stratification period
-nuts = lternuts.flagged |> left_join(thermo, by = c("lakeid", "sampledate")) |> 
-  left_join(strat, by = c("lakeid", "year4")) |> 
-  mutate(month = month(sampledate), year = year(sampledate), yday = yday(sampledate)) |> 
-  filter(depth <= thermdepth_m) |> #filter to epilimnion
-  filter(daynum >= stratday) |> #filter to after stratification
+nuts = lternuts.flagged %>% left_join(thermo, by = c("lakeid", "sampledate")) %>% 
+  left_join(strat, by = c("lakeid", "year4")) %>% 
+  mutate(month = month(sampledate), year = year(sampledate), yday = yday(sampledate)) %>% 
+  filter(depth <= thermdepth_m) %>% #filter to epilimnion
+  filter(daynum >= stratday) %>% #filter to after stratification
   filter(year > 1981) 
 
 # What plot looks like with outliers
-ggplot(nuts |> filter(item == 'doc')) +
+ggplot(nuts %>% filter(item == 'doc')) +
   geom_path(aes(x = as.Date(yday, origin = as.Date('2019-01-01')), y = value, group = year)) +
   geom_point(aes(x = as.Date(yday, origin = as.Date('2019-01-01')), y = value, group = year)) +
   scale_x_date(labels = date_format("%b")) +
@@ -57,11 +57,11 @@ ggplot(nuts |> filter(item == 'doc')) +
   theme(axis.title.x = element_blank())
 
 # Exclude outliers based on box plot statistics 
-nuts2 = nuts |> 
-  group_by(lakeid) |> 
-  filter(item == 'doc') |> 
-  mutate(value = filter_lims(value)) |> 
-  group_by(lakeid, sampledate, year, yday) |> 
+nuts2 = nuts %>% 
+  group_by(lakeid) %>% 
+  filter(item == 'doc') %>% 
+  mutate(value = filter_lims(value)) %>% 
+  group_by(lakeid, sampledate, year, yday) %>% 
   summarise(value = mean(value, na.rm = T))
 
 ggplot(nuts2) +
@@ -73,14 +73,23 @@ ggplot(nuts2) +
   theme(axis.title.x = element_blank())
 
 # find day of max DOC
-doc = nuts2 |> group_by(lakeid, year) |> 
-  filter(value == max(value, na.rm = T)) |> 
-  mutate(daynum = yday(sampledate)) |> 
-  select(lakeid, year4 = year, daynum = yday)
+doc = nuts2 %>% group_by(lakeid, year) %>% 
+  filter(value == max(value, na.rm = T)) %>% 
+  mutate(daynum = yday(sampledate), metric="doc") %>% 
+  select(lakeid, metric, sampledate, year, daynum = yday)
+
+# see if any years have multiple peaks with same doc value
+doc %>% group_by(lakeid, year) %>% summarise(N = n()) %>% filter(N > 1) # Sparkling 1997
+
+nuts2 %>% filter(lakeid == "SP" & year == 1997) # two dates with same value; take first one as done w/ other values
+doc = doc %>% 
+  group_by(lakeid, year) %>% 
+  slice_min(daynum) %>% 
+  ungroup()
 
 # Plot density distributions
 ggplot(doc) +
   geom_density(aes(x = daynum)) +
   facet_wrap(~lakeid)
 
-write.csv(doc,"Data/doc.csv")
+write.csv(doc,"Data/final_metric_data/doc.csv", row.names = F)
