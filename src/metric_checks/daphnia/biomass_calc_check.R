@@ -164,7 +164,20 @@ both_max_out = both_max %>%
   mutate(daynum = lubridate::yday(sampledate)) %>% 
   select(lakeid, metric, sampledate, year, daynum)
 
-# write_csv(both_max_out, "../../../Data/final_metric_data/zooplankton_max_biomass.csv")
+# deal with years with two equal peaks!
+both_max_out %>% 
+  group_by(lakeid, metric, year) %>% 
+  summarise(N = n()) %>% 
+  filter(N > 1) %>%  # only have two in two years (SP 2008, TB 1987)
+  left_join(bind_rows(zoop_max, daphnia_max) %>% rename(year=year4))
+  # take the first event for these
+
+both_max_out_nodups = both_max_out %>% 
+  group_by(lakeid, metric, year) %>% 
+  slice_min(daynum)
+
+
+# write_csv(both_max_out_nodups, "../../../Data/final_metric_data/zooplankton_max_biomass.csv")
 
 # plot each lake
 lakes = c("AL", "TR", "BM", "CR", "SP", "TB", "CB", "ME", "MO", "WI", "FI")

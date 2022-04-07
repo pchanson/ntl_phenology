@@ -1,0 +1,344 @@
+---
+title: "Fill Missing Phenology Dates"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo=FALSE, message=FALSE}
+library(tidyverse)
+dat = read_csv("../Data/final_metric_data/final_combined_dates.csv")
+lakes = c("AL", "BM", "CB", "CR", "SP", "TB", "TR", "FI", "ME", "MO", "WI")
+dat$lakeid = factor(dat$lakeid, 
+                    levels = rev(lakes), 
+                    ordered = T)
+vars = c("iceoff", "straton", "secchi_all", "secchi_openwater", "daphnia_biomass",
+                               "total_zoop_biomass", "chlor_all", "chlor_spring", "chlor_fall", "doc", 
+                               "anoxia", "anoxia_summer", "stability", "energy", "stratoff", "iceon")
+dat$metric = factor(dat$metric,
+                    levels = rev(vars),
+                    ordered=T)
+```
+# Data
+
+## Which years are missing a metric
+```{r, fig.width = 14, fig.height=20}
+dat %>% 
+  ggplot(aes(year, lakeid, fill=is.na(daynum))) +
+  geom_tile(color="grey") +
+  theme_bw() +
+  facet_wrap(~metric, nrow=6) 
+  # labs(fill = "Missing") + 
+  # scale_fill_scico(palette = 'imola')
+
+# dat %>% 
+#   ggplot(aes(year, lakeid, fill=daynum)) +
+#   geom_tile(color="grey") +
+#   theme_bw() +
+#   facet_wrap(~metric, nrow=6) + 
+#   # labs(fill = "Missing") + 
+#   scale_fill_viridis_c()
+```
+
+**Remaining data issues:**
+
+* Northern lakes don't have DOC until until 1986; missing first 4 years when all other variables are available. Potential fixes:
+  - Exclude DOC; start analyses in 1986; fill DOC with e.g., median value, or **model of other variables**?
+* Two missing iceon dates in AL (1982) and CB (1988). Potential fix:
+  - **Fill with function/model of other lake ice on dates**
+* Southern lakes missing chlorophyll data: 1996 - 1999 and 2002 - 2004: is this the fluorometer issue? **See if other instruments (spec) have data to use for these years.**
+* Zoop data issues:
+  - CB missing daphnia peak 1995(?): **fill with medain**
+  - FI missing several years from 1996 - 2006; unsure what to do.
+  
+  
+**Predict ice-on in northern lakes from other lakes ice-on dates**  
+```{r}
+n_iceoff_wide = dat %>% 
+  select(-sampledate)%>% 
+  filter(lakeid %in% c("AL", "BM", "CB", "CR", "SP", "TB", "TR") & metric == "iceoff") %>% 
+  pivot_wider(names_from = lakeid, values_from = daynum)
+
+al_iceoff_model = lm(AL~BM+CB+CR+SP+TB+TR, data=n_iceoff_wide)
+summary(al_iceoff_model)
+plot(n_iceoff_wide$AL, predict(al_iceoff_model, n_iceoff_wide), pch=16)
+# actually looks good; use to fill
+cb_iceoff_model = lm(CB~AL+BM+CR+SP+TB+TR, data=n_iceoff_wide)
+summary(cb_iceoff_model)
+plot(n_iceoff_wide$CB, predict(cb_iceoff_model, n_iceoff_wide), pch=16)
+# really good; go ahead and fill
+
+al_missing_iceoff = n_iceoff_wide %>% filter(is.na(AL))
+al_missing_iceoff$iceoff_fill = round(predict(al_iceoff_model, al_missing_iceoff))
+al_iceoff_fill = al_missing_iceoff %>% 
+  select(metric, year, iceoff_fill) %>% 
+  rename(daynum_fill = iceoff_fill) %>% 
+  mutate(metric = "iceoff", lakeid = "AL") 
+
+cb_missing_iceoff = n_iceoff_wide %>% filter(is.na(CB))
+cb_missing_iceoff$iceoff_fill = round(predict(cb_iceoff_model, cb_missing_iceoff))
+cb_iceoff_fill = cb_missing_iceoff %>% 
+  select(metric, year, iceoff_fill) %>% 
+  rename(daynum_fill = iceoff_fill) %>% 
+  mutate(metric = "iceoff", lakeid = "CB")
+
+iceoff_fill = bind_rows(al_iceoff_fill, cb_iceoff_fill)
+```
+
+  
+**Predict DOC daynum from other variable daynum's in each northern lake**
+```{r}
+no_dups = dat %>% group_by(lakeid, year, metric) %>% summarise(N = n()) %>% filter(N == 1)
+
+n_lakes_wide = left_join(no_dups, dat) %>% 
+  select(-sampledate) %>% 
+  pivot_wider(names_from = metric, values_from = daynum) %>% 
+  filter(lakeid %in% c("AL", "BM", "CB", "CR", "SP", "TB", "TR"))
+
+hold_data = na.omit(data.frame(n_lakes_wide %>%  ungroup() %>% select(-year, -N))) # , -doc_predict
+all = lm(doc~(iceon+straton+stratoff+energy+
+                 stability+anoxia_summer+secchi_all+
+                 secchi_openwater+total_zoop_biomass+daphnia_biomass)*lakeid, data=hold_data)
+i_o = lm(doc~1, data=hold_data)
+hold_step = step(i_o, scope=formula(all))
+
+doc_model = lm(doc~(iceon+straton+stratoff+energy+
+                 stability+anoxia_summer+secchi_all+
+                 secchi_openwater+total_zoop_biomass+daphnia_biomass)*lakeid, 
+               data=n_lakes_wide, 
+               na.action = na.exclude)
+summary(doc_model)
+
+n_lakes_wide$doc_predict = predict(doc_model, n_lakes_wide)
+
+cor = n_lakes_wide %>% 
+  group_by(lakeid) %>% 
+  summarise(r = paste("r =", round(cor(doc, doc_predict, use="complete.obs"), 3)))
+
+n_lakes_wide %>% 
+  ggplot(aes(x=doc, y=doc_predict, color=as.character(lakeid))) +
+  geom_point()+
+  theme_bw() +
+  labs(color="lakeid")+
+  geom_abline(slope=1, intercept = 0) + 
+  facet_wrap(~lakeid) + 
+  geom_text(aes(label=r), data=cor, x=300, y=0) +
+  labs(x="obs peak DOC (daynum)",  y="modeled peak DOC (daynum)")
+
+# not good but vaguely positive relationship; use this instead of median?
+missing_doc = n_lakes_wide %>% filter(is.na(doc))
+
+missing_doc$doc_fill = round(predict(doc_model, missing_doc))
+
+doc_fill = missing_doc %>% 
+  select(lakeid, year, doc_fill) %>% 
+  rename(daynum_fill = doc_fill) %>% 
+  mutate(metric = "doc") %>% 
+  filter(year < 2000)
+
+
+```
+
+## Try to fill the missing chlorophyll values in the southern lakes
+
+**Using dates from fitting wtemp/do model to chl observations
+```{r}
+filled_chl_dates = read_csv("../Data/chl_modeled_peaks.csv") %>% 
+  rename(daynum_fill = daynum) %>% 
+  select(-sampledate)
+```
+
+
+## Create filled metric column and filled
+```{r, fig.width = 14, fig.height=14}
+all_fill = bind_rows(iceoff_fill, doc_fill, filled_chl_dates)
+dat_filled = full_join(dat, all_fill) %>% 
+  mutate(filled_flag = ifelse(is.na(daynum) & !is.na(daynum_fill), TRUE, FALSE)) %>% 
+  mutate(daynum_fill = ifelse(is.na(daynum) & !is.na(daynum_fill), daynum_fill, daynum))
+
+dat_filled$lakeid = factor(dat_filled$lakeid, 
+                    levels = c("AL", "BM", "CB", "CR", "SP", "TB", "TR", "FI", "ME", "MO", "WI"), 
+                    ordered = T)
+vars = c("iceoff", "straton", "secchi_all", "secchi_openwater", "daphnia_biomass",
+                               "total_zoop_biomass", "chlor_all", "chlor_spring", "chlor_fall", "doc", 
+                               "anoxia", "anoxia_summer", "stability", "energy", "stratoff", "iceon")
+dat_filled$metric = factor(dat_filled$metric,
+                    levels = rev(vars),
+                    ordered=T)
+
+dat_filled %>% 
+  ggplot(aes(year, metric, fill=is.na(daynum_fill))) +
+  geom_tile(color="grey") +
+  theme_bw() +
+  facet_wrap(~lakeid, nrow=6) # + 
+  # labs(fill = "Missing") + 
+  # scale_fill_viridis_c() 
+```
+## Additional trimming/filling
+
+Trim to "good" years, fill FI ice data with Monona, then fill additional missing with median values for each lake/metric
+```{r, fig.width = 14, fig.height=14}
+df_yearsWant = dat_filled %>% 
+  filter((lakeid %in% c("FI", "ME", "MO", "WI") & year %in% 1996:2018) |
+           (!(lakeid %in% c("FI", "ME", "MO", "WI")) & year %in% 1982:2018))
+
+fi_icefill = df_yearsWant %>% 
+  filter(lakeid == "MO" & metric %in% c("iceoff", "iceon")) %>% 
+  mutate(lakeid = "FI") %>% 
+  select(-daynum, -filled_flag, -sampledate) %>% 
+  rename(icefill = daynum_fill)
+
+df_yearsWant = df_yearsWant %>% 
+  full_join(fi_icefill) %>% 
+  mutate(daynum_fill = ifelse(is.na(daynum_fill) & !is.na(icefill), 
+                              icefill, daynum),
+         filled_flag = ifelse(is.na(daynum) & !is.na(daynum_fill) & !is.na(icefill), 
+                              TRUE, filled_flag))
+
+df_yearsWant %>% 
+  ggplot(aes(year, metric, fill=filled_flag)) +
+  geom_tile(color="grey") +
+  theme_bw() +
+  facet_wrap(~lakeid, nrow=6)
+```
+
+### Final fill w/ medians
+```{r}
+all_lys = df_yearsWant %>% 
+  select(lakeid, year) %>% 
+  distinct()
+
+metric = unique(df_yearsWant$metric)
+
+all_lys_want = expand_grid(all_lys, metric)
+
+dat_final = left_join(all_lys_want, df_yearsWant)
+
+medians = dat_final %>% 
+  group_by(lakeid, metric) %>% 
+  summarise(median_daynum = median(daynum_fill, na.rm=T))
+
+dat_final = dat_final %>% 
+  left_join(medians) %>% 
+  mutate(daynum_fill = ifelse(is.na(daynum_fill), median_daynum, daynum_fill)) %>% 
+  mutate(filled_flag = ifelse(is.na(daynum) & !is.na(daynum_fill), TRUE, filled_flag)) %>% 
+  select(-icefill, -median_daynum)
+```
+
+```{r, fig.width = 14, fig.height=14}
+dat_final %>%  
+  ggplot(aes(year, metric, fill=daynum_fill)) +
+  geom_tile(color="grey") +
+  theme_bw() +
+  facet_wrap(~lakeid, nrow=6)
+  
+write_csv(dat_final, "../Data/final_combined_dates_filled_v1.csv")
+```
+
+
+
+=========================================================================================
+## Old code: no longer used
+
+### chlor_all
+```{r}
+no_dups = dat %>% group_by(lakeid, year, metric) %>% summarise(N = n()) %>% filter(N == 1)
+
+s_lakes_wide = left_join(no_dups, dat) %>% 
+  select(-sampledate) %>% 
+  pivot_wider(names_from = metric, values_from = daynum) %>% 
+  filter(lakeid %in% c("FI", "ME", "MO", "WI"))
+
+# stepwise
+hold_data = na.omit(data.frame(s_lakes_wide %>% filter(lakeid != "FI") %>% select(-chlor_spring, -chlor_fall, -daphnia_biomass, -total_zoop_biomass)))
+all = lm(chlor_all~., data=hold_data)
+i_o = lm(chlor_all~1, data=hold_data)
+hold = step(i_o, scope=formula(all))
+
+chlAll_model_MEMOWI = lm(chlor_all~anoxia_summer + lakeid + iceon + stability + straton + stratoff, 
+               data=s_lakes_wide %>% filter(lakeid != "FI"))
+summary(chlAll_model_MEMOWI)
+plot(s_lakes_wide %>% filter(lakeid != "FI") %>% pull(chlor_all), 
+     predict(chlAll_model_MEMOWI, s_lakes_wide %>% filter(lakeid != "FI")),
+     col=s_lakes_wide$lakeid, pch=16, xlab="observed", ylab="predicted")
+
+
+# using to fill for now
+missing_chlAll_MEMOWI = s_lakes_wide %>% filter(is.na(chlor_all) & lakeid != "FI")
+missing_chlAll_MEMOWI$chl_all_fill = round(predict(chlAll_model_MEMOWI, missing_chlAll_MEMOWI))
+
+chlAll_model_FI = lm(chlor_all~(stratoff+energy+
+                 stability+anoxia_summer+secchi_all+
+                 secchi_openwater), 
+               data=s_lakes_wide %>% filter(lakeid == "FI"))
+summary(chlAll_model_FI)
+plot(s_lakes_wide %>% filter(lakeid == "FI") %>% pull(chlor_all), 
+     predict(chlAll_model_FI, s_lakes_wide %>% filter(lakeid == "FI")),
+     col=s_lakes_wide$lakeid, pch=16)
+
+missing_chlAll_FI = s_lakes_wide %>% filter(is.na(chlor_all) & lakeid == "FI")
+missing_chlAll_FI$chl_all_fill = round(predict(chlAll_model_FI, missing_chlAll_FI))
+# gives negative value; DONT fill FI
+
+chlAll_fill = missing_chlAll_MEMOWI %>% 
+  select(lakeid, year, chl_all_fill) %>% 
+  rename(daynum_fill = chl_all_fill) %>% 
+  mutate(metric = "chlor_all") 
+```
+
+### chlor_spring
+```{r}
+# stepwise
+hold_data = na.omit(data.frame(s_lakes_wide %>% filter(lakeid != "FI") %>% select(-chlor_all, -chlor_fall, -daphnia_biomass, -total_zoop_biomass)))
+all = lm(chlor_spring~., data=hold_data)
+i_o = lm(chlor_spring~1, data=hold_data)
+hold = step(i_o, scope=formula(all))
+
+chlSpring_model_MEMOWI = lm(chlor_all~stability + straton + doc, 
+               data=s_lakes_wide %>% filter(lakeid != "FI"))
+summary(chlSpring_model_MEMOWI)
+plot(s_lakes_wide %>% filter(lakeid != "FI") %>% pull(chlor_spring), 
+     predict(chlSpring_model_MEMOWI, s_lakes_wide %>% filter(lakeid != "FI")),
+     col=s_lakes_wide$lakeid, pch=16)
+
+
+# not great; don't fill it
+# missing_chlSpring_MEMOWI = s_lakes_wide %>% filter(is.na(chlor_spring) & lakeid != "FI")
+# missing_chlSpring_MEMOWI$chl_all_fill = round(predict(missing_chlSpring_MEMOWI, missing_chlSpring_MEMOWI))
+# 
+# # gives negative value; DONT fill FI
+# 
+# chlAll_fill = missing_chlSpring_MEMOWI %>% 
+#   select(lakeid, year, chl_all_fill) %>% 
+#   rename(daynum_fill = chl_all_fill) %>% 
+#   mutate(metric = "chlor_spring") 
+```
+### chlor_fall
+```{r}
+# stepwise
+hold_data = na.omit(data.frame(s_lakes_wide %>% filter(lakeid != "FI") %>% select(-chlor_all, -chlor_spring, -daphnia_biomass, -total_zoop_biomass)))
+all = lm(chlor_fall~., data=hold_data)
+i_o = lm(chlor_fall~1, data=hold_data)
+hold = step(i_o, scope=formula(all))
+
+chlFall_model_MEMOWI = lm(chlor_all~iceoff + year + lakeid, 
+               data=s_lakes_wide %>% filter(lakeid != "FI"))
+summary(chlFall_model_MEMOWI)
+plot(s_lakes_wide %>% filter(lakeid != "FI") %>% pull(chlor_fall), 
+     predict(chlFall_model_MEMOWI, s_lakes_wide %>% filter(lakeid != "FI")),
+     col=s_lakes_wide$lakeid, pch=16)
+# not great; don't fill it
+
+# missing_chlSpring_MEMOWI = s_lakes_wide %>% filter(is.na(chlor_spring) & lakeid != "FI")
+# missing_chlSpring_MEMOWI$chl_all_fill = round(predict(missing_chlSpring_MEMOWI, missing_chlSpring_MEMOWI))
+# 
+# # gives negative value; DONT fill FI
+# 
+# chlAll_fill = missing_chlSpring_MEMOWI %>% 
+#   select(lakeid, year, chl_all_fill) %>% 
+#   rename(daynum_fill = chl_all_fill) %>% 
+#   mutate(metric = "chlor_spring") 
+```
+

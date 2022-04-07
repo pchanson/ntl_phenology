@@ -26,6 +26,8 @@ test[,,"BM"]
 
 matrix_single_lake <- function(timings.df = timings, single_lake="ME"){
   
+  timings.df = timings.df %>% filter(id == single_lake)
+  
   nYears = length(unique(timings.df$year))
   nVars = length(unique(timings.df$Var1))
   

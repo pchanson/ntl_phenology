@@ -193,7 +193,38 @@ daynum_max_comb_out = daynum_max_comb %>%
   mutate(metric = ifelse(metric == "spring", "chlor_spring", metric))%>% 
   select(lakeid, metric, sampledate, year, daynum)
 
-# write_csv(daynum_max_comb_out, "../../../Data/final_metric_data/chlorophyll_maxes.csv")
+# for few peaks where there are multiple peaks, pick the first one
+daynum_max_comb_out_singlePeak = daynum_max_comb_out %>% 
+  group_by(lakeid, year, metric) %>% 
+  summarise(N = n()) %>% 
+  filter(N == 1) %>% 
+  select(-N)
+
+daynum_max_comb_out_multPeaks = daynum_max_comb_out %>% 
+  group_by(lakeid, year, metric) %>% 
+  summarise(N = n()) %>% 
+  filter(N > 1) %>% 
+  select(-N)
+
+hold_peaks = list()
+for(i in 1:nrow(daynum_max_comb_out_multPeaks)){
+  cur_ly = daynum_max_comb_out %>% 
+    filter(lakeid == daynum_max_comb_out_multPeaks$lakeid[i] &
+             year == daynum_max_comb_out_multPeaks$year[i] &
+             metric == daynum_max_comb_out_multPeaks$metric[i]) %>% 
+    arrange(daynum)
+  N = ceiling(nrow(cur_ly) / 2)
+  hold_peaks[[i]] = cur_ly[N,]
+}
+all_multpeak_LYs = bind_rows(hold_peaks)
+
+out_chlPeaks_allDOYs = bind_rows(
+  daynum_max_comb_out_singlePeak %>% left_join(daynum_max_comb_out), 
+  all_multpeak_LYs
+) %>% 
+  arrange(lakeid, year, metric)
+
+# write_csv(out_chlPeaks_allDOYs, "../../../Data/final_metric_data/chlorophyll_maxes.csv")
 
 # plot time series with peaks
 daynum_max_comb2 = daynum_max_comb %>% 
@@ -272,3 +303,30 @@ for(i in 1:length(lakes)){
 dev.off()
 # picks up lots of smaller/additonal peak
 # unsure if anything helpful there; maybe that it doesn't select first /last pionts as peak? Could also do that above by just dropping first and last observation if needed/wanted?
+
+# Look at "bad" spec values in early 2000s
+me_data = read_csv("../../../Data/chlor_ME_95-09_fromLTERserver.csv")
+me_data$SAMPLEDATE = mdy(me_data$SAMPLEDATE)
+me_data$daynum = yday(me_data$SAMPLEDATE)
+
+me_data %>% 
+  # filter(YEAR4 %in% 21:2007) %>% 
+  pivot_longer(cols = c("TRI_CHL_SPEC", "CORRECT_CHL_FLUOR")) %>% 
+  ggplot(aes(x=SAMPLEDATE, y=value)) +
+  facet_wrap(~name, scales="free_y", nrow=2)+
+  geom_line() +
+  theme_bw()
+
+me_data %>% 
+  # filter(YEAR4 %in% 1999:2005) %>% 
+  ggplot(aes(x=daynum, y=TRI_CHL_SPEC)) +
+  geom_line() +
+  theme_bw() + 
+  facet_wrap(~YEAR4)
+
+me_data %>% 
+  # filter(YEAR4 %in% 1999:2005) %>% 
+  ggplot(aes(x=daynum, y=TRI_CHL_SPEC)) +
+  geom_line() +
+  theme_bw() + 
+  facet_wrap(~YEAR4, scales="free_y")
