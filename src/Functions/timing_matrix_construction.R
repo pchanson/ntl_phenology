@@ -1,6 +1,6 @@
 library(tidyverse)
 
-timings = read_csv("../Data/all_event_timing_differences.csv")
+# timings = read_csv("../Data/all_event_timing_differences.csv")
 
 matrix_single_year <- function(timings.df = timings, single_year=2015){
   
@@ -20,8 +20,8 @@ matrix_single_year <- function(timings.df = timings, single_year=2015){
   return(hold)
 }
 
-test = matrix_single_year()
-test[,,"BM"]
+# test = matrix_single_year()
+# test[,,"BM"]
 
 
 matrix_single_lake <- function(timings.df = timings, single_lake="ME"){
@@ -42,6 +42,6 @@ matrix_single_lake <- function(timings.df = timings, single_lake="ME"){
   return(hold)
 }
 
-test2 = matrix_single_lake(timings.df = timings, single_lake = "ME")
-test2[,,"2015"]
+# test2 = matrix_single_lake(timings.df = timings, single_lake = "ME")
+# test2[,,"2015"]
 
