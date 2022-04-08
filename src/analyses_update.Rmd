@@ -55,7 +55,7 @@ dat %>%
 * total zoop and daphnia biomass: filled with lake-specific median daynum
 
 ## Distribution of peak dates
-```{r, width =9, height = 12, dpi=500}
+```{r, width = 9, height = 12}
 lakes_order = c("AL", "BM", "CB", "CR", "SP", "TB", "TR", "FI", "ME", "MO", "WI")
 
 vars_order = c("iceoff", "straton", "chlor_spring", "secchi_openwater", "daphnia_biomass", "doc", "chlor_all", "anoxia_summer", "stability", "energy", "chlor_fall", "stratoff", "iceon")
@@ -73,15 +73,17 @@ dat %>%
   scale_x_date(labels = date_format("%b")) +
   facet_wrap(~ (lakeid)) +
   xlab('') + ylab('Density')+
-  theme_minimal() + 
-  theme(axis.text=element_text(size=8))
+  theme_minimal(base_size = 9) + 
+  theme(axis.text = element_text(size=8), 
+        legend.key.height = unit(0.5,"cm"), 
+        legend.key.width = unit(0.3,"cm"))
 
 ```
 
 ## Correlation matrices
-```{r, width = 10, height = 15, dpi=500}
+```{r, width = 8, height = 10}
 source(file = '../src/Functions/plotCorrplot.R')
-
+ 
 dat = read_csv("../Data/final_combined_dates_filled_v1.csv") |> 
   mutate(sampledate =  as.Date(paste0(year-1, "-12-31")) + daynum_fill) |> 
   mutate(lakeid = factor(lakeid, levels =  c("AL", "BM", "CB", "CR", "SP", "TB", "TR", "FI", "ME", "MO", "WI")))
