@@ -26,6 +26,8 @@ library(roll)
 library(RolWinMulCor)
 library(BINCOR)
 library(corrr)
+library(patchwork)
+library(MetBrewer)
 dat = read_csv("../Data/final_combined_dates_filled_v1.csv")
 dat$sampledate = as.Date(paste0(dat$year-1, "-12-31")) + dat$daynum_fill
 ```
@@ -66,12 +68,41 @@ dat %>%
   stat_density_ridges(aes(x = as.Date(daynum, origin = as.Date('2019-01-01')), 
                           y= metric, col = metric, fill = metric), 
                       alpha = 0.5, quantile_lines = T, quantiles = 2) +
+  scale_fill_manual(values=met.brewer("Archambault", 13)) + 
+  scale_color_manual(values=met.brewer("Archambault", 13)) +
   scale_x_date(labels = date_format("%b")) +
   facet_wrap(~ (lakeid)) +
   xlab('') + ylab('Density')+
   theme_minimal() + 
   theme(axis.text=element_text(size=8))
 
+```
+
+## Correlation matrices
+```{r, width = 10, height = 15, dpi=500}
+source(file = '../src/Functions/plotCorrplot.R')
+
+dat = read_csv("../Data/final_combined_dates_filled_v1.csv") |> 
+  mutate(sampledate =  as.Date(paste0(year-1, "-12-31")) + daynum_fill) |> 
+  mutate(lakeid = factor(lakeid, levels =  c("AL", "BM", "CB", "CR", "SP", "TB", "TR", "FI", "ME", "MO", "WI")))
+
+lakes_order = c("AL", "BM", "CB", "CR", "SP", "TB", "TR", "FI", "ME", "MO", "WI")
+vars_order = c("iceoff", "straton", "chlor_spring", "secchi_openwater", "daphnia_biomass", "doc", "chlor_all", "anoxia_summer", "stability", "energy", "chlor_fall", "stratoff", "iceon")
+
+dat2 = dat %>% 
+  filter(metric %in% vars_order) %>% 
+  select(lakeid, year, metric, daynum_fill) |> 
+  pivot_wider(names_from = metric, values_from = daynum_fill) |> 
+  mutate(group = if_else(lakeid %in% c("AL", "BM", "CB", "CR", "SP", "TB", "TR"), 'North','South')) |> 
+  select(-lakeid, -year) |> 
+  relocate(vars_order)
+
+###### Compute a correlation matrix ######
+# p1 = plotCorrplot(dat2 |> select(-group)) + labs(title = 'All')
+p2 = plotCorrplot(dat2 |> filter(group == 'North') |> select(-group)) + labs(title = 'North')
+p3 = plotCorrplot(dat2 |> filter(group == 'South') |> select(-group)) + labs(title = 'South')
+# p1 + p2 + p3 + guide_area() + plot_layout(guides = 'collect')
+p2 + p3 + plot_layout(guides = 'collect')
 ```
 
 # Analyses
