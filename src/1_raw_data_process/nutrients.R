@@ -13,7 +13,7 @@ filter_lims <- function(x){
 }
 
 # removed flagged data
-lternuts.flagged = read_csv('Data/ntl1_v9_1.csv') %>%
+lternuts.flagged = read_csv('Data/raw/ntl1_v9_1.csv') %>%
   mutate(across(everything(), ~replace(., .<0 , NA))) %>%
   rename_all( ~ str_replace(., "_sloh", '.sloh')) %>%
   rename_all( ~ str_replace(., "_n", '.n')) %>%
@@ -30,11 +30,11 @@ lternuts.flagged = read_csv('Data/ntl1_v9_1.csv') %>%
                           TRUE ~ item))
 
 # Load thermocline depth
-thermo <- read_csv('Data/thermocline.csv') %>% 
+thermo <- read_csv('Data/derived/thermocline.csv') %>% 
   rename(lakeid = id)
 
 # Load stratification dates
-strat = read_csv('Data/final_metric_data/physics.csv') %>% 
+strat = read_csv('Data/final_metric_files/physics.csv') %>% 
   filter(metric == 'straton') %>% 
   select(lakeid, year4 =year , stratday = daynum)
 
@@ -45,7 +45,7 @@ nuts = lternuts.flagged %>% left_join(thermo, by = c("lakeid", "sampledate")) %>
   mutate(month = month(sampledate), year = year(sampledate), yday = yday(sampledate)) %>% 
   filter(depth <= thermdepth_m) %>% #filter to epilimnion
   filter(daynum >= stratday) %>% #filter to after stratification
-  filter(year > 1981) 
+  filter(year > 1981)
 
 # What plot looks like with outliers
 ggplot(nuts %>% filter(item == 'doc')) +
@@ -92,4 +92,4 @@ ggplot(doc) +
   geom_density(aes(x = daynum)) +
   facet_wrap(~lakeid)
 
-write.csv(doc,"Data/final_metric_data/doc.csv", row.names = F)
+write.csv(doc,"Data/final_metric_files/doc.csv", row.names = F)

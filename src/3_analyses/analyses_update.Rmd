@@ -13,6 +13,7 @@ output:
 </style>
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
 ```
 
 ```{r}
@@ -28,7 +29,7 @@ library(BINCOR)
 library(corrr)
 library(patchwork)
 library(MetBrewer)
-dat = read_csv("../Data/final_combined_dates_filled_v1.csv")
+dat = read_csv("Data/analysis_ready/final_combined_dates_filled_v1.csv")
 dat$sampledate = as.Date(paste0(dat$year-1, "-12-31")) + dat$daynum_fill
 ```
 
@@ -82,9 +83,9 @@ dat %>%
 
 ## Correlation matrices
 ```{r, width = 8, height = 10}
-source(file = '../src/Functions/plotCorrplot.R')
+source(file = 'src/Functions/plotCorrplot.R')
  
-dat = read_csv("../Data/final_combined_dates_filled_v1.csv") |> 
+dat = read_csv("Data/analysis_ready/final_combined_dates_filled_v1.csv") |> 
   mutate(sampledate =  as.Date(paste0(year-1, "-12-31")) + daynum_fill) |> 
   mutate(lakeid = factor(lakeid, levels =  c("AL", "BM", "CB", "CR", "SP", "TB", "TR", "FI", "ME", "MO", "WI")))
 
@@ -111,7 +112,7 @@ p2 + p3 + plot_layout(guides = 'collect')
 
 ## Eigenvalue Analysis
 ```{r, fig.height=5, fig.width=10}
-source("../src/timing_matrix_construction.R")
+source("src/Functions/timing_matrix_construction.R")
 
 vars_order_eigen =  c("iceoff", "straton", "secchi_openwater", "daphnia_biomass", "doc", "chlor_spring", "anoxia_summer", "stability", "energy", "stratoff", "iceon")
 all_var_combos = expand.grid(vars_order_eigen, vars_order_eigen)

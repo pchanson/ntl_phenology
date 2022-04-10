@@ -1,12 +1,14 @@
 # Do the biomass calculations and then do check ID'd in underlying_data_check.Rmd
-
 library(tidyverse)
 library(ggridges)
 
 # data
-data_raw = read_csv("../../../Data/ntl_allzoops_raw_v2.csv")
+data_raw = read_csv("Data/derived/ntl_allzoops_raw_v2.csv")
+ice0 = read_csv("Data/derived/ntl_icedatescombo.csv")
+ice0$firstice_year = lubridate::year(ice0$firstice)
+ice0$lastice_year = lubridate::year(ice0$lastice)
 # biomass calc coefs
-coefs_matched = read_csv( "../../../Data/zoop_mass_coefs/mass_coefs_matched_v2.csv")
+coefs_matched = read_csv( "Data/derived/zoop_mass_coefs/mass_coefs_matched_v2.csv")
 coefs_matched %>% 
   filter(is.na(c1)) # looks good
 
@@ -33,7 +35,7 @@ lake_means = data_comb %>%
   group_by(species_name, lakeid) %>% 
   summarise(mean_length_lake = mean(avg_length, na.rm=T))
 # overall means
-overall_means = read_csv("../../../Data/zoop_cleaned_data/overall_mean_lengths_filled.csv")
+overall_means = read_csv("Data/derived/zoop_cleaned_data/overall_mean_lengths_filled.csv")
 
 # do the filling
 data_comb = left_join(data_comb, lake_means)
@@ -138,17 +140,42 @@ daphnia_grouped_biomass %>%
   theme_bw()
 
 # # save files
-# write_csv(data_comb, "../../../Data/ntl_all_zoop_info_species_level.csv")
-# write_csv(zoop_grouped_biomass_filled, "../../../Data/ntl_cladocera_copepoda_rotifera_biomass.csv")
-# write_csv(daphnia_grouped_biomass, "../../../Data/ntl_daphnia_biomass.csv")
+# write_csv(data_comb, "Data/derived/ntl_all_zoop_info_species_level.csv")
+# write_csv(zoop_grouped_biomass_filled, "Data/derived/ntl_cladocera_copepoda_rotifera_biomass.csv")
+# write_csv(daphnia_grouped_biomass, "Data/derived/ntl_daphnia_biomass.csv")
+
+# get rid of sample dates during ice cover
+# not sure how to do this in dplyr; do it in a loop
+zoop_total_biomass$icecovered = NA
+daphnia_grouped_biomass$icecovered = NA
+ice_nomissing = ice0 %>% 
+  filter(!is.na(firstice) & !is.na(lastice))
+for(i in 1:nrow(ice_nomissing)){
+  cur_lake = ice_nomissing$lakeid[i]
+  cur_startdate = ice_nomissing$firstice[i]
+  cur_enddate = ice_nomissing$lastice[i]
+  inds_covered_total = zoop_total_biomass$lakeid == cur_lake & 
+    zoop_total_biomass$sampledate >= cur_startdate &
+    zoop_total_biomass$sampledate <= cur_enddate
+  inds_covered_daphnia = daphnia_grouped_biomass$lakeid == cur_lake & 
+    daphnia_grouped_biomass$sampledate >= cur_startdate &
+    daphnia_grouped_biomass$sampledate <= cur_enddate
+  zoop_total_biomass[inds_covered_total, "icecovered"] = T
+  daphnia_grouped_biomass[inds_covered_daphnia, "icecovered"] = T
+}  
+
+zoop_openwater = zoop_total_biomass %>% 
+  filter(is.na(icecovered))
+daphnia_openwater = daphnia_grouped_biomass %>% 
+  filter(is.na(icecovered))
 
 # calc DOY of max biomass
-zoop_max = zoop_total_biomass %>% 
+zoop_max = zoop_openwater %>% 
   mutate(year4 = lubridate::year(sampledate)) %>% 
   group_by(lakeid, year4) %>% 
   slice_max(total_biomass)
 
-daphnia_max = daphnia_grouped_biomass %>% 
+daphnia_max = daphnia_openwater %>% 
   group_by(lakeid, year4) %>% 
   slice_max(total_biomass)
 
@@ -177,12 +204,12 @@ both_max_out_nodups = both_max_out %>%
   slice_min(daynum)
 
 
-# write_csv(both_max_out_nodups, "../../../Data/final_metric_data/zooplankton_max_biomass.csv")
+# write_csv(both_max_out_nodups, "Data/final_metric_files/zooplankton_max_biomass.csv")
 
 # plot each lake
 lakes = c("AL", "TR", "BM", "CR", "SP", "TB", "CB", "ME", "MO", "WI", "FI")
 
-pdf("../../../Figures/zoop_biomass_larger_groups.pdf", width=11, height=8.5)
+pdf("Figures/data_checks/zoop_biomass_larger_groups.pdf", width=11, height=8.5)
 for(i in 1:length(lakes)){
   p = zoop_grouped_biomass_filled %>% 
     filter(lakeid == lakes[i]) %>% 
@@ -201,7 +228,7 @@ for(i in 1:length(lakes)){
 }
 dev.off()
 
-# TODONE: plot of distribution of biomass of different groups by lake
+# plot of distribution of biomass of different groups by lake
 zoop_grouped_biomass_filled %>% 
   bind_rows(zoop_total_biomass) %>% 
   mutate(lakeid = factor(lakeid, levels = lakes, ordered = T)) %>% 

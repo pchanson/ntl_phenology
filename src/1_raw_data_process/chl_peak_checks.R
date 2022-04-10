@@ -2,8 +2,8 @@ library(tidyverse)
 library(lubridate)
 
 # read in data
-chlN = read_csv( "../../../Data/ntl34_v4_1.csv") # "data1"
-chlS0 = read_csv( "../../../Data/ntl38_v5.csv") # "data2"
+chlN = read_csv( "Data/raw/ntl34_v4_1.csv") # "data1"
+chlS0 = read_csv( "Data/raw/ntl38_v5.csv") # "data2"
 
 # format
 chlN$sampledate = mdy(chlN$sampledate)
@@ -125,7 +125,7 @@ chl_comb$daynum = lubridate::yday(chl_comb$sampledate)
 # plot time series
 lakes = c("FI", "ME", "MO", "WI", "AL", "BM", "CB", "CR", "SP", "TB", "TR")
 
-pdf("../../../Figures/surface_chlorophyll_timeseries.pdf", width=11, height=8.5)
+pdf("Figures/data_checks/surface_chlorophyll_timeseries.pdf", width=11, height=8.5)
 for(i in 1:length(lakes)){
 p = chl_comb %>% 
   filter(lakeid == lakes[i]) %>% 
@@ -224,13 +224,13 @@ out_chlPeaks_allDOYs = bind_rows(
 ) %>% 
   arrange(lakeid, year, metric)
 
-# write_csv(out_chlPeaks_allDOYs, "../../../Data/final_metric_data/chlorophyll_maxes.csv")
+# write_csv(out_chlPeaks_allDOYs, "Data/final_metric_files/chlorophyll_maxes.csv")
 
 # plot time series with peaks
 daynum_max_comb2 = daynum_max_comb %>% 
   mutate(daynum = ifelse(period == "all", daynum + 5, daynum))
 
-pdf("../../../Figures/surface_chlorophyll_timeseries_withPeaks.pdf", width=11, height=8.5)
+pdf("Figures/data_checks/surface_chlorophyll_timeseries_withPeaks.pdf", width=11, height=8.5)
 for(i in 1:length(lakes)){
   hold = daynum_max_comb %>% 
     filter(lakeid == lakes[i]) %>% 
@@ -281,7 +281,7 @@ for(i in 1:length(lakes)){
 }
 
 # plot pracma:: find peaks
-pdf("../../../Figures/surface_chlorophyll_timeseries_withPeaks_pracma.pdf", width=11, height=8.5)
+pdf("Figures/data_checks/surface_chlorophyll_timeseries_withPeaks_pracma.pdf", width=11, height=8.5)
 for(i in 1:length(lakes)){
   p = chl_comb %>% 
     filter(lakeid == lakes[i]) %>% 
@@ -305,7 +305,7 @@ dev.off()
 # unsure if anything helpful there; maybe that it doesn't select first /last pionts as peak? Could also do that above by just dropping first and last observation if needed/wanted?
 
 # Look at "bad" spec values in early 2000s
-me_data = read_csv("../../../Data/chlor_ME_95-09_fromLTERserver.csv")
+me_data = read_csv("Data/raw/chlor_ME_95-09_fromLTERserver.csv")
 me_data$SAMPLEDATE = mdy(me_data$SAMPLEDATE)
 me_data$daynum = yday(me_data$SAMPLEDATE)
 
@@ -330,3 +330,4 @@ me_data %>%
   geom_line() +
   theme_bw() + 
   facet_wrap(~YEAR4, scales="free_y")
+

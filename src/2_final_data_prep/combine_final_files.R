@@ -1,9 +1,8 @@
 # read in and combine final phenology dates
 
 library(tidyverse)
-setwd(dirname(rstudioapi::getSourceEditorContext()$path))
 
-files_path = "../Data/final_metric_data"
+files_path = "Data/final_metric_files"
 combined_file_names = "final_combined_dates.csv"
 
 files0 = list.files(files_path, full.names = T)

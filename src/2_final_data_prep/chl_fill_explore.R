@@ -8,9 +8,8 @@ inUrl3 <- "https://pasta.lternet.edu/package/data/eml/knb-lter-ntl/29/29/03e232a
 infile3 <- tempfile()
 download.file(inUrl3, infile3, method = "libcurl")
 tempdo0 <- read_csv(infile3) 
-chl0 =  read_csv( "../Data/ntl38_v5.csv")
-thermo = read_csv("../Data/thermocline.csv") %>% 
-  rename(lakeid = id)
+chl0 =  read_csv( "Data/raw/ntl38_v5.csv")
+thermo = read_csv("Data/derived/thermocline.csv")
 
 # clean up data
 tempdo = tempdo0 %>% 
@@ -72,7 +71,7 @@ results = full_join(actual_peaks, modeled_peaks)
 
 cor = results %>% 
   group_by(lakeid) %>% 
-  summarise(r = paste("r =", round(cor(daynum_obs, daynum_mod), 3)))
+  summarise(r = paste("r =", round(cor(daynum_obs, daynum_mod, use="complete.obs"), 3)))
 
 p2 = results %>% 
   ggplot(aes(x=daynum_obs, y=daynum_mod)) +
@@ -106,7 +105,7 @@ peaks_out = full_join(peaks_all, peaks_spring) %>%
   rename(year=year4) %>% 
   mutate(sampledate = as.Date(paste0(year - 1, "-12-31")) + daynum)
 
-write_csv(peaks_out, "../Data/chl_modeled_peaks.csv")
+write_csv(peaks_out, "Data/derived/chl_modeled_peaks.csv")
 
 
 # try XGBoost

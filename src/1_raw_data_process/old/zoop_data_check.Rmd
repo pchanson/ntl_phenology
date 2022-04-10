@@ -5,6 +5,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
 ```
 
 ```{r libraries, echo=FALSE}
@@ -15,7 +16,7 @@ library(tidyverse)
 ## Remove flags from LTER zoop data
 ```{r}
 # note: this file is from src/daphnia.R; only read in and bind the N and S lakes together; there are no error flags
-data_raw = read_csv("../../../Data/ntl_allzoops_raw.csv")
+data_raw = read_csv("Data/derived/ntl_allzoops_raw_v2.csv")
 # cols to check:
 #   towdepth: consistent over years?
 #   species_name: any to be combined?
@@ -45,7 +46,7 @@ tow_depths %>%
 #     NOTE: -northern lakes are number per liter, volumetrically corrected; samples are collected at standard depths pooled before counting
 #           -northern lakes metadata: https://portal.edirepository.org/nis/metadataviewer?packageid=knb-lter-ntl.37.36
 
-# TODO: -southern lakes are number per m^2; need to divide by (tow depth * 1000) to get number per L
+# TODONE: -southern lakes are number per m^2; need to divide by (tow depth * 1000) to get number per L
 #       -southern lakes metadata: https://portal.edirepository.org/nis/metadataviewer?packageid=knb-lter-ntl.90.31
 
 ```
@@ -53,8 +54,8 @@ tow_depths %>%
 ```{r spp names, results='asis'}
 # species_name: any to be combined?
 # read in matched coefs and equations, do fuzzy matching, check equations/coefs
-names_fromLTER = read_csv("../../../Data/zoop_mass_coefs/Mass_Calc_LTER_uploaded_formulasFormatted.csv")
-names_matched = read_csv("../../../Data/zoop_mass_coefs/mass_coefs_matched.csv")
+names_fromLTER = read_csv("Data/derived/zoop_mass_coefs/Mass_Calc_LTER_uploaded_formulasFormatted.csv")
+names_matched = read_csv("Data/derived/zoop_mass_coefs/mass_coefs_matched.csv")
 
 names_matched$Origin_Spp_Name = "na"
 names_matched$Origin_formula = "na"
@@ -66,21 +67,13 @@ for(i in 1:nrow(names_matched)){
   }
 
 }
-# names_matched %>% 
-#   select(species_name, Origin_Spp_Name, eqn, c1, c2, c3, Origin_formula)  %>%
-#   write_csv("../../../Data/zoop_mass_coefs/matched_names_and_formulas_toCheck_secondTry.csv")
-  
-# TODO: check file above to make sure all match up
-#     -Make sure "complex" (e.g., TRICHOCERCA) is coded correctly with powers
-
-# TODO: above eqns/coefficients checked and fixed, update to use "mass_coefs_matched_v2.csv" in calculation script
 ```
 
 ```{r, fig.height=10}
 #   density: "reasonable" - highly dynamic okay; check orders of magnitude and for NAs (any missing consistently in years?)
 
 # read in the groups and look at this by group - too many spp to do individually
-group_info = read_csv("../../../Data/zoop_mass_coefs/mass_coefs_matched_v2.csv")
+group_info = read_csv("Data/derived/zoop_mass_coefs/mass_coefs_matched_v2.csv")
 
 data_comb = left_join(data_raw,
                       group_info %>% select(species_name, larger_group))
@@ -99,7 +92,7 @@ data_comb %>%
   geom_point() + 
   facet_wrap(~lakeid+larger_group, ncol=3, scales="free_y", labeller = label_wrap_gen(multi_line=FALSE))
   
-# TODO: look into:
+# look into:
 #   - spikes in CB:  CLADOCERA and COPEPOD (both 1983), and ROTIFERA (1985)
 #   - MO: lower copepods in most of 2000s?
 #   - TB: highest/spike in CLADOCERA in last year?; spike in COPEPODA and ROTIFERA in 2007
@@ -164,7 +157,7 @@ data_comb %>%
   geom_line() +
   geom_point() +
   facet_wrap(~species_name, scales = "free_y") # driven by KERATELLA TAUROCEPHALA & POLYARTHRA REMATA, and a couple other look to high on the same dates
-# TODO: See if they stick out as much after calculating biomass; but probably leave in regardless
+# See if they stick out as much after calculating biomass; but probably leave in regardless
 
 ```
 ```{r, fig.height=10}
@@ -177,10 +170,7 @@ data_comb %>%
   geom_point() +
   facet_wrap(~species_name, nrow=5, scales = "free_y") # some weirdness in spp starting/stopping part way through (prob. methods/ppl counting change); and there is a "jump up" for some spp in ~2011
 
-# TODO: probably okay to group into biomass and look at peak date within this group as not comparing biomass/density between years
-# TODO: does the prop of total biomass that COPEPODs change in these years?
-
-# TODO: do cladocerans have jumps?
+# do cladocerans have jumps?
 data_comb %>% 
   filter(!is.na(larger_group) & larger_group == "CLADOCERA" & lakeid == "MO") %>% 
   filter(year4 %in% 1995:2015) %>% 
@@ -198,7 +188,6 @@ data_comb %>%
   geom_line() +
   geom_point() +
   facet_wrap(~species_name, nrow=5, scales = "free_y") # last few samples 2019 have much higher BOSMINIDAE, but not clearly an outlier (it's a trend)
-# TODO: see how much this affects biomass; but probably leave as is
 
 data_comb %>% 
   filter(!is.na(larger_group) & larger_group == "COPEPODA" & lakeid == "TB") %>% 
@@ -224,17 +213,4 @@ data_comb %>%
   geom_line() +
   geom_point() +
   facet_wrap(~species_name, nrow=5, scales = "free_y") # A couple high KERATELLA HIEMALIS and KERATELLA TAUROCEPHALA
-# TODO: see if this impacts overall zoop biomass calc; probably good to leave as is
 ```
-
-
-```{r}
-#   individuals_measured: any big changes over the years?
-```
-
-```{r}
-#   avg_length: reasonable? fill gaps
-
-```
-
-
