@@ -22,9 +22,9 @@ colnames(first_years) = first_years[1, ]
 first_years 
 # Northern lakes 1981 or 1982 except for DOC (1986)
 # Southern lakes variable: 
-##  ME/MO mostly 1995 but chl = 1999, doc = 1996
-##  FI mostly 1996 but chl = 1999, zoops = 1997
-##  WI mostly 1996 but chl = 1999, zoops = 2007
+##  ME/MO mostly 1995 but doc = 1996
+##  FI mostly 1996 but chl = 1997, zoops = 1997
+##  WI mostly 1996 but chl = 1997, zoops = 2007
 
 # based on first sample dates in physics.R: start in year X for lakes Y
 # 1982: AL, MB, CB, CR, SP, TB, TR

@@ -52,7 +52,7 @@ dat %>%
 
 * iceoff/iceon: FI filled with MO; northern lakes filled w/ lake-specific model of other northern lake ice on or off dates
 * doc: filled with lake-specific model (daynum_doc ~ daynum_all_other_variables)
-* chl: currently filled with lake specific modeled time series (chl ~ wtemp + DOsat), which are then used to determine peaks
+* chl: filled with values from old/unpublished files on LTER server; concentrations were incorrect but assuming relative values comparable
 * total zoop and daphnia biomass: filled with lake-specific median daynum
 
 ## Distribution of peak dates
@@ -348,7 +348,7 @@ dat %>%
   pivot_wider(names_from = metric, values_from = daynum_fill) %>% 
   select(-lakeid, -year) %>% 
   correlate() %>% 
-  network_plot(min_cor = 0.2)
+  network_plot(min_cor = 0.2, colours = c("red", "white", "blue"))
 ```
 
 ### North vs. South
@@ -390,7 +390,7 @@ gridExtra::grid.arrange(pN, pS, nrow=1)
 
 ## TODO
 
-1. Get FI/MO/WI "bad" chlorophyll data files from Mark, use to fill peak chlorophyll dates
+1. ~~Get FI/MO/WI "bad" chlorophyll data files from Mark, use to fill peak chlorophyll dates~~
 2. Network connectivity inference analysis
 3. Other analyses?
 4. Dive into literature

@@ -146,7 +146,7 @@ doc_fill = missing_doc %>%
 
 **Using dates from fitting wtemp/do model to chl observations
 ```{r}
-filled_chl_dates = read_csv("Data/derived/chl_modeled_peaks.csv") %>% 
+filled_chl_dates = read_csv("Data/derived/chl_filled_peaks.csv") %>% 
   rename(daynum_fill = daynum) %>% 
   select(-sampledate)
 ```
@@ -234,7 +234,7 @@ dat_final %>%
   geom_tile(color="grey") +
   theme_bw() +
   facet_wrap(~lakeid, nrow=6)
-  
+
 write_csv(dat_final, "Data/analysis_ready/final_combined_dates_filled_v1.csv")
 ```
 

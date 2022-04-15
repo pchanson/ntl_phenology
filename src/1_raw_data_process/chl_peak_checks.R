@@ -11,8 +11,15 @@ chlN$daynum = yday(chlN$sampledate)
 chlS0$sampledate = mdy(chlS0$sampledate)
 chlS0$daynum = yday(chlS0$sampledate)
 
+# see where all are NA in the southern lakes
+chlS0 %>% 
+  filter(is.na(tri_chl_spec) & is.na(mono_chl_spec) & 
+           is.na(uncorrect_chl_fluor) & is.na(correct_chl_fluor)) %>% 
+  group_by(lakeid) %>% 
+  summarise(start_NA = min(sampledate), end_NA = max(sampledate))
+
 chlS = chlS0 %>% 
-  select(lakeid, year4, sampledate, depth_range_m, rep, correct_chl_fluor, flag_fluor)
+  select(lakeid, year4, sampledate, depth_range_m, rep, correct_chl_fluor, uncorrect_chl_fluor, tri_chl_spec, flag_fluor, flag_spec)
 
 # look at depths
 chlN %>% 
@@ -49,7 +56,7 @@ chlS0 %>%
   facet_wrap(~lakeid, scales="free") + 
   theme_bw() + 
   labs(color="has value") # looks like all values from ~ summer 2002 to 2005 are NA, extends even longer for spec 
-#  -> good to use correct_chl_fluor
+#  -> good to use correct_chl_fluor before and after that; before ~ 1999 use tri_chl_spec to get a few extra years
 
 # look at flags
 chlS %>% 
@@ -62,10 +69,18 @@ chlS0 %>%
   filter(depth_range_m == "0-2" & flag_fluor == "C") # can probably use these values; but need to merge them; only 1999 -> actually, just a few points at beginning, at most get you another year; good to ignore
 # D = new fluorometer with correct settings / filters; good to use
 
+chlS %>% 
+  filter(depth_range_m == "0-2") %>% 
+  select(flag_spec) %>% 
+  table(useNA = 'ifany')
+# good to use F, G, FG, H, J; toss JK (depth uncertaint)
+chlS = chlS %>% 
+  mutate(tri_chl_spec = ifelse(!is.na(flag_spec) & flag_spec == "JK", NA, tri_chl_spec))
+
 chlN %>% 
   filter(depth < 0.5) %>% 
   select(flagchlor) %>% 
-  table() # damn, lots of options
+  table() # shoot, lots of options
 # https://portal.edirepository.org/nis/metadataviewer?packageid=knb-lter-ntl.35.30
 # toss: A, AL (sample suspect); B, BG (standard curve suspect); JK (data suspect); K, KL, KLO, KV, LO, LV, O, OJ, OL, V (suspect),
 # keep: D (sample lost, will be NA), G, GJ (analyzed late); GL, JL, L, LG (late/non standard, dup diff but will average), J (non-standard)
@@ -104,9 +119,34 @@ nReps_N %>%
 
 chlS_means = chlS_want %>% 
   group_by(lakeid, year4, sampledate) %>% 
-  summarise(correct_chl_fluor = mean(correct_chl_fluor, na.rm=T)) %>% 
-  ungroup() %>% 
-  filter(!is.na(correct_chl_fluor))
+  summarise(across(c(correct_chl_fluor, uncorrect_chl_fluor, tri_chl_spec), mean, na.rm=T)) %>% 
+  ungroup()
+
+# create column for "best" chl and use that
+chlS_means_comb = chlS_means %>% 
+  mutate(chl_use = ifelse(!is.na(correct_chl_fluor), correct_chl_fluor, NA),
+         chl_use_src = ifelse(!is.na(correct_chl_fluor), "CF", NA)) %>% 
+  mutate(chl_use = ifelse(is.na(chl_use) & !is.na(uncorrect_chl_fluor), uncorrect_chl_fluor, chl_use),
+         chl_use_src = ifelse(is.na(chl_use_src) & !is.na(chl_use), "UF", chl_use_src)) %>% 
+  mutate(chl_use = ifelse(is.na(chl_use) & !is.na(tri_chl_spec), tri_chl_spec, chl_use),
+         chl_use_src = ifelse(is.na(chl_use_src) & !is.na(chl_use), "TS", chl_use_src))
+
+chlS_means_comb %>% 
+  ggplot(aes(x=sampledate, y=chl_use, color=chl_use_src)) +
+  geom_point() +
+  facet_wrap(~lakeid) +
+  theme_bw()
+
+# check each lake-year for consistency
+chlS_means_comb %>% 
+  mutate(daynum = lubridate::yday(sampledate)) %>% 
+  filter(lakeid == "ME") %>% 
+  ggplot(aes(x=daynum, y=chl_use, color=chl_use_src)) +
+  geom_point() +
+  geom_line()+
+  facet_wrap(~year4, scales="free_y") +
+  theme_bw()
+# most lake-years only have one chl method; those that have multiple look comparable (e.g. 1999)
 
 chlN_means = chlN_want %>% 
   group_by(lakeid, year4, sampledate) %>% 
@@ -116,7 +156,7 @@ chlN_means = chlN_want %>%
 
 # combine N and S
 chl_comb = bind_rows(
-  chlS_means %>% rename(chlor = correct_chl_fluor),
+  chlS_means_comb %>% rename(chlor = chl_use),
   chlN_means
 )
 
@@ -222,7 +262,14 @@ out_chlPeaks_allDOYs = bind_rows(
   daynum_max_comb_out_singlePeak %>% left_join(daynum_max_comb_out), 
   all_multpeak_LYs
 ) %>% 
-  arrange(lakeid, year, metric)
+  arrange(lakeid, year, metric) %>% 
+  filter(!(lakeid %in% c("ME", "MO", "WI", "FI") & year == 2002))
+
+out_chlPeaks_allDOYs %>% 
+  ggplot(aes(x=year, y=daynum)) +
+  geom_line() +
+  geom_point() +
+  facet_grid(rows=vars(lakeid), cols=vars(metric))
 
 # write_csv(out_chlPeaks_allDOYs, "Data/final_metric_files/chlorophyll_maxes.csv")
 
@@ -281,7 +328,7 @@ for(i in 1:length(lakes)){
 }
 
 # plot pracma:: find peaks
-pdf("Figures/data_checks/surface_chlorophyll_timeseries_withPeaks_pracma.pdf", width=11, height=8.5)
+# pdf("Figures/data_checks/surface_chlorophyll_timeseries_withPeaks_pracma.pdf", width=11, height=8.5)
 for(i in 1:length(lakes)){
   p = chl_comb %>% 
     filter(lakeid == lakes[i]) %>% 
@@ -300,7 +347,7 @@ for(i in 1:length(lakes)){
     labs(color="Peak Period")
   print(p)
 }
-dev.off()
+# dev.off()
 # picks up lots of smaller/additonal peak
 # unsure if anything helpful there; maybe that it doesn't select first /last pionts as peak? Could also do that above by just dropping first and last observation if needed/wanted?
 
