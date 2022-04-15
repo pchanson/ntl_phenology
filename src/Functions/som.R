@@ -20,7 +20,7 @@ n <- 60
 qual_col_pals = brewer.pal.info[brewer.pal.info$category == 'qual',]
 col_vector = unlist(mapply(brewer.pal, qual_col_pals$maxcolors, rownames(qual_col_pals)))
 
-df <- read_csv('../Data/final_combined_dates_filled_v1.csv')
+df <- read_csv('../../Data/analysis_ready/final_combined_dates_filled_v1.csv')
 
 str(df)
 
@@ -40,7 +40,7 @@ library(kohonen)
 #                                  'iceoff', 'chla')])
 
 
-dates = read_csv("../Data/final_combined_dates_filled_v1.csv")# %>% 
+dates = df# %>% 
  # filter(metric %in% c('straton', 'stratoff', 'energy', 'stability', 'anoxia',
  #                        'iceon', 'iceoff', 'daphnia', 'chla', 'doc')) 
 
@@ -137,7 +137,7 @@ for (i in 2:15) {
 plot(wss)
 
 ## use hierarchical clustering to cluster the codebook vectors
-som_cluster <- cutree(hclust(dist(som_model$codes[[1]])),5)
+som_cluster <- cutree(hclust(dist(som_model$codes[[1]])),4)
 
 plot(hclust(dist(som_model$codes[[1]])))
 
