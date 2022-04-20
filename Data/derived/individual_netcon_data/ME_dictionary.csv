@@ -1,0 +1,13 @@
+lakeid,metric,node
+ME,chlor_fall,1
+ME,chlor_spring,2
+ME,doc,3
+ME,iceon,4
+ME,iceoff,5
+ME,straton,6
+ME,stratoff,7
+ME,energy,8
+ME,stability,9
+ME,anoxia_summer,10
+ME,secchi_openwater,11
+ME,daphnia_biomass,12

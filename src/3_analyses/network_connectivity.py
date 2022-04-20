@@ -163,3 +163,51 @@ Jhat_N_df['inhib_thresh'] = thresholds_N[0]
 Jhat_N_df['excit_thresh'] = thresholds_N[1]
 Jhat_N_df.to_csv("Data/analysis_ready/network_conn_Nlakes.csv", index=False)
 
+###########################################################################
+####################### analyze each lake individually ####################
+########################################################################### 
+lakes = ['AL', 'BM', 'CB', 'CR', 'FI', 'ME', 'MO', 'SP', 'TB', 'TR', 'WI']
+
+for l in lakes:
+    lakespikes = np.genfromtxt(os.path.join(data_path, 'individual_netcon_data', l + '_data.csv'), delimiter=",", skip_header=1) 
+    l_ids, l_inv = np.unique(lakespikes[:,0],return_inverse=True) #unique neuron identifiers for excitatory neurons
+    N_l = l_ids.size #number of nodes
+    
+    l_spiketimes =[] #create list of lists 
+    for i in range(N_l):
+        l_spiketimes.append([])
+    for i,(_,j) in enumerate(lakespikes):
+        l_spiketimes[l_inv[i]].append(j)
+        
+    ISIs_l = list(map(np.diff, l_spiketimes))
+    l_num_interv_per_neuron = list(map(len,ISIs_l))
+    
+    Jhat_l = np.zeros((N_l,N_l))
+    
+    delay = np.array([0]) # NOTE: come back and change this; DONE: no "delay" in neuron sense, set to 0
+    De_l = np.ones((N_l,N_l))*delay[0] #for uniform delay
+    num_events = 500 
+    
+    for i in range(N_l):
+        print('{:#<3} {:^50} {:#>3}'.format('','%d/%d'%(i,N_l),''))
+        Jhat_l[:,i] = solve_per_neuron(i,N_l, l_spiketimes, De_l[:,i], ISIs_l[i], l_num_interv_per_neuron[i], num_events)
+    print('{:#<58}'.format(''))    
+    print('{:<58}'.format(''))
+    
+    thresholds_l = np.zeros(2)
+    thresholds_l[0] = otsu(Jhat_l[Jhat_l>=0])
+    thresholds_l[1] = otsu(Jhat_l[Jhat_l<=0])
+    
+    plt.hist(Jhat_l)
+    plt.axvline(thresholds_l[0], color="red", ls='--')
+    plt.axvline(thresholds_l[1], color="red", ls='--')
+    plt.title(l)
+    plt.show()
+    
+    Jhat_l_df = pd.DataFrame(Jhat_l)
+    Jhat_l_df['row'] = Jhat_l_df.index
+    Jhat_l_df = Jhat_l_df.melt(id_vars='row', var_name='column')
+    Jhat_l_df['inhib_thresh'] = thresholds_l[0]
+    Jhat_l_df['excit_thresh'] = thresholds_l[1]
+    Jhat_l_df.to_csv("Data/analysis_ready/netcon_indiv_lakes/" + l + ".csv", index=False)
+    
