@@ -2,3 +2,4 @@
 .Rhistory
 .RData
 .Ruserdata
+src/Functions/__pycache__/*
