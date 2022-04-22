@@ -2,6 +2,7 @@
 # CDB, 2022-04-24
 
 library(tidyverse)
+library(scico)
 
 # read in data
 nc_all = read_csv("Data/analysis_ready/network_conn_alllakes.csv") %>% 
@@ -168,3 +169,82 @@ pI = indiv_lakes %>%
   theme(strip.text=element_text(size=10), plot.title = element_text(size=16))
 
 ggsave("Figures/network_connectivity/node_connections_indivAnalyzed.png", pI, width=1000, height=700, dpi=120, units = "px")
+
+comb_indiv_lakes_all = indiv_lakes %>% 
+  group_by(metric_focal, metric_input) %>% 
+  summarise(N_excit = sum(connection_type == "excitatory"), 
+            N_inhib = sum(connection_type == "inhibitory"),
+            N_nonsig = sum(connection_type == "nonsignif.")) %>% 
+  pivot_longer(cols = c("N_excit", "N_inhib", "N_nonsig")) %>% 
+  mutate(name = str_remove(name, "N_"),
+         metric_focal = factor(metric_focal, rev(metrics_ordered), ordered = T), 
+         metric_input = factor(metric_input, metrics_ordered, ordered = T)) %>% 
+  ungroup()
+
+pIE = comb_indiv_lakes_all %>% 
+  filter(name == "excit") %>% 
+  ggplot(aes(x=metric_input, y=metric_focal, fill=value)) +
+  geom_tile(color="black") + 
+  theme_bw()+ 
+  scale_fill_scico(palette="imola") +
+  # scale_fill_manual(values=c("excitatory" = "#3399FF", "inhibitory" = "#FF3333", "nonsignif." = "grey96"))+
+  # facet_wrap(~name)+
+  theme(axis.text.x = element_text(angle = 90)) +
+  labs(x="Driver Metric", y = "Affected Metric", color="Number", size="Number") +
+  ggtitle("Excitatory connections across all lakes") +
+  theme( plot.title = element_text(size=14)) +
+  labs(fill="N lakes")
+
+ggsave("Figures/network_connectivity/excit_connections_indivAnalyzed_allLakes.png", pIE, width=600, height=550, dpi=120, units = "px")
+
+pIE_s = indiv_lakes %>% 
+  filter(lakeid_focal %in% c("FI", "MO", "ME", "WI")) %>% 
+  group_by(metric_focal, metric_input) %>% 
+  summarise(N_excit = sum(connection_type == "excitatory"), 
+            N_inhib = sum(connection_type == "inhibitory"),
+            N_nonsig = sum(connection_type == "nonsignif.")) %>% 
+  pivot_longer(cols = c("N_excit", "N_inhib", "N_nonsig")) %>% 
+  mutate(name = str_remove(name, "N_"),
+         metric_focal = factor(metric_focal, rev(metrics_ordered), ordered = T), 
+         metric_input = factor(metric_input, metrics_ordered, ordered = T)) %>% 
+  ungroup() %>% 
+  filter(name == "excit") %>% 
+  ggplot(aes(x=metric_input, y=metric_focal, fill=value)) +
+  geom_tile(color="black") + 
+  theme_bw()+ 
+  scale_fill_scico(palette="imola") +
+  # scale_fill_manual(values=c("excitatory" = "#3399FF", "inhibitory" = "#FF3333", "nonsignif." = "grey96"))+
+  # facet_wrap(~name)+
+  theme(axis.text.x = element_text(angle = 90)) +
+  labs(x="Driver Metric", y = "Affected Metric", color="Number", size="Number") +
+  ggtitle("Excitatory connections across S lakes") +
+  theme( plot.title = element_text(size=14)) +
+  labs(fill="N lakes")
+
+ggsave("Figures/network_connectivity/excit_connections_indivAnalyzed_sLakes.png", pIE_s, width=600, height=550, dpi=120, units = "px")
+
+pIE_n = indiv_lakes %>% 
+  filter(!(lakeid_focal %in% c("FI", "MO", "ME", "WI"))) %>% 
+  group_by(metric_focal, metric_input) %>% 
+  summarise(N_excit = sum(connection_type == "excitatory"), 
+            N_inhib = sum(connection_type == "inhibitory"),
+            N_nonsig = sum(connection_type == "nonsignif.")) %>% 
+  pivot_longer(cols = c("N_excit", "N_inhib", "N_nonsig")) %>% 
+  mutate(name = str_remove(name, "N_"),
+         metric_focal = factor(metric_focal, rev(metrics_ordered), ordered = T), 
+         metric_input = factor(metric_input, metrics_ordered, ordered = T)) %>% 
+  ungroup() %>% 
+  filter(name == "excit") %>% 
+  ggplot(aes(x=metric_input, y=metric_focal, fill=value)) +
+  geom_tile(color="black") + 
+  theme_bw()+ 
+  scale_fill_scico(palette="imola") +
+  # scale_fill_manual(values=c("excitatory" = "#3399FF", "inhibitory" = "#FF3333", "nonsignif." = "grey96"))+
+  # facet_wrap(~name)+
+  theme(axis.text.x = element_text(angle = 90)) +
+  labs(x="Driver Metric", y = "Affected Metric", color="Number", size="Number") +
+  ggtitle("Excitatory connections across N lakes") +
+  theme( plot.title = element_text(size=14)) +
+  labs(fill="N lakes")
+
+ggsave("Figures/network_connectivity/excit_connections_indivAnalyzed_nLakes.png", pIE_n, width=600, height=550, dpi=120, units = "px")
