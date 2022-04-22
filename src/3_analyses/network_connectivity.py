@@ -158,7 +158,7 @@ Jhat_S_df.to_csv("Data/analysis_ready/network_conn_Slakes.csv", index=False)
 
 Jhat_N_df = pd.DataFrame(Jhat_N)
 Jhat_N_df['row'] = Jhat_N_df.index
-Jhat_N_df = Jhat_N_df.melt(id_vars='row', var_name='column', index=False)
+Jhat_N_df = Jhat_N_df.melt(id_vars='row', var_name='column')
 Jhat_N_df['inhib_thresh'] = thresholds_N[0]
 Jhat_N_df['excit_thresh'] = thresholds_N[1]
 Jhat_N_df.to_csv("Data/analysis_ready/network_conn_Nlakes.csv", index=False)

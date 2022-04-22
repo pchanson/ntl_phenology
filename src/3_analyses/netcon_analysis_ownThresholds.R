@@ -41,31 +41,106 @@ nc_n = left_join(nc_n, dict_n %>% rename(row = node)) %>%
   mutate(metric_input = factor(metric_input, levels = metrics_ordered, ordered = T))%>% 
   mutate(metric_focal = factor(metric_focal, levels = metrics_ordered, ordered = T))
 
+# look at values and set own thresholds
+nc_n %>% 
+  filter(lakeid_focal == lakeid_input) %>% 
+  ggplot(aes(x=value)) +
+  geom_histogram(bins=50) +
+  facet_wrap(~lakeid_focal) +
+  theme_bw() +
+  geom_vline(aes(xintercept=inhib_thresh), color="red")+
+  geom_vline(aes(xintercept=excit_thresh), color="red") # looks okay
 
+# southern lakes
+nc_s %>% 
+  filter(lakeid_focal == lakeid_input) %>% 
+  ggplot(aes(x=value)) +
+  geom_histogram(bins=50, color="black", fill="lightblue") +
+  facet_wrap(~lakeid_focal) +
+  theme_bw() +
+  geom_vline(aes(xintercept=inhib_thresh), color="red")+
+  geom_vline(aes(xintercept=excit_thresh), color="red")
+
+nc_s$excit_own = as.numeric(NA)
+nc_s$inhib_own = as.numeric(NA)
+nc_s = nc_s %>% 
+  mutate(excit_own = ifelse(lakeid_focal == "FI", -0.035, excit_own),
+         inhib_own = ifelse(lakeid_focal == "FI", 0.075, inhib_own),
+         excit_own = ifelse(lakeid_focal == "ME", -0.04, excit_own),
+         inhib_own = ifelse(lakeid_focal == "ME", 0.08, inhib_own),
+         excit_own = ifelse(lakeid_focal == "MO", -0.05, excit_own),
+         inhib_own = ifelse(lakeid_focal == "MO", 0.1, inhib_own),
+         excit_own = ifelse(lakeid_focal == "WI", -0.05, excit_own),
+         inhib_own = ifelse(lakeid_focal == "WI", 0.05, inhib_own))
+
+nc_s %>% 
+  filter(lakeid_focal == lakeid_input) %>% 
+  ggplot(aes(x=value)) +
+  geom_histogram(bins=50, color="black", fill="lightblue") +
+  facet_wrap(~lakeid_focal) +
+  theme_bw() +
+  geom_vline(aes(xintercept=inhib_thresh), color="red")+
+  geom_vline(aes(xintercept=excit_thresh), color="red")+
+  geom_vline(aes(xintercept=inhib_own), color="blue")+
+  geom_vline(aes(xintercept=excit_own), color="blue")
+
+# northern lakes
+nc_n %>% 
+  filter(lakeid_focal == lakeid_input) %>% 
+  ggplot(aes(x=value)) +
+  geom_histogram(bins=50, color="black", fill="lightblue") +
+  facet_wrap(~lakeid_focal) +
+  theme_bw() +
+  geom_vline(aes(xintercept=inhib_thresh), color="red")+
+  geom_vline(aes(xintercept=excit_thresh), color="red")
+
+nc_n$excit_own = as.numeric(NA)
+nc_n$inhib_own = as.numeric(NA)
+nc_n = nc_n %>% 
+  mutate(excit_own = ifelse(lakeid_focal == "AL", -0.012, excit_own),
+         inhib_own = ifelse(lakeid_focal == "AL", inhib_thresh, inhib_own),
+         excit_own = ifelse(lakeid_focal == "BM", -0.01, excit_own),
+         inhib_own = ifelse(lakeid_focal == "BM", inhib_thresh, inhib_own),
+         excit_own = ifelse(lakeid_focal == "CB", -0.012, excit_own),
+         inhib_own = ifelse(lakeid_focal == "CB", inhib_thresh, inhib_own),
+         excit_own = ifelse(lakeid_focal == "CR", -0.012, excit_own),
+         inhib_own = ifelse(lakeid_focal == "CR", inhib_thresh, inhib_own),
+         excit_own = ifelse(lakeid_focal == "SP", -0.01, excit_own),
+         inhib_own = ifelse(lakeid_focal == "SP", 0.035, inhib_own),
+         excit_own = ifelse(lakeid_focal == "TB", -0.01, excit_own),
+         inhib_own = ifelse(lakeid_focal == "TB", inhib_thresh, inhib_own),
+         excit_own = ifelse(lakeid_focal == "TR", -0.01, excit_own),
+         inhib_own = ifelse(lakeid_focal == "TR", inhib_thresh, inhib_own))
+
+nc_n %>% 
+  filter(lakeid_focal == lakeid_input) %>% 
+  ggplot(aes(x=value)) +
+  geom_histogram(bins=50, color="black", fill="lightblue") +
+  facet_wrap(~lakeid_focal) +
+  theme_bw() +
+  geom_vline(aes(xintercept=inhib_thresh), color="red")+
+  geom_vline(aes(xintercept=excit_thresh), color="red")+
+  geom_vline(aes(xintercept=inhib_own), color="blue")+
+  geom_vline(aes(xintercept=excit_own), color="blue")
 
 # analyze the proportion of excitatory connections
-nc_all %>%
-  filter(lakeid_focal == lakeid_input) %>% 
-  group_by(lakeid_focal) %>% 
-  summarise(prop_excit = sum(value < excit_thresh) / n()) 
-
 nc_s %>%
   filter(lakeid_focal == lakeid_input) %>% 
   group_by(lakeid_focal) %>% 
-  summarise(prop_excit = sum(value < excit_thresh) / n()) 
+  summarise(prop_excit = sum(value < excit_own) / n()) 
 
 nc_n %>%
   filter(lakeid_focal == lakeid_input) %>% 
   group_by(lakeid_focal) %>% 
-  summarise(prop_excit = sum(value < excit_thresh) /n()) 
+  summarise(prop_excit = sum(value < excit_own) /n()) 
 
 # try visualizing the number of connections
-pS = nc_s %>% 
+nc_s %>% 
   filter(lakeid_focal == lakeid_input ) %>% 
   group_by(metric_focal, metric_input) %>% 
-  summarise(Excitatory = sum(value < excit_thresh),
-            Inhibitory = sum(value > inhib_thresh),
-            Nonsignif = sum(value > excit_thresh & value < inhib_thresh)) %>% 
+  summarise(Excitatory = sum(value < excit_own),
+            Inhibitory = sum(value > inhib_own),
+            Nonsignif = sum(value > excit_own & value < inhib_own)) %>% 
   pivot_longer(cols = c("Excitatory", "Inhibitory", "Nonsignif")) %>% 
   mutate(value = ifelse(value == 0, NA, value)) %>% 
   ggplot(aes(x=metric_input, y=metric_focal, size=value, color=as.factor(value))) +
@@ -79,12 +154,12 @@ pS = nc_s %>%
 
 # ggsave("Figures/network_connectivity/node_connections_sLakes.png", pS, width=1000, height=450, dpi=120, units = "px")
 
-pN = nc_n %>% 
+nc_n %>% 
   filter(lakeid_focal == lakeid_input ) %>% 
   group_by(metric_focal, metric_input) %>% 
-  summarise(Excitatory = sum(value < excit_thresh),
-            Inhibitory = sum(value > inhib_thresh),
-            Nonsignif = sum(value > excit_thresh & value < inhib_thresh)) %>% 
+  summarise(Excitatory = sum(value < excit_own),
+            Inhibitory = sum(value > inhib_own),
+            Nonsignif = sum(value > excit_own & value < inhib_own)) %>% 
   pivot_longer(cols = c("Excitatory", "Inhibitory", "Nonsignif")) %>% 
   mutate(value = ifelse(value == 0, NA, value)) %>% 
   ggplot(aes(x=metric_input, y=metric_focal, size=value, color=as.factor(value))) +
@@ -95,27 +170,6 @@ pN = nc_n %>%
   theme(axis.text.x = element_text(angle = 90)) +
   labs(x="Driver Metric", y = "Affected Metric", color="Number", size="Number") +
   ggtitle("Number of northern lakes with excitatory, inhibitory, or nonsig. connections")
-
-# ggsave("Figures/network_connectivity/node_connections_nLakes.png", pN, width=1000, height=450, dpi=120, units = "px")
-
-pA = nc_all %>% 
-  filter(lakeid_focal == lakeid_input ) %>% 
-  group_by(metric_focal, metric_input) %>% 
-  summarise(Excitatory = sum(value < excit_thresh),
-            Inhibitory = sum(value > inhib_thresh),
-            Nonsignif = sum(value > excit_thresh & value < inhib_thresh)) %>% 
-  pivot_longer(cols = c("Excitatory", "Inhibitory", "Nonsignif")) %>% 
-  mutate(value = ifelse(value == 0, NA, value)) %>% 
-  ggplot(aes(x=metric_input, y=metric_focal, size=value, color=as.factor(value))) +
-  geom_point() + 
-  theme_bw()+ 
-  # scale_color_viridis_c() +
-  facet_wrap(~name)+
-  theme(axis.text.x = element_text(angle = 90)) +
-  labs(x="Driver Metric", y = "Affected Metric", color="Number", size="Number") +
-  ggtitle("Number of all lakes with excitatory, inhibitory, or nonsig. connections")
-
-# ggsave("Figures/network_connectivity/node_connections_allLakes.png", pA, width=1000, height=450, dpi=120, units = "px")
 
 # analyze each lake spearately
 lakes = c("AL", "BM", "CB", "CR", "FI", "ME", "MO", "SP", "TB", "TR", "WI")
@@ -136,10 +190,60 @@ for(i in 1:length(lakes)){
   hold_res[[i]] = lake_all
 }
 indiv_lakes = bind_rows(hold_res)
+
+# set own thresholds
+indiv_lakes %>% 
+  ggplot(aes(x=value)) +
+  geom_histogram(bins=100, color="black", fill="lightblue") +
+  facet_wrap(~lakeid_focal, scales="free_x") +
+  theme_bw() +
+  geom_vline(aes(xintercept=inhib_thresh), color="red")+
+  geom_vline(aes(xintercept=excit_thresh), color="red")+
+  geom_vline(aes(xintercept=0), color="black")
+
+# try being more restrictive
+indiv_lakes$excit_own = as.numeric(NA)
+indiv_lakes$inhib_own = as.numeric(NA)
+indiv_lakes = indiv_lakes %>% 
+  mutate(excit_own = ifelse(lakeid_focal == "AL", -0.18, excit_own),
+         inhib_own = ifelse(lakeid_focal == "AL", 0.5, inhib_own),
+         excit_own = ifelse(lakeid_focal == "BM", -0.25, excit_own),
+         inhib_own = ifelse(lakeid_focal == "BM", 0.8, inhib_own),
+         excit_own = ifelse(lakeid_focal == "CB", -0.25, excit_own),
+         inhib_own = ifelse(lakeid_focal == "CB", 0.5, inhib_own),
+         excit_own = ifelse(lakeid_focal == "CR", excit_thresh, excit_own),
+         inhib_own = ifelse(lakeid_focal == "CR", 0.3, inhib_own),
+         excit_own = ifelse(lakeid_focal == "FI", -0.55, excit_own),
+         inhib_own = ifelse(lakeid_focal == "FI", 1.8, inhib_own),
+         excit_own = ifelse(lakeid_focal == "ME", -0.95, excit_own),
+         inhib_own = ifelse(lakeid_focal == "ME", 1, inhib_own),
+         excit_own = ifelse(lakeid_focal == "MO", excit_thresh, excit_own),
+         inhib_own = ifelse(lakeid_focal == "MO", 1, inhib_own),
+         excit_own = ifelse(lakeid_focal == "SP", -0.25, excit_own),
+         inhib_own = ifelse(lakeid_focal == "SP", 0.53, inhib_own),
+         excit_own = ifelse(lakeid_focal == "TB", excit_thresh, excit_own),
+         inhib_own = ifelse(lakeid_focal == "TB", 0.75, inhib_own),
+         excit_own = ifelse(lakeid_focal == "TR", -0.25, excit_own),
+         inhib_own = ifelse(lakeid_focal == "TR", inhib_thresh, inhib_own),
+         excit_own = ifelse(lakeid_focal == "WI", -0.5, excit_own),
+         inhib_own = ifelse(lakeid_focal == "WI", 2, inhib_own))
+
+indiv_lakes %>% 
+  ggplot(aes(x=value)) +
+  geom_histogram(bins=100, color="black", fill="lightblue") +
+  facet_wrap(~lakeid_focal, scales="free_x") +
+  theme_bw() +
+  geom_vline(aes(xintercept=inhib_thresh), color="red")+
+  geom_vline(aes(xintercept=excit_thresh), color="red")+
+  geom_vline(aes(xintercept=inhib_own), color="blue")+
+  geom_vline(aes(xintercept=excit_own), color="blue")
+
+
+
 indiv_lakes$connection_type = "NA"
 indiv_lakes = indiv_lakes %>% 
-  mutate(connection_type = ifelse(connection_type == "NA" & value < excit_thresh, "excitatory", connection_type)) %>% 
-  mutate(connection_type = ifelse(connection_type == "NA" & value > inhib_thresh, "inhibitory", connection_type)) %>% 
+  mutate(connection_type = ifelse(connection_type == "NA" & value < excit_own, "excitatory", connection_type)) %>% 
+  mutate(connection_type = ifelse(connection_type == "NA" & value > inhib_own, "inhibitory", connection_type)) %>% 
   mutate(connection_type = ifelse(connection_type == "NA", "nonsignif.", connection_type))
 
 indiv_lakes$metric_focal = factor(indiv_lakes$metric_focal, levels=rev(metrics_ordered), ordered = T)
@@ -154,7 +258,7 @@ prop_excit = indiv_lakes %>%
   arrange(desc(N_excit)) %>% 
   mutate(labs = paste0(lakeid_focal, " (",N_excit, "% excit.)"))
 
-pI = indiv_lakes %>% 
+indiv_lakes %>% 
   left_join(prop_excit) %>% 
   mutate(lakeid_focal = factor(lakeid_focal, levels = prop_excit$lakeid_focal, labels = prop_excit$labs, ordered=T)) %>% 
   group_by(metric_focal, metric_input) %>% 
