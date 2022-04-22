@@ -58,7 +58,7 @@ nc_n %>%
   summarise(prop_excit = sum(value < excit_thresh) /n()) 
 
 # try visualizing the number of connections
-nc_s %>% 
+pS = nc_s %>% 
   filter(lakeid_focal == lakeid_input ) %>% 
   group_by(metric_focal, metric_input) %>% 
   summarise(Excitatory = sum(value < excit_thresh),
@@ -75,7 +75,9 @@ nc_s %>%
   labs(x="Driver Metric", y = "Affected Metric", color="Number", size="Number") +
   ggtitle("Number of southern lakes with excitatory, inhibitory, or nonsig. connections")
 
-nc_n %>% 
+ggsave("Figures/network_connectivity/node_connections_sLakes.png", pS, width=1000, height=450, dpi=120, units = "px")
+
+pN = nc_n %>% 
   filter(lakeid_focal == lakeid_input ) %>% 
   group_by(metric_focal, metric_input) %>% 
   summarise(Excitatory = sum(value < excit_thresh),
@@ -92,7 +94,9 @@ nc_n %>%
   labs(x="Driver Metric", y = "Affected Metric", color="Number", size="Number") +
   ggtitle("Number of northern lakes with excitatory, inhibitory, or nonsig. connections")
 
-nc_all %>% 
+ggsave("Figures/network_connectivity/node_connections_nLakes.png", pN, width=1000, height=450, dpi=120, units = "px")
+
+pA = nc_all %>% 
   filter(lakeid_focal == lakeid_input ) %>% 
   group_by(metric_focal, metric_input) %>% 
   summarise(Excitatory = sum(value < excit_thresh),
@@ -108,6 +112,8 @@ nc_all %>%
   theme(axis.text.x = element_text(angle = 90)) +
   labs(x="Driver Metric", y = "Affected Metric", color="Number", size="Number") +
   ggtitle("Number of all lakes with excitatory, inhibitory, or nonsig. connections")
+
+ggsave("Figures/network_connectivity/node_connections_allLakes.png", pA, width=1000, height=450, dpi=120, units = "px")
 
 # analyze each lake spearately
 lakes = c("AL", "BM", "CB", "CR", "FI", "ME", "MO", "SP", "TB", "TR", "WI")
@@ -146,7 +152,7 @@ prop_excit = indiv_lakes %>%
   arrange(desc(N_excit)) %>% 
   mutate(labs = paste0(lakeid_focal, " (",N_excit, "% excit.)"))
 
-indiv_lakes %>% 
+pI = indiv_lakes %>% 
   left_join(prop_excit) %>% 
   mutate(lakeid_focal = factor(lakeid_focal, levels = prop_excit$lakeid_focal, labels = prop_excit$labs, ordered=T)) %>% 
   group_by(metric_focal, metric_input) %>% 
@@ -159,4 +165,6 @@ indiv_lakes %>%
   theme(axis.text.x = element_text(angle = 90)) +
   labs(x="Driver Metric", y = "Affected Metric", color="Number", size="Number") +
   ggtitle("Excitatory, inhibitory, or nonsig. connections by lake") +
-  theme(strip.text=element_text(size=14), plot.title = element_text(size=18))
+  theme(strip.text=element_text(size=10), plot.title = element_text(size=16))
+
+ggsave("Figures/network_connectivity/node_connections_indivAnalyzed.png", pI, width=1000, height=700, dpi=120, units = "px")
