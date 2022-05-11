@@ -52,9 +52,10 @@ dates_wide_complete = na.omit(dates_wide)
 unique(dates_wide_complete$lakeid)
 
 df.matrix = as.matrix(dates_wide_complete %>%
-  select(c('chlor_fall','chlor_spring','secchi_openwater','daphnia_biomass',
-           'total_zoop_biomass','straton', 'stratoff', 'energy', 'stability', 'anoxia_summer',
-          'iceon', 'iceoff', 'doc')))
+  # select(c('chlor_fall','chlor_spring','secchi_openwater','daphnia_biomass',
+  #          'total_zoop_biomass','straton', 'stratoff', 'energy', 'stability', 'anoxia_summer',
+  #         'iceon', 'iceoff', 'doc')))
+    select( c("iceoff", "straton", "secchi_openwater", "daphnia_biomass", "doc", "chlor_spring",  "anoxia_summer", "stability", "energy", "stratoff", "iceon")))
 
 # names <- paste0(idx$id)#,'_',df.wide$year)
 names <- paste0(dates_wide_complete$lakeid)
@@ -107,25 +108,40 @@ plot(som_model, type="codes")
 plot(som_model, type="mapping",col = n.colors,
      label = names,pchs = names)
 
-layout(matrix(1:15,ncol=5,nrow=3,byrow=T))
+layout(matrix(1:4,ncol=2,nrow=2,byrow=T))
 
-for(i in 1:13){
-  plot(som_model, type = "property", property=som_model$codes[[1]][,i], main=sprintf(
-    c('chlor_fall','chlor_spring','secchi_openwater','daphnia_biomass',
-      'total_zoop_biomass','straton', 'stratoff', 'energy', 'stability', 'anoxia_summer',
-      'iceon', 'iceoff', 'doc')[i]), palette.name=coolBlueHotRed)
-}
+# for(i in 1:13){
+#   plot(som_model, type = "property", property=som_model$codes[[1]][,i], main=sprintf(
+#     c("iceoff", "straton", "secchi_openwater", "daphnia_biomass", "doc", "chlor_spring",  "anoxia_summer", "stability", "energy", "stratoff", "iceon")[i]), palette.name=coolBlueHotRed)
+# }
 
-for(i in 1:13){
-  var <- i #define the variable to plot 
+vars_plot = c("iceoff", "secchi_openwater", "anoxia_summer", "iceon")
+for(i in 1:4){
+  var <- vars_plot[i] #define the variable to plot 
   var_unscaled <- aggregate(as.numeric(df.matrix[,var]), by=list(som_model$unit.classif), FUN=mean, simplify=TRUE)[,2] 
   plot(som_model, type = "property", property=var_unscaled, 
        main=sprintf(
-         c('chlor_fall','chlor_spring','secchi_openwater','daphnia_biomass',
-           'total_zoop_biomass','straton', 'stratoff', 'energy', 'stability', 'anoxia_summer',
-           'iceon', 'iceoff', 'doc')[i]), 
+         vars_plot[i]), 
        palette.name=coolBlueHotRed)
 }
+# 
+# for(i in 1:13){
+#   plot(som_model, type = "property", property=som_model$codes[[1]][,i], main=sprintf(
+#     c('chlor_fall','chlor_spring','secchi_openwater','daphnia_biomass',
+#       'total_zoop_biomass','straton', 'stratoff', 'energy', 'stability', 'anoxia_summer',
+#       'iceon', 'iceoff', 'doc')[i]), palette.name=coolBlueHotRed)
+# }
+# 
+# for(i in 1:12){
+#   var <- i #define the variable to plot 
+#   var_unscaled <- aggregate(as.numeric(df.matrix[,var]), by=list(som_model$unit.classif), FUN=mean, simplify=TRUE)[,2] 
+#   plot(som_model, type = "property", property=var_unscaled, 
+#        main=sprintf(
+#          c('chlor_fall','chlor_spring','secchi_openwater','daphnia_biomass',
+#            'total_zoop_biomass','straton', 'stratoff', 'energy', 'stability', 'anoxia_summer',
+#            'iceon', 'iceoff', 'doc')[i]), 
+#        palette.name=coolBlueHotRed)
+# }
 
 dev.off()
 
@@ -166,3 +182,4 @@ add.cluster.boundaries(som_model, som_cluster)
 
 plot(som_model, type="codes", bgcol = pretty_palette[som_cluster])
 add.cluster.boundaries(som_model, som_cluster)
+
