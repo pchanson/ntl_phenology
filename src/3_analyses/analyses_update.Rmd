@@ -76,9 +76,8 @@ dat %>%
   facet_wrap(~ (lakeid)) +
   xlab('') + ylab('Density')+
   theme_minimal(base_size = 9) + 
-  theme(axis.text = element_text(size=8), 
-        legend.key.height = unit(0.5,"cm"), 
-        legend.key.width = unit(0.3,"cm"))
+  theme(axis.text = element_text(size=8)) +
+  guides(fill="none", color="none")
 
 ```
 

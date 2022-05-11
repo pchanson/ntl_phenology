@@ -116,13 +116,15 @@ layout(matrix(1:4,ncol=2,nrow=2,byrow=T))
 # }
 
 vars_plot = c("iceoff", "secchi_openwater", "anoxia_summer", "iceon")
+vars_lab = c("ice off", "secchi", "anoxia", "ice on")
 for(i in 1:4){
+  par(cex.main=2)
   var <- vars_plot[i] #define the variable to plot 
   var_unscaled <- aggregate(as.numeric(df.matrix[,var]), by=list(som_model$unit.classif), FUN=mean, simplify=TRUE)[,2] 
   plot(som_model, type = "property", property=var_unscaled, 
        main=sprintf(
-         vars_plot[i]), 
-       palette.name=coolBlueHotRed)
+         vars_lab[i]), 
+       palette.name=coolBlueHotRed, cex=1.75)
 }
 # 
 # for(i in 1:13){
