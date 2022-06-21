@@ -1,7 +1,7 @@
 library(tidyverse)
 library(lubridate)
 
-nuts0 = read_csv('../../../Data/ntl1_v9_1.csv') # contains all lakes
+nuts0 = read_csv('Data/raw/ntl1_v9_1.csv') # contains all lakes
 
 nuts = nuts0 %>% 
   filter(!is.na(doc)) %>% 
@@ -35,7 +35,7 @@ def_toss = c()
 maybe_toss = c()
 
 lakes = c("FI", "ME", "MO", "WI", "AL", "BM", "CB", "CR", "SP", "TB", "TR")
-pdf("../../../Figures/doc_timeseries_withPeaks.pdf", width=11, height=8.5)
+pdf("Figures/data_checks/doc_timeseries_withPeaks.pdf", width=11, height=8.5)
 for(i in 1:length(lakes)){
   p = nuts %>% 
     filter(lakeid == lakes[i]) %>% 
@@ -97,7 +97,7 @@ peaks_ag = nuts_clean_avg %>%
   slice_max(doc)
 
 lakes = c("FI", "ME", "MO", "WI", "AL", "BM", "CB", "CR", "SP", "TB", "TR")
-pdf("../../../Figures/doc_timeseries_withPeaks_selectFlagsRemoved.pdf", width=11, height=8.5)
+pdf("Figures/data_checks/doc_timeseries_withPeaks_selectFlagsRemoved.pdf", width=11, height=8.5)
 for(i in 1:length(lakes)){
   p = nuts_clean_avg %>% 
     filter(lakeid == lakes[i]) %>% 
@@ -165,5 +165,5 @@ out = out %>%
   select(lakeid, metric, sampledate, year4, daynum) %>% 
   rename(year=year4) 
 
-write_csv(out,  "../../../Data/final_metric_data/doc.csv")
+write_csv(out,  "Data/final_metric_files/doc.csv")
                 

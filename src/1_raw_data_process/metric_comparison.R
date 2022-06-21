@@ -2,9 +2,8 @@
 
 library(tidyverse)
 library(ggridges)
-setwd(dirname(rstudioapi::getSourceEditorContext()$path))
 
-comb_data = read_csv("../../Data/final_metric_data/final_combined_dates.csv")
+comb_data = read_csv("Data/final_metric_files/final_combined_dates.csv")
 comb_data$lakeid = factor(comb_data$lakeid, levels = c("AL", "BM", "CB", "CR", "SP", "TB", "TR", "FI", "ME", "MO", "WI"), ordered = TRUE)
 
 # Metrics: c("anoxia", "anoxia_summer", "chlor_all", "chlor_fall", "chlor_spring", "daphnia_biomass", "doc", "energy", "iceoff", "iceon", "secchi_all", "secchi_openwater", "stability", "stratoff", "straton", "total_zoop_biomass"
@@ -40,7 +39,7 @@ comb_data %>%
   facet_wrap(~lakeid) +
   theme(legend.position = c(0.87, 0.15))
 
-# TODO: revisit notes on this; think we decided to go with using/comparing all three metrics? or maybe separate "all" from ("spring" and "fall")
+# revisit notes on this; think we decided to go with using/comparing all three metrics? or maybe separate "all" from ("spring" and "fall")
 # ==========================================
 # secchi
 # ==========================================

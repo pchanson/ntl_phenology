@@ -36,7 +36,7 @@ get_dens <- function(temp, salt){
 }
 
 # Load bathymetry
-bath <- read_csv('Data/NTLhypsometry.csv') |> 
+bath <- read_csv('Data/derived/NTLhypsometry.csv') |> 
   bind_rows(data.frame('lakeid' = rep('FI',2), 'Depth_m' = c(0,18.9),
                        'Depth_ft' = c(0,0),'area' = c(874000, 0)))
 
@@ -149,17 +149,20 @@ for (name in unique(dt1$lakeid)){
 
 # Export thermocline depths
 therm.df = do.call(rbind.data.frame, therm.list)
-# write.csv(therm.df, file ='Data/thermocline.csv', quote = F, row.names = F)
+# write.csv(therm.df, file ='Data/derived/thermocline.csv', quote = F, row.names = F)
 
 # Export physics metrics
 strat.df = do.call(rbind.data.frame, strat.list)
 strat.df.wide = strat.df |> select(-duration) |> 
   pivot_longer(cols = straton:anoxia_summer, names_to = "metric", values_to = "sampledate") |> 
   mutate(daynum = yday(sampledate)) 
-# write_csv(strat.df.wide, "Data/final_metric_data/physics.csv")
+# write_csv(strat.df.wide, "Data/final_metric_files/physics.csv")
 
 # Plot comparison with old data file
-test = read_csv('Data/final_metric_data/physics.csv')
+test = read_csv('Data/old/phenology_dates_v1.csv') |> 
+  rename(lakeid = id, metric=variable, daynum = value) |> 
+  filter(metric %in% c(unique(strat.df.wide$metric), "anoxia")) |> 
+  mutate(metric = ifelse(metric == "anoxia", "anoxia_summer", metric))
 for (name in unique(dt1$lakeid)){
   p1 = ggplot(strat.df.wide |> filter(lakeid == name)) +
      geom_point(aes(x = year, y = daynum)) +

@@ -13,6 +13,7 @@ output:
 </style>
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
 ```
 
 ```{r}
@@ -28,7 +29,7 @@ library(BINCOR)
 library(corrr)
 library(patchwork)
 library(MetBrewer)
-dat = read_csv("../Data/final_combined_dates_filled_v1.csv")
+dat = read_csv("Data/analysis_ready/final_combined_dates_filled_v1.csv")
 dat$sampledate = as.Date(paste0(dat$year-1, "-12-31")) + dat$daynum_fill
 ```
 
@@ -51,40 +52,40 @@ dat %>%
 
 * iceoff/iceon: FI filled with MO; northern lakes filled w/ lake-specific model of other northern lake ice on or off dates
 * doc: filled with lake-specific model (daynum_doc ~ daynum_all_other_variables)
-* chl: currently filled with lake specific modeled time series (chl ~ wtemp + DOsat), which are then used to determine peaks
+* chl: filled with values from old/unpublished files on LTER server; concentrations were incorrect but assuming relative values comparable
 * total zoop and daphnia biomass: filled with lake-specific median daynum
 
 ## Distribution of peak dates
 ```{r, width = 9, height = 12}
 lakes_order = c("AL", "BM", "CB", "CR", "SP", "TB", "TR", "FI", "ME", "MO", "WI")
 
-vars_order = c("iceoff", "straton", "chlor_spring", "secchi_openwater", "daphnia_biomass", "doc", "chlor_all", "anoxia_summer", "stability", "energy", "chlor_fall", "stratoff", "iceon")
+# vars_order = c("iceoff", "straton", "chlor_spring", "secchi_openwater", "daphnia_biomass", "doc", "chlor_all", "anoxia_summer", "stability", "energy", "chlor_fall", "stratoff", "iceon")
+vars_order = c("iceoff", "straton",  "chlor_spring", "secchi_openwater", "daphnia_biomass", "doc",  "anoxia_summer", "stability", "energy", "stratoff", "iceon")
 
 dat %>% 
   filter(metric %in% vars_order) %>% 
   mutate(lakeid = factor(lakeid, levels = lakes_order),
-         metric = factor(metric, levels = rev(vars_order), labels = rev(c("iceoff", "straton", "spring bloom", "clearwater", "daphnia", "doc",  "peak chl", "anoxia summer", "stability", "energy", "fall bloom", "stratoff", "iceon")))) %>% 
+         metric = factor(metric, levels = rev(vars_order), labels = rev(c("iceoff", "straton", "spring bloom", "clearwater", "daphnia", "doc",  "anoxia summer", "stability", "energy", "stratoff", "iceon")))) %>% 
   ggplot() + 
   stat_density_ridges(aes(x = as.Date(daynum, origin = as.Date('2019-01-01')), 
                           y= metric, col = metric, fill = metric), 
                       alpha = 0.5, quantile_lines = T, quantiles = 2) +
-  scale_fill_manual(values=met.brewer("Archambault", 13)) + 
-  scale_color_manual(values=met.brewer("Archambault", 13)) +
+  scale_fill_manual(values=met.brewer("Archambault", 11)) + 
+  scale_color_manual(values=met.brewer("Archambault", 12)) +
   scale_x_date(labels = date_format("%b")) +
   facet_wrap(~ (lakeid)) +
   xlab('') + ylab('Density')+
   theme_minimal(base_size = 9) + 
-  theme(axis.text = element_text(size=8), 
-        legend.key.height = unit(0.5,"cm"), 
-        legend.key.width = unit(0.3,"cm"))
+  theme(axis.text = element_text(size=8)) +
+  guides(fill="none", color="none")
 
 ```
 
 ## Correlation matrices
 ```{r, width = 8, height = 10}
-source(file = '../src/Functions/plotCorrplot.R')
+source(file = 'src/Functions/plotCorrplot.R')
  
-dat = read_csv("../Data/final_combined_dates_filled_v1.csv") |> 
+dat = read_csv("Data/analysis_ready/final_combined_dates_filled_v1.csv") |> 
   mutate(sampledate =  as.Date(paste0(year-1, "-12-31")) + daynum_fill) |> 
   mutate(lakeid = factor(lakeid, levels =  c("AL", "BM", "CB", "CR", "SP", "TB", "TR", "FI", "ME", "MO", "WI")))
 
@@ -111,7 +112,7 @@ p2 + p3 + plot_layout(guides = 'collect')
 
 ## Eigenvalue Analysis
 ```{r, fig.height=5, fig.width=10}
-source("../src/timing_matrix_construction.R")
+source("src/Functions/timing_matrix_construction.R")
 
 vars_order_eigen =  c("iceoff", "straton", "secchi_openwater", "daphnia_biomass", "doc", "chlor_spring", "anoxia_summer", "stability", "energy", "stratoff", "iceon")
 all_var_combos = expand.grid(vars_order_eigen, vars_order_eigen)
@@ -184,8 +185,8 @@ eigen_corrs %>%
 
 **Setup** select lakes and variables to analyze:
 ```{r}
-var_pca = c("iceoff", "straton", "secchi_openwater", "dapnia_biomass", "doc", "chlor_spring", "anoxia_summer", "stability", "energy", "stratoff", "iceon")
-lakeid_pca = c("FI", "ME", "MO", "WI", "AL", "BM", "CB", "CR", "SP", "TB", "TR")
+var_pca = c("iceoff", "straton", "secchi_openwater", "daphnia_biomass", "doc", "chlor_spring",  "anoxia_summer", "stability", "energy", "stratoff", "iceon")
+lakeid_pca = c("AL", "BM", "CB", "CR", "SP", "TB", "TR", "FI", "ME", "MO", "WI")
 
 dat_pca = dat %>% 
   filter(metric %in% var_pca & lakeid %in% lakeid_pca) %>% 
@@ -347,7 +348,7 @@ dat %>%
   pivot_wider(names_from = metric, values_from = daynum_fill) %>% 
   select(-lakeid, -year) %>% 
   correlate() %>% 
-  network_plot(min_cor = 0.2)
+  network_plot(min_cor = 0.2, colours = c("red", "white", "blue"))
 ```
 
 ### North vs. South
@@ -389,7 +390,7 @@ gridExtra::grid.arrange(pN, pS, nrow=1)
 
 ## TODO
 
-1. Get FI/MO/WI "bad" chlorophyll data files from Mark, use to fill peak chlorophyll dates
+1. ~~Get FI/MO/WI "bad" chlorophyll data files from Mark, use to fill peak chlorophyll dates~~
 2. Network connectivity inference analysis
 3. Other analyses?
 4. Dive into literature

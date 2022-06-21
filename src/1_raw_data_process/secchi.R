@@ -31,7 +31,7 @@ secchi_peaks_formatted = LTERsecchi %>%
 
 
 lakes = c("FI", "ME", "MO", "WI", "AL", "BM", "CB", "CR", "SP", "TB", "TR")
-pdf("../../../Figures/secchi_timeseries_withPeaks.pdf", width=11, height=8.5)
+pdf("Figures/data_checks/secchi_timeseries_withPeaks.pdf", width=11, height=8.5)
 for(i in 1:length(lakes)){
   p = LTERsecchi %>% 
     filter(lakeid == lakes[i]) %>% 
@@ -48,7 +48,7 @@ for(i in 1:length(lakes)){
 }
 dev.off()
 
-# TODONE: deal with when there's more than one peak with same max value in a year (see WI) -> take the middle one; round down if even number
+# deal with when there's more than one peak with same max value in a year (see WI) -> take the middle one; round down if even number
 secchi_peaks_formatted_singlePeak = secchi_peaks_formatted %>% 
   group_by(lakeid, year4) %>% 
   summarise(N = n()) %>% 
@@ -93,7 +93,7 @@ out_secchiPeaks_allDOYs = left_join(enough_samples, out_secchiPeaks_allDOYs) %>%
   mutate(metric = "secchi_all")
 #### also, make separate metric for just open water secchi peak? see ME
 # get ice on/off dates
-ice0 = read_csv("../../../Data/ntl_icedatescombo.csv")
+ice0 = read_csv("Data/derived/ntl_icedatescombo.csv")
 ice0$firstice_year = lubridate::year(ice0$firstice)
 ice0$lastice_year = lubridate::year(ice0$lastice)
 
@@ -128,7 +128,7 @@ secchi_peaks_formatted_ow = LTERsecchi_openwater %>%
   select(lakeid, metric, sampledate, year4, daynum, secnview) 
 
 lakes = c("FI", "ME", "MO", "WI", "AL", "BM", "CB", "CR", "SP", "TB", "TR")
-pdf("../../../Figures/secchi_timeseries_withPeaks_openwater.pdf", width=11, height=8.5)
+pdf("Figures/data_checks/secchi_timeseries_withPeaks_openwater.pdf", width=11, height=8.5)
 for(i in 1:length(lakes)){
   p = LTERsecchi_openwater %>% 
     filter(lakeid == lakes[i]) %>% 
@@ -192,5 +192,5 @@ out_all = bind_rows(out_secchiPeaks_allDOYs, out_secchiPeaks_ow) %>%
   rename(year = year4) %>% 
   select(lakeid, metric, sampledate, year, daynum)
 
-write_csv(out_all, "../../../Data/final_metric_data/secchi.csv")
+write_csv(out_all, "Data/final_metric_files/secchi.csv")
   

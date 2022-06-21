@@ -5,11 +5,12 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
 ```
 
 ```{r, echo=FALSE, message=FALSE}
 library(tidyverse)
-dat = read_csv("../Data/final_metric_data/final_combined_dates.csv")
+dat = read_csv("Data/final_metric_files/final_combined_dates.csv")
 lakes = c("AL", "BM", "CB", "CR", "SP", "TB", "TR", "FI", "ME", "MO", "WI")
 dat$lakeid = factor(dat$lakeid, 
                     levels = rev(lakes), 
@@ -145,7 +146,7 @@ doc_fill = missing_doc %>%
 
 **Using dates from fitting wtemp/do model to chl observations
 ```{r}
-filled_chl_dates = read_csv("../Data/chl_modeled_peaks.csv") %>% 
+filled_chl_dates = read_csv("Data/derived/chl_filled_peaks.csv") %>% 
   rename(daynum_fill = daynum) %>% 
   select(-sampledate)
 ```
@@ -233,8 +234,8 @@ dat_final %>%
   geom_tile(color="grey") +
   theme_bw() +
   facet_wrap(~lakeid, nrow=6)
-  
-write_csv(dat_final, "../Data/final_combined_dates_filled_v1.csv")
+
+write_csv(dat_final, "Data/analysis_ready/final_combined_dates_filled_v1.csv")
 ```
 
 
