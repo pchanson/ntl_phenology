@@ -137,6 +137,7 @@ dev.off()
 source('./src/Functions/coolBlueHotRed.R')
 
 dat_wide = dat %>% 
+  filter(metric %in% vars_order) %>% 
   pivot_wider(id_cols = c("lakeid", "year"), names_from = "metric", values_from = "daynum_fill") 
 
 n <- 60
@@ -155,12 +156,17 @@ n.colors <- c(rep(col_vector[1],sum(!is.na(match(names, 'AL')))),
               rep(col_vector[10],sum(!is.na(match(names, 'TR')))),
               rep(col_vector[11],sum(!is.na(match(names, 'WI')))))
 
+data_train_matrix_unscaled <- dat_wide %>% 
+  select(all_of(vars_order)) %>% 
+  # scale() %>% 
+  as.matrix()
+
 data_train_matrix <- dat_wide %>% 
   select(all_of(vars_order)) %>% 
   scale() %>% 
   as.matrix()
 
-som_grid <- somgrid(xdim = 9, ydim=9, topo="hexagonal")
+# som_grid <- somgrid(xdim = 9, ydim=9, topo="hexagonal")
 
 set.seed(222)
 # the 4x4 first?
@@ -178,7 +184,7 @@ plot(map, type='codes',palette.name = rainbow, labels = names, )
 plot(map, type='mapping',col = n.colors,
      label = names,pchs = names)
 
-# then 9x9
+# larger
 som_grid <- somgrid(xdim = 7, ydim=7, topo="hexagonal")
 som_model <- som(data_train_matrix, 
                  grid=som_grid, 
@@ -190,15 +196,41 @@ par(mar=c(5,5,5,5))
 plot(som_model, type="changes")
 plot(som_model, type="count")
 
-som_cluster <- cutree(hclust(dist(som_model$codes[[1]])),4)
+som_cluster <- cutree(hclust(dist(som_model$codes[[1]])),6)
 pretty_palette <- c("#1f77b4", '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', "#7f7f7f", "#bcbd22", "#17becf","#00FF00", "#9F81F7"
                     ,"#FFFF00", "#F6CECE","#610B21")
 
-
-
+jpeg("Figures/manuscript/Figure4a.jpeg",
+     width=6, height=6, units="in", 
+     res=300)
 plot(som_model, type="mapping", bgcol = pretty_palette[som_cluster], main = "Clusters",
      label = names, pchs = names, cex =0.7) 
 add.cluster.boundaries(som_model, som_cluster)
+dev.off()
+
+layout(matrix(1:4,ncol=2,nrow=2,byrow=T))
+vars_plot = c("iceoff", "secchi_openwater", "anoxia_summer", "iceon")
+vars_lab = c("ice off", "secchi", "anoxia", "ice on")
+for(i in 1:4){
+  par(cex.main=2)
+  var <- vars_plot[i] #define the variable to plot 
+  var_unscaled <- aggregate(as.numeric(data_train_matrix_unscaled[,var]), by=list(som_model$unit.classif), FUN=mean, simplify=TRUE)[,2] 
+  plot(som_model, type = "property", property=var_unscaled, 
+       main=sprintf(
+         vars_lab[i]), 
+       palette.name=coolBlueHotRed, cex=1.75)
+  add.cluster.boundaries(som_model, som_cluster)
+}
+# get rid of single WI data point that's always out on it's own?
+
+# length(vars_order)
+layout(matrix(1:12,ncol=4,nrow=3,byrow=T))
+# par()
+for(i in 1:11){
+  par(cex.main=1)
+  plot(som_model, type = "property", property=som_model$codes[[1]][,i], main=sprintf(vars_order[i]), palette.name=coolBlueHotRed)
+  add.cluster.boundaries(som_model, som_cluster)
+}
 
 # SI: N vs. S. PCA loading
 
