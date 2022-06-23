@@ -16,8 +16,9 @@ dat$lakeid = factor(dat$lakeid,
                     levels = rev(lakes), 
                     ordered = T)
 vars = c("iceoff", "straton", "secchi_all", "secchi_openwater", "daphnia_biomass",
-                               "total_zoop_biomass", "chlor_all", "chlor_spring", "chlor_fall", "doc", 
-                               "anoxia", "anoxia_summer", "stability", "energy", "stratoff", "iceon")
+         "total_zoop_biomass", "chlor_all", "chlor_spring", "chlor_fall", "doc_epiMax",
+         "totpuf_epiMax", "totpuf_epiMin", "totpuf_hypoMax", "totpuf_hypoMin", 
+         "anoxia_summer", "stability", "energy", "stratoff", "iceon")
 dat$metric = factor(dat$metric,
                     levels = rev(vars),
                     ordered=T)
@@ -99,13 +100,13 @@ n_lakes_wide = left_join(no_dups, dat) %>%
   filter(lakeid %in% c("AL", "BM", "CB", "CR", "SP", "TB", "TR"))
 
 hold_data = na.omit(data.frame(n_lakes_wide %>%  ungroup() %>% select(-year, -N))) # , -doc_predict
-all = lm(doc~(iceon+straton+stratoff+energy+
+all = lm(doc_epiMax~(iceon+straton+stratoff+energy+
                  stability+anoxia_summer+secchi_all+
                  secchi_openwater+total_zoop_biomass+daphnia_biomass)*lakeid, data=hold_data)
-i_o = lm(doc~1, data=hold_data)
+i_o = lm(doc_epiMax~1, data=hold_data)
 hold_step = step(i_o, scope=formula(all))
 
-doc_model = lm(doc~(iceon+straton+stratoff+energy+
+doc_model = lm(doc_epiMax~(iceon+straton+stratoff+energy+
                  stability+anoxia_summer+secchi_all+
                  secchi_openwater+total_zoop_biomass+daphnia_biomass)*lakeid, 
                data=n_lakes_wide, 
@@ -116,10 +117,10 @@ n_lakes_wide$doc_predict = predict(doc_model, n_lakes_wide)
 
 cor = n_lakes_wide %>% 
   group_by(lakeid) %>% 
-  summarise(r = paste("r =", round(cor(doc, doc_predict, use="complete.obs"), 3)))
+  summarise(r = paste("r =", round(cor(doc_epiMax, doc_predict, use="complete.obs"), 3)))
 
 n_lakes_wide %>% 
-  ggplot(aes(x=doc, y=doc_predict, color=as.character(lakeid))) +
+  ggplot(aes(x=doc_epiMax, y=doc_predict, color=as.character(lakeid))) +
   geom_point()+
   theme_bw() +
   labs(color="lakeid")+
@@ -129,14 +130,14 @@ n_lakes_wide %>%
   labs(x="obs peak DOC (daynum)",  y="modeled peak DOC (daynum)")
 
 # not good but vaguely positive relationship; use this instead of median?
-missing_doc = n_lakes_wide %>% filter(is.na(doc))
+missing_doc = n_lakes_wide %>% filter(is.na(doc_epiMax))
 
 missing_doc$doc_fill = round(predict(doc_model, missing_doc))
 
 doc_fill = missing_doc %>% 
   select(lakeid, year, doc_fill) %>% 
   rename(daynum_fill = doc_fill) %>% 
-  mutate(metric = "doc") %>% 
+  mutate(metric = "doc_epiMax") %>% 
   filter(year < 2000)
 
 
@@ -163,8 +164,9 @@ dat_filled$lakeid = factor(dat_filled$lakeid,
                     levels = c("AL", "BM", "CB", "CR", "SP", "TB", "TR", "FI", "ME", "MO", "WI"), 
                     ordered = T)
 vars = c("iceoff", "straton", "secchi_all", "secchi_openwater", "daphnia_biomass",
-                               "total_zoop_biomass", "chlor_all", "chlor_spring", "chlor_fall", "doc", 
-                               "anoxia", "anoxia_summer", "stability", "energy", "stratoff", "iceon")
+        "total_zoop_biomass", "chlor_all", "chlor_spring", "chlor_fall", "doc_epiMax",
+        "totpuf_epiMax", "totpuf_epiMin", "totpuf_hypoMax", "totpuf_hypoMin", 
+        "anoxia", "anoxia_summer", "stability", "energy", "stratoff", "iceon")
 dat_filled$metric = factor(dat_filled$metric,
                     levels = rev(vars),
                     ordered=T)
@@ -235,7 +237,7 @@ dat_final %>%
   theme_bw() +
   facet_wrap(~lakeid, nrow=6)
 
-write_csv(dat_final, "Data/analysis_ready/final_combined_dates_filled_v1.csv")
+write_csv(dat_final, "Data/analysis_ready/final_combined_dates_filled_v2.csv")
 ```
 
 

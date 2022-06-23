@@ -157,11 +157,13 @@ n.colors <- c(rep(col_vector[1],sum(!is.na(match(names, 'AL')))),
               rep(col_vector[11],sum(!is.na(match(names, 'WI')))))
 
 data_train_matrix_unscaled <- dat_wide %>% 
+  filter(!(lakeid == "WI" & year == 2011)) %>%
   select(all_of(vars_order)) %>% 
   # scale() %>% 
   as.matrix()
 
 data_train_matrix <- dat_wide %>% 
+  filter(!(lakeid == "WI" & year == 2011)) %>%
   select(all_of(vars_order)) %>% 
   scale() %>% 
   as.matrix()
@@ -185,10 +187,10 @@ plot(map, type='mapping',col = n.colors,
      label = names,pchs = names)
 
 # larger
-som_grid <- somgrid(xdim = 7, ydim=7, topo="hexagonal")
+som_grid <- somgrid(xdim = 9, ydim=9, topo="hexagonal")
 som_model <- som(data_train_matrix, 
                  grid=som_grid, 
-                 rlen=1000, 
+                 rlen=300, 
                  alpha=c(0.05,0.01), 
                  keep.data = TRUE)
 
@@ -196,7 +198,7 @@ par(mar=c(5,5,5,5))
 plot(som_model, type="changes")
 plot(som_model, type="count")
 
-som_cluster <- cutree(hclust(dist(som_model$codes[[1]])),6)
+som_cluster <- cutree(hclust(dist(som_model$codes[[1]])),4)
 pretty_palette <- c("#1f77b4", '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', "#7f7f7f", "#bcbd22", "#17becf","#00FF00", "#9F81F7"
                     ,"#FFFF00", "#F6CECE","#610B21")
 

@@ -12,6 +12,8 @@ filter_lims <- function(x){
   return(x)
 }
 
+varsWant = c("doc_epiMax", "totpuf_epiMax", "totpuf_epiMin", "totpuf_hypoMax", "totpuf_hypoMin")
+
 # removed flagged data
 lternuts.flagged = read_csv('Data/raw/ntl1_v9_1.csv') %>%
   mutate(across(everything(), ~replace(., .<0 , NA))) %>%
@@ -30,8 +32,7 @@ lternuts.flagged = read_csv('Data/raw/ntl1_v9_1.csv') %>%
                           TRUE ~ item))
 
 # Load thermocline depth
-thermo <- read_csv('Data/derived/thermocline.csv') %>% 
-  rename(lakeid = id)
+thermo <- read_csv('Data/derived/thermocline.csv')
 
 # Load stratification dates
 strat = read_csv('Data/final_metric_files/physics.csv') %>% 
@@ -40,15 +41,65 @@ strat = read_csv('Data/final_metric_files/physics.csv') %>%
 
 
 # restrict to epilimnion and stratification period
-nuts = lternuts.flagged %>% left_join(thermo, by = c("lakeid", "sampledate")) %>% 
+nuts_epi = lternuts.flagged %>% left_join(thermo, by = c("lakeid", "sampledate")) %>% 
   left_join(strat, by = c("lakeid", "year4")) %>% 
   mutate(month = month(sampledate), year = year(sampledate), yday = yday(sampledate)) %>% 
   filter(depth <= thermdepth_m) %>% #filter to epilimnion
   filter(daynum >= stratday) %>% #filter to after stratification
   filter(year > 1981)
 
+nuts_hypo = lternuts.flagged %>% left_join(thermo, by = c("lakeid", "sampledate")) %>% 
+  left_join(strat, by = c("lakeid", "year4")) %>% 
+  mutate(month = month(sampledate), year = year(sampledate), yday = yday(sampledate)) %>% 
+  filter(depth > thermdepth_m) %>% #filter to epilimnion
+  filter(daynum >= stratday) %>% #filter to after stratification
+  filter(year > 1981)
+
 # What plot looks like with outliers
-ggplot(nuts %>% filter(item == 'doc')) +
+# DOC
+ggplot(nuts_epi %>% filter(item == 'doc')) +
+  geom_path(aes(x = as.Date(yday, origin = as.Date('2019-01-01')), y = value, group = year)) +
+  geom_point(aes(x = as.Date(yday, origin = as.Date('2019-01-01')), y = value, group = year)) +
+  scale_x_date(labels = date_format("%b")) +
+  facet_wrap(~lakeid, scales = 'free_y') +
+  theme_bw(base_size = 9) +
+  theme(axis.title.x = element_blank())
+
+ggplot(nuts_hypo %>% filter(item == 'doc')) +
+  geom_path(aes(x = as.Date(yday, origin = as.Date('2019-01-01')), y = value, group = year)) +
+  geom_point(aes(x = as.Date(yday, origin = as.Date('2019-01-01')), y = value, group = year)) +
+  scale_x_date(labels = date_format("%b")) +
+  facet_wrap(~lakeid, scales = 'free_y') +
+  theme_bw(base_size = 9) +
+  theme(axis.title.x = element_blank())
+
+# TP
+ggplot(nuts_epi %>% filter(item == 'totpuf')) +
+  geom_path(aes(x = as.Date(yday, origin = as.Date('2019-01-01')), y = value, group = year)) +
+  geom_point(aes(x = as.Date(yday, origin = as.Date('2019-01-01')), y = value, group = year)) +
+  scale_x_date(labels = date_format("%b")) +
+  facet_wrap(~lakeid, scales = 'free_y') +
+  theme_bw(base_size = 9) +
+  theme(axis.title.x = element_blank())
+
+ggplot(nuts_hypo %>% filter(item == 'totpuf')) +
+  geom_path(aes(x = as.Date(yday, origin = as.Date('2019-01-01')), y = value, group = year)) +
+  geom_point(aes(x = as.Date(yday, origin = as.Date('2019-01-01')), y = value, group = year)) +
+  scale_x_date(labels = date_format("%b")) +
+  facet_wrap(~lakeid, scales = 'free_y') +
+  theme_bw(base_size = 9) +
+  theme(axis.title.x = element_blank())
+
+# TN
+ggplot(nuts_epi %>% filter(item == 'totnuf')) +
+  geom_path(aes(x = as.Date(yday, origin = as.Date('2019-01-01')), y = value, group = year)) +
+  geom_point(aes(x = as.Date(yday, origin = as.Date('2019-01-01')), y = value, group = year)) +
+  scale_x_date(labels = date_format("%b")) +
+  facet_wrap(~lakeid, scales = 'free_y') +
+  theme_bw(base_size = 9) +
+  theme(axis.title.x = element_blank())
+
+ggplot(nuts_hypo %>% filter(item == 'totnuf')) +
   geom_path(aes(x = as.Date(yday, origin = as.Date('2019-01-01')), y = value, group = year)) +
   geom_point(aes(x = as.Date(yday, origin = as.Date('2019-01-01')), y = value, group = year)) +
   scale_x_date(labels = date_format("%b")) +
@@ -57,39 +108,83 @@ ggplot(nuts %>% filter(item == 'doc')) +
   theme(axis.title.x = element_blank())
 
 # Exclude outliers based on box plot statistics 
-nuts2 = nuts %>% 
-  group_by(lakeid) %>% 
-  filter(item == 'doc') %>% 
+nuts_epi2 = nuts_epi %>% 
+  group_by(lakeid, item) %>% 
+  filter(item %in% c('doc', 'totpuf', 'totnuf')) %>% 
   mutate(value = filter_lims(value)) %>% 
-  group_by(lakeid, sampledate, year, yday) %>% 
+  group_by(lakeid, item, sampledate, year, yday) %>% 
   summarise(value = mean(value, na.rm = T))
 
-ggplot(nuts2) +
+nuts_hypo2 = nuts_hypo %>% 
+  group_by(lakeid, item) %>% 
+  filter(item %in% c('doc', 'totpuf', 'totnuf')) %>% 
+  mutate(value = filter_lims(value)) %>% 
+  group_by(lakeid, item, sampledate, year, yday) %>% 
+  summarise(value = mean(value, na.rm = T))
+
+ggplot(nuts_epi2 %>% filter(item == 'totpuf')) +
   geom_path(aes(x = as.Date(yday, origin = as.Date('2019-01-01')), y = value, group = year)) +
   geom_point(aes(x = as.Date(yday, origin = as.Date('2019-01-01')), y = value, group = year)) +
   scale_x_date(labels = date_format("%b")) +
   facet_wrap(~lakeid, scales = 'free_y') +
   theme_bw(base_size = 9) +
-  theme(axis.title.x = element_blank())
+  theme(axis.title.x = element_blank()) +
+  ggtitle("Epi TP")
+
+ggplot(nuts_hypo2 %>% filter(item == 'totpuf')) +
+  geom_path(aes(x = as.Date(yday, origin = as.Date('2019-01-01')), y = value, group = year)) +
+  geom_point(aes(x = as.Date(yday, origin = as.Date('2019-01-01')), y = value, group = year)) +
+  scale_x_date(labels = date_format("%b")) +
+  facet_wrap(~lakeid, scales = 'free_y') +
+  theme_bw(base_size = 9) +
+  theme(axis.title.x = element_blank()) +
+  ggtitle("Hypo TP")
 
 # find day of max DOC
-doc = nuts2 %>% group_by(lakeid, year) %>% 
-  filter(value == max(value, na.rm = T)) %>% 
-  mutate(daynum = yday(sampledate), metric="doc") %>% 
+epi_min = nuts_epi2 %>% 
+  group_by(lakeid, year, item) %>% 
+  filter(value == min(value, na.rm = T)) %>% 
+  mutate(daynum = yday(sampledate), metric = paste0(item, "_epiMin")) %>% 
+  ungroup() %>% 
   select(lakeid, metric, sampledate, year, daynum = yday)
 
-# see if any years have multiple peaks with same doc value
-doc %>% group_by(lakeid, year) %>% summarise(N = n()) %>% filter(N > 1) # Sparkling 1997
+epi_max = nuts_epi2 %>% 
+  group_by(lakeid, year, item) %>% 
+  filter(value == max(value, na.rm = T)) %>% 
+  mutate(daynum = yday(sampledate), metric = paste0(item, "_epiMax")) %>% 
+  ungroup() %>% 
+  select(lakeid, metric, sampledate, year, daynum = yday)
 
-nuts2 %>% filter(lakeid == "SP" & year == 1997) # two dates with same value; take first one as done w/ other values
-doc = doc %>% 
-  group_by(lakeid, year) %>% 
+hypo_min = nuts_hypo2 %>% 
+  group_by(lakeid, year, item) %>% 
+  filter(value == min(value, na.rm = T)) %>% 
+  mutate(daynum = yday(sampledate), metric = paste0(item, "_hypoMin")) %>% 
+  ungroup() %>% 
+  select(lakeid, metric, sampledate, year, daynum = yday)
+
+hypo_max = nuts_hypo2 %>% 
+  group_by(lakeid, year, item) %>% 
+  filter(value == max(value, na.rm = T)) %>% 
+  mutate(daynum = yday(sampledate), metric = paste0(item, "_hypoMax")) %>% 
+  ungroup() %>% 
+  select(lakeid, metric, sampledate, year, daynum = yday)
+
+comb = bind_rows(epi_min, epi_max, hypo_min, hypo_max)
+
+# see if any years have multiple peaks with same doc value
+comb %>% group_by(lakeid, year, metric) %>% summarise(N = n()) %>% filter(N > 1) %>% View()
+# Sparkling 1997
+
+nuts_epi2 %>% filter(lakeid == "CB" & year == 2017) %>% View() # two or three dates with same value take first one as done w/ other values
+# TODO: limit this to either after strat or ice-off, then re-calculate and write
+comb = comb %>% 
+  group_by(lakeid, year, metric) %>% 
   slice_min(daynum) %>% 
   ungroup()
 
 # Plot density distributions
-ggplot(doc) +
+ggplot(comb) +
   geom_density(aes(x = daynum)) +
-  facet_wrap(~lakeid)
+  facet_grid(rows=vars(lakeid), cols=vars(metric))
 
-write.csv(doc,"Data/final_metric_files/doc.csv", row.names = F)
+write.csv(comb %>% filter(metric %in% varsWant),"Data/final_metric_files/nutrients.csv", row.names = F)

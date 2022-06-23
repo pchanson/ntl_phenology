@@ -17,12 +17,12 @@ rm(list = ls())
 # Data set title: North Temperate Lakes LTER: Physical Limnology of Primary Study Lakes 1981 - current.
 inUrl3 <- "https://pasta.lternet.edu/package/data/eml/knb-lter-ntl/29/29/03e232a1b362900e0f059859abe8eb97"
 infile3 <- tempfile()
-download.file(inUrl3, infile3, method = "curl")
+download.file(inUrl3, infile3, method = "auto")
 
 dt1 <- read_csv(infile3) 
 # Only use common depths
-usedepths = dt1 |> group_by(depth) |> tally() |> filter(n >= 500) |> pull(depth)
-dt1 = dt1 |> filter(depth %in% usedepths) |> 
+usedepths = dt1 %>% group_by(depth) %>% tally() %>% filter(n >= 500) %>% pull(depth)
+dt1 = dt1 %>% filter(depth %in% usedepths) %>% 
   filter(year4 >= 1982)
 
 get_dens <- function(temp, salt){
@@ -36,7 +36,7 @@ get_dens <- function(temp, salt){
 }
 
 # Load bathymetry
-bath <- read_csv('Data/derived/NTLhypsometry.csv') |> 
+bath <- read_csv('Data/derived/NTLhypsometry.csv') %>% 
   bind_rows(data.frame('lakeid' = rep('FI',2), 'Depth_m' = c(0,18.9),
                        'Depth_ft' = c(0,0),'area' = c(874000, 0)))
 
@@ -66,13 +66,13 @@ strat.list = list()
 for (name in unique(dt1$lakeid)){
   print(name)
   # Some years only have a couple of samples
-  useYears = data.temp |> filter(lakeid == name) |> 
-    group_by(year, sampledate) |> tally() |> 
-    group_by(year) |> tally() |> filter(n >= 5) |> pull(year)
+  useYears = data.temp %>% filter(lakeid == name) %>% 
+    group_by(year, sampledate) %>% tally() %>% 
+    group_by(year) %>% tally() %>% filter(n >= 5) %>% pull(year)
   
   # Data for single lake
-  data.temp.lake = data.temp |> filter(lakeid == name) |> filter(year %in% useYears)
-  data.o2.lake = data.o2 |> filter(lakeid == name) |> filter(year %in% useYears)
+  data.temp.lake = data.temp %>% filter(lakeid == name) %>% filter(year %in% useYears)
+  data.o2.lake = data.o2 %>% filter(lakeid == name) %>% filter(year %in% useYears)
   
   #Get hyposometry for lake 
   hyp <- bath %>%
@@ -93,7 +93,7 @@ for (name in unique(dt1$lakeid)){
               surfwtemp = iwtemp[which.min(depth)]) 
   
   # for winter?
-  df.lake = df.lake %>% mutate(densdiff = ifelse(densdiff > 0.1 & surfwtemp >= 4, densdiff, NA)) |> 
+  df.lake = df.lake %>% mutate(densdiff = ifelse(densdiff > 0.1 & surfwtemp >= 4, densdiff, NA)) %>% 
     mutate(thermdep = ifelse(is.na(thermdep), NA, thermdep))
   
   # export thermocline depth
@@ -127,24 +127,24 @@ for (name in unique(dt1$lakeid)){
     summarise('do' = sum(dz * area * do))
   
   # Final stratification data.frame
-  strat.df =  df.lake |> group_by(year) |>  
+  strat.df =  df.lake %>% group_by(year) %>%  
     summarise(lakeid = name, 
               straton = min(sampledate, na.rm = T), 
               stratoff = max(sampledate, na.rm = T), 
               duration = as.numeric(max(sampledate, na.rm = T) - min(sampledate, na.rm = T)))
               
-  en.df = en |> group_by(year) |> 
+  en.df = en %>% group_by(year) %>% 
     summarise(energy = sampledate[which.max(energy)],
               stability = sampledate[which.max(n2max)])
           
   # Get minimum anoxia after stratification 
-  anoxia.df = an |> ungroup() |> left_join(strat.df |> select(year, straton)) |> 
-    group_by(year) |> 
-    filter(sampledate >= straton) |> 
+  anoxia.df = an %>% ungroup() %>% left_join(strat.df %>% select(year, straton)) %>% 
+    group_by(year) %>% 
+    filter(sampledate >= straton) %>% 
     summarise(anoxia_summer =  sampledate[which.min(do)])
   
   # Join anoixa to strat dataframe
-  strat.list[[name]] = strat.df |> left_join(en.df) |> left_join(anoxia.df)     
+  strat.list[[name]] = strat.df %>% left_join(en.df) %>% left_join(anoxia.df)     
 }
 
 # Export thermocline depths
@@ -153,22 +153,22 @@ therm.df = do.call(rbind.data.frame, therm.list)
 
 # Export physics metrics
 strat.df = do.call(rbind.data.frame, strat.list)
-strat.df.wide = strat.df |> select(-duration) |> 
-  pivot_longer(cols = straton:anoxia_summer, names_to = "metric", values_to = "sampledate") |> 
+strat.df.wide = strat.df %>% select(-duration) %>% 
+  pivot_longer(cols = straton:anoxia_summer, names_to = "metric", values_to = "sampledate") %>% 
   mutate(daynum = yday(sampledate)) 
 # write_csv(strat.df.wide, "Data/final_metric_files/physics.csv")
 
 # Plot comparison with old data file
-test = read_csv('Data/old/phenology_dates_v1.csv') |> 
-  rename(lakeid = id, metric=variable, daynum = value) |> 
-  filter(metric %in% c(unique(strat.df.wide$metric), "anoxia")) |> 
+test = read_csv('Data/old/phenology_dates_v1.csv') %>% 
+  rename(lakeid = id, metric=variable, daynum = value) %>% 
+  filter(metric %in% c(unique(strat.df.wide$metric), "anoxia")) %>% 
   mutate(metric = ifelse(metric == "anoxia", "anoxia_summer", metric))
 for (name in unique(dt1$lakeid)){
-  p1 = ggplot(strat.df.wide |> filter(lakeid == name)) +
+  p1 = ggplot(strat.df.wide %>% filter(lakeid == name)) +
      geom_point(aes(x = year, y = daynum)) +
       geom_line(aes(x = year, y = daynum)) +
-      geom_point(data = test |> filter(lakeid == name), aes(x = year, y = daynum), col = 'blue') +
-      geom_line(data = test |> filter(lakeid == name), aes(x = year, y = daynum), col = 'blue') +
+      geom_point(data = test %>% filter(lakeid == name), aes(x = year, y = daynum), col = 'blue') +
+      geom_line(data = test %>% filter(lakeid == name), aes(x = year, y = daynum), col = 'blue') +
       facet_wrap(~metric) +
       labs(title = name)
   print(p1)
