@@ -16,17 +16,16 @@ library(kohonen)
 library(RColorBrewer)
 
 # read in data
-dat = read_csv("Data/analysis_ready/final_combined_dates_filled_v1.csv")
+dat = read_csv("Data/analysis_ready/final_combined_dates_filled_v2.csv")
 dat$sampledate = as.Date(paste0(dat$year-1, "-12-31")) + dat$daynum_fill
 
 # Fig 1: Ridges
-vars_order = c("iceoff", "straton",  "chlor_spring", "secchi_openwater", "daphnia_biomass", "doc",  "anoxia_summer", "stability", "energy", "stratoff", "iceon")
+vars_order = c("iceoff", "straton",  "chlor_spring", "secchi_openwater", "daphnia_biomass", "doc_epiMax", "totpuf_hypoMin",  "totpuf_epiMax", "anoxia_summer", "stability", "energy", "totpuf_epiMin", "totpuf_hypoMax", "stratoff", "iceon")
+vars_label = c("ice off", "strat onset", "spring bloom", "clearwater", "daphnia", "DOC", "TP hypo min", "TP epi max",  "anoxia",  "stability", "energy", "TP epi min", "TP hypo max", "strat offset", "ice on")
 
 # add and extra lake in N
 lakes_order = c("AL", "BM", "CB", "CR", "SP", "TB", "TR", "", "FI", "ME", "MO", "WI")
-
 # vars_order = c("iceoff", "straton", "chlor_spring", "secchi_openwater", "daphnia_biomass", "doc", "chlor_all", "anoxia_summer", "stability", "energy", "chlor_fall", "stratoff", "iceon")
-vars_order = c("iceoff", "straton",  "chlor_spring", "secchi_openwater", "daphnia_biomass", "doc",  "anoxia_summer", "stability", "energy", "stratoff", "iceon")
 
 empty_lake = dat %>% 
   select(metric) %>% 
@@ -37,13 +36,13 @@ pRidges = dat %>%
   full_join(empty_lake) %>% 
   filter(metric %in% vars_order) %>% 
   mutate(lakeid = factor(lakeid, levels = lakes_order),
-         metric = factor(metric, levels = rev(vars_order), labels = rev(c("ice off", "strat onset", "spring bloom", "clearwater", "daphnia", "DOC",  "anoxia", "stability", "energy", "strat offset", "ice on")))) %>% 
+         metric = factor(metric, levels = rev(vars_order), labels = rev(vars_label))) %>% 
   ggplot() + 
   stat_density_ridges(aes(x = as.Date(daynum, origin = as.Date('2019-01-01')), 
                           y= metric, col = metric, fill = metric), 
                       alpha = 0.5, quantile_lines = T, quantiles = 2) +
-  scale_fill_manual(values=met.brewer("Archambault", 11)) + 
-  scale_color_manual(values=met.brewer("Archambault", 12)) +
+  scale_fill_manual(values=met.brewer("Archambault", length(vars_order))) + 
+  scale_color_manual(values=met.brewer("Archambault", length(vars_order))) +
   scale_x_date(labels = date_format("%b")) +
   facet_wrap(~ (lakeid)) +
   xlab('') + ylab('')+
@@ -56,7 +55,7 @@ pRidges = dat %>%
 ggsave("Figures/manuscript/Figure1.jpeg",
        pRidges,
        width=6,
-       height=4,
+       height=5,
        units="in",
        dpi=300,
        bg="white"
@@ -66,12 +65,13 @@ ggsave("Figures/manuscript/Figure1.jpeg",
 dat_pca = dat %>% 
   filter(metric %in% vars_order) %>% 
   mutate(lakeid = factor(lakeid, levels = lakes_order),
-         metric = factor(metric, levels = rev(vars_order), labels = rev(c("ice off", "            strat onset", "spring bloom", "clearwater", "daphnia", "DOC",  "     anoxia", "stability", "energy", "strat offset", "    ice on")))) %>% 
+         metric = factor(metric, levels = rev(vars_order), labels = rev(vars_label))) %>% 
   select(lakeid, year, metric, daynum_fill) %>% 
-  pivot_wider(names_from = "metric", values_from="daynum_fill")
+  pivot_wider(names_from = "metric", values_from="daynum_fill") %>% 
+  filter(lakeid != "WI")
 
 pca = prcomp(dat_pca[, 3:ncol(dat_pca)], scale=T, center=T)
-lakeid_pca = lakes_order[lakes_order != ""]
+lakeid_pca = lakes_order[!(lakes_order %in% c("", "WI"))]
 
 # fviz_eig(pca)
 pPCAload = fviz_pca_var(pca,
@@ -137,7 +137,7 @@ dev.off()
 source('./src/Functions/coolBlueHotRed.R')
 
 dat_wide = dat %>% 
-  filter(metric %in% vars_order) %>% 
+  filter(metric %in% vars_order & lakeid != "WI") %>% 
   pivot_wider(id_cols = c("lakeid", "year"), names_from = "metric", values_from = "daynum_fill") 
 
 n <- 60
@@ -198,7 +198,7 @@ par(mar=c(5,5,5,5))
 plot(som_model, type="changes")
 plot(som_model, type="count")
 
-som_cluster <- cutree(hclust(dist(som_model$codes[[1]])),4)
+som_cluster <- cutree(hclust(dist(som_model$codes[[1]])),3)
 pretty_palette <- c("#1f77b4", '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', "#7f7f7f", "#bcbd22", "#17becf","#00FF00", "#9F81F7"
                     ,"#FFFF00", "#F6CECE","#610B21")
 
