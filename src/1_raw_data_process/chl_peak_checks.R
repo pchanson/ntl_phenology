@@ -179,8 +179,50 @@ print(p)
 }
 dev.off()
 
+# get ice on/off dates
+ice0 = read_csv("Data/derived/ntl_icedatescombo.csv")
+ice0$firstice_year = lubridate::year(ice0$firstice)
+ice0$lastice_year = lubridate::year(ice0$lastice)
+# see if CB 1988 can be filled
+n_lakes_wide = ice_nomissing %>% 
+  filter(lakeid %in% c("AL", "BM", "CB", "CR", "SP", "TB", "TR")) %>% 
+  pivot_wider(id_cols = c("year"), names_from = "lakeid", values_from = "lasticeYDAY") 
+n_lakes_wide %>% 
+  mutate(across(-matches("year"), ~ . - CB)) %>% 
+  pivot_longer(cols=-matches(c("year"))) %>% 
+  ggplot(aes(x=value)) +
+  geom_histogram() +
+  facet_grid(rows=vars(name))
+# ususally w/in 5 days of AL; use AL value
+colsChange = c("lastice", "lasticeYDAY", "lastice_year")
+ice0[ice0$lakeid == "CB" & ice0$year == 1988, colsChange] =
+  ice0[ice0$lakeid == "AL" & ice0$year == 1988, colsChange]
+
+# not sure how to do this in dplyr; do it in a loop
+chl_comb$icecovered = NA
+ice_nomissing = ice0 %>% 
+  filter(!is.na(firstice) & !is.na(lastice))
+for(i in 1:nrow(ice_nomissing)){
+  cur_lake = ice_nomissing$lakeid[i]
+  cur_startdate = ice_nomissing$firstice[i]
+  cur_enddate = ice_nomissing$lastice[i]
+  inds_covered = chl_comb$lakeid == cur_lake & 
+    chl_comb$sampledate >= cur_startdate &
+    chl_comb$sampledate <= cur_enddate
+  if(cur_lake == "MO"){
+    inds_covered = inds_covered | (
+      chl_comb$lakeid == "FI" & 
+        chl_comb$sampledate >= cur_startdate &
+        chl_comb$sampledate <= cur_enddate
+    )
+  }
+  chl_comb[inds_covered, "icecovered"] = T
+}
+
+
 # ID peaks
 daynum_max_all = chl_comb %>% 
+  filter(is.na(icecovered)) %>% 
   group_by(lakeid, year4) %>% 
   slice_max(chlor) %>% 
   ungroup() %>% 
@@ -200,6 +242,7 @@ daynum_max_all %>%
 # TB: sometime ridiculously high: (~1000!?!? - check this); otherwise really noisy; often late fall is peak; 175/190/200 probably close to same
 
 daynum_max_spring = chl_comb %>% 
+  filter(is.na(icecovered))%>% 
   filter(daynum <= 175) %>% 
   group_by(lakeid, year4) %>% 
   slice_max(chlor) %>% 
@@ -208,6 +251,7 @@ daynum_max_spring = chl_comb %>%
 
 
 daynum_max_fall = chl_comb %>% 
+  filter(is.na(icecovered))%>% 
   filter(daynum > 175) %>% 
   group_by(lakeid, year4) %>% 
   slice_max(chlor) %>% 
@@ -231,7 +275,7 @@ daynum_max_comb_out = daynum_max_comb %>%
   mutate(metric = ifelse(metric == "all", "chlor_all", metric)) %>% 
   mutate(metric = ifelse(metric == "fall", "chlor_fall", metric)) %>% 
   mutate(metric = ifelse(metric == "spring", "chlor_spring", metric))%>% 
-  select(lakeid, metric, sampledate, year, daynum)
+  select(lakeid, metric, sampledate, year, daynum, icecovered)
 
 # for few peaks where there are multiple peaks, pick the first one
 daynum_max_comb_out_singlePeak = daynum_max_comb_out %>% 
@@ -263,7 +307,8 @@ out_chlPeaks_allDOYs = bind_rows(
   all_multpeak_LYs
 ) %>% 
   arrange(lakeid, year, metric) %>% 
-  filter(!(lakeid %in% c("ME", "MO", "WI", "FI") & year == 2002))
+  filter(!(lakeid %in% c("ME", "MO", "WI", "FI") & year == 2002)) %>% 
+  select(-icecovered)
 
 out_chlPeaks_allDOYs %>% 
   ggplot(aes(x=year, y=daynum)) +
@@ -271,7 +316,20 @@ out_chlPeaks_allDOYs %>%
   geom_point() +
   facet_grid(rows=vars(lakeid), cols=vars(metric))
 
-# write_csv(out_chlPeaks_allDOYs, "Data/final_metric_files/chlorophyll_maxes.csv")
+out_chlPeaks_allDOYs %>% 
+  filter(metric == "chlor_spring") %>% 
+  ggplot(aes(x=year, y=daynum)) +
+  geom_line() +
+  geom_point() +
+  facet_grid(rows=vars(lakeid), cols=vars(metric))
+
+write_csv(out_chlPeaks_allDOYs, "Data/final_metric_files/chlorophyll_maxes.csv")
+
+# flag and remove ice covered dates
+
+
+chl_comb_noice = chl_comb %>% 
+  filter(is.na(icecovered))
 
 # plot time series with peaks
 daynum_max_comb2 = daynum_max_comb %>% 
@@ -328,11 +386,8 @@ for(i in 1:length(lakes)){
 }
 
 # plot pracma:: find peaks
-<<<<<<< HEAD
 pdf("Figures/data_checks/surface_chlorophyll_timeseries_withPeaks_pracma.pdf", width=11, height=8.5)
-=======
 # pdf("Figures/data_checks/surface_chlorophyll_timeseries_withPeaks_pracma.pdf", width=11, height=8.5)
->>>>>>> 073cdc6bade96265115265e35776b3f4ced50e27
 for(i in 1:length(lakes)){
   p = chl_comb %>% 
     filter(lakeid == lakes[i]) %>% 
