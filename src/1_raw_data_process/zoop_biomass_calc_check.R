@@ -148,6 +148,9 @@ daphnia_grouped_biomass %>%
 # not sure how to do this in dplyr; do it in a loop
 zoop_total_biomass$icecovered = NA
 daphnia_grouped_biomass$icecovered = NA
+colsChange = c("lastice", "lasticeYDAY", "lastice_year")
+ice0[ice0$lakeid == "CB" & ice0$year == 1988, colsChange] =
+  ice0[ice0$lakeid == "AL" & ice0$year == 1988, colsChange]
 ice_nomissing = ice0 %>% 
   filter(!is.na(firstice) & !is.na(lastice))
 for(i in 1:nrow(ice_nomissing)){
@@ -157,9 +160,24 @@ for(i in 1:nrow(ice_nomissing)){
   inds_covered_total = zoop_total_biomass$lakeid == cur_lake & 
     zoop_total_biomass$sampledate >= cur_startdate &
     zoop_total_biomass$sampledate <= cur_enddate
+
   inds_covered_daphnia = daphnia_grouped_biomass$lakeid == cur_lake & 
     daphnia_grouped_biomass$sampledate >= cur_startdate &
     daphnia_grouped_biomass$sampledate <= cur_enddate
+  if(cur_lake == "MO"){
+    inds_covered_total = inds_covered_total | (
+      zoop_total_biomass$lakeid == "FI" & 
+        zoop_total_biomass$sampledate >= cur_startdate &
+        zoop_total_biomass$sampledate <= cur_enddate
+    )
+      inds_covered_daphnia = inds_covered_daphnia | (
+        daphnia_grouped_biomass$lakeid == "FI" & 
+          daphnia_grouped_biomass$sampledate >= cur_startdate &
+          daphnia_grouped_biomass$sampledate <= cur_enddate
+    )
+  }
+    
+  
   zoop_total_biomass[inds_covered_total, "icecovered"] = T
   daphnia_grouped_biomass[inds_covered_daphnia, "icecovered"] = T
 }  
@@ -201,8 +219,7 @@ both_max_out %>%
 
 both_max_out_nodups = both_max_out %>% 
   group_by(lakeid, metric, year) %>% 
-  slice_min(daynum)
-
+  slice_min(daynum) 
 
 # write_csv(both_max_out_nodups, "Data/final_metric_files/zooplankton_max_biomass.csv")
 
