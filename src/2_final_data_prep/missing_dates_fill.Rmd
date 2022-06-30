@@ -48,12 +48,12 @@ dat %>%
 
 * Northern lakes don't have DOC until until 1986; missing first 4 years when all other variables are available. Potential fixes:
   - Exclude DOC; start analyses in 1986; fill DOC with e.g., median value, or **model of other variables**?
-* Two missing iceon dates in AL (1982) and CB (1988). Potential fix:
+* Two missing iceoff dates in AL (1982) and CB (1988). Potential fix:
   - **Fill with function/model of other lake ice on dates**
-* Southern lakes missing chlorophyll data: 1996 - 1999 and 2002 - 2004: is this the fluorometer issue? **See if other instruments (spec) have data to use for these years.**
+* Southern lakes missing chlorophyll data: 1996 - 1999 and 2002 - 2004; 2002-04 is bad/uncalibrated values, used DOY but not magnitude; earlier years fill with median
 * Zoop data issues:
   - CB missing daphnia peak 1995(?): **fill with medain**
-  - FI missing several years from 1996 - 2006; unsure what to do.
+  - FI missing several years from 1996 - 2006; **fill with medain**
   
   
 **Predict ice-on in northern lakes from other lakes ice-on dates**  
@@ -145,7 +145,7 @@ doc_fill = missing_doc %>%
 
 ## Try to fill the missing chlorophyll values in the southern lakes
 
-**Using dates from fitting wtemp/do model to chl observations
+**Using dates from bad/uncalibrated chl data
 ```{r}
 filled_chl_dates = read_csv("Data/derived/chl_filled_peaks.csv") %>% 
   rename(daynum_fill = daynum) %>% 
