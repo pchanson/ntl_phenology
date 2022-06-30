@@ -138,9 +138,9 @@ for (name in unique(dt1$lakeid)){
               stability = sampledate[which.max(n2max)])
           
   # Get minimum anoxia after stratification 
-  anoxia.df = an %>% ungroup() %>% left_join(strat.df %>% select(year, straton)) %>% 
+  anoxia.df = an %>% ungroup() %>% left_join(strat.df %>% select(year, straton, stratoff)) %>% 
     group_by(year) %>% 
-    filter(sampledate >= straton) %>% 
+    filter(sampledate >= straton & sampledate <= stratoff) %>%
     summarise(anoxia_summer =  sampledate[which.min(do)])
   
   # Join anoixa to strat dataframe
