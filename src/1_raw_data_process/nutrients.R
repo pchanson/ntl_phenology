@@ -31,13 +31,47 @@ lternuts.flagged = read_csv('Data/raw/ntl1_v9_1.csv') %>%
   mutate(item = case_when(str_detect(item, ".sloh") ~  str_remove(item, ".sloh"),
                           TRUE ~ item))
 
+# add flag for ice dates
+ice0 = read_csv("Data/derived/ntl_icedatescombo.csv")
+ice0$firstice_year = lubridate::year(ice0$firstice)
+ice0$lastice_year = lubridate::year(ice0$lastice)
+
+lternuts.flagged$icecovered = NA
+colsChange = c("lastice", "lasticeYDAY", "lastice_year")
+ice0[ice0$lakeid == "CB" & ice0$year == 1988, colsChange] =
+  ice0[ice0$lakeid == "AL" & ice0$year == 1988, colsChange]
+ice_nomissing = ice0 %>% 
+  filter(!is.na(firstice) & !is.na(lastice))
+for(i in 1:nrow(ice_nomissing)){
+  cur_lake = ice_nomissing$lakeid[i]
+  cur_startdate = ice_nomissing$firstice[i]
+  cur_enddate = ice_nomissing$lastice[i]
+  inds_covered = lternuts.flagged$lakeid == cur_lake & 
+    lternuts.flagged$sampledate >= cur_startdate &
+    lternuts.flagged$sampledate <= cur_enddate
+  if(cur_lake == "MO"){
+    inds_covered = inds_covered | (
+      lternuts.flagged$lakeid == "FI" & 
+        lternuts.flagged$sampledate >= cur_startdate &
+        lternuts.flagged$sampledate <= cur_enddate
+    )
+  }
+  
+  lternuts.flagged[inds_covered, "icecovered"] = T
+}  
+
 # Load thermocline depth
 thermo <- read_csv('Data/derived/thermocline.csv')
 
 # Load stratification dates
 strat = read_csv('Data/final_metric_files/physics.csv') %>% 
-  filter(metric == 'straton') %>% 
-  select(lakeid, year4 =year , stratday = daynum)
+  filter(metric %in% c('straton', 'stratoff')) %>% 
+  select(-daynum) %>% 
+  pivot_wider(names_from = "metric", values_from = "sampledate") %>% 
+  mutate(straton_daynum = lubridate::yday(straton), 
+         stratoff_daynum = lubridate::yday(stratoff))%>% 
+  select(lakeid, year4 =year , straton_daynum, stratoff_daynum)
+
 
 
 # restrict to epilimnion and stratification period
@@ -45,14 +79,16 @@ nuts_epi = lternuts.flagged %>% left_join(thermo, by = c("lakeid", "sampledate")
   left_join(strat, by = c("lakeid", "year4")) %>% 
   mutate(month = month(sampledate), year = year(sampledate), yday = yday(sampledate)) %>% 
   filter(depth <= thermdepth_m) %>% #filter to epilimnion
-  filter(daynum >= stratday) %>% #filter to after stratification
+  filter(daynum >= straton_daynum & daynum < stratoff_daynum) %>% #filter to during strat
+  # filter(is.na(icecovered)) %>% # filter to non-ice dates; gets X% more rows than filtering on strat
   filter(year > 1981)
 
 nuts_hypo = lternuts.flagged %>% left_join(thermo, by = c("lakeid", "sampledate")) %>% 
   left_join(strat, by = c("lakeid", "year4")) %>% 
   mutate(month = month(sampledate), year = year(sampledate), yday = yday(sampledate)) %>% 
   filter(depth > thermdepth_m) %>% #filter to epilimnion
-  filter(daynum >= stratday) %>% #filter to after stratification
+  filter(daynum >= straton_daynum & daynum < stratoff_daynum) %>% #filter to during strat
+  # filter(is.na(icecovered)) %>% # filter to non-ice dates; gets Y% more rows than filtering on strat
   filter(year > 1981)
 
 # What plot looks like with outliers
@@ -175,8 +211,8 @@ comb = bind_rows(epi_min, epi_max, hypo_min, hypo_max)
 comb %>% group_by(lakeid, year, metric) %>% summarise(N = n()) %>% filter(N > 1) %>% View()
 # Sparkling 1997
 
-nuts_epi2 %>% filter(lakeid == "CB" & year == 2017) %>% View() # two or three dates with same value take first one as done w/ other values
-# TODO: limit this to either after strat or ice-off, then re-calculate and write
+nuts_epi2 %>% filter(lakeid == "TR" & year == 1996) %>% View() # two or three dates with same value take first one as done w/ other values
+# TODONE: limit this to either after strat or ice-off, then re-calculate and write; used strat so that epi/hypo were meaningful
 comb = comb %>% 
   group_by(lakeid, year, metric) %>% 
   slice_min(daynum) %>% 
