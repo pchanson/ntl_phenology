@@ -79,7 +79,7 @@ nuts_epi = lternuts.flagged %>% left_join(thermo, by = c("lakeid", "sampledate")
   left_join(strat, by = c("lakeid", "year4")) %>% 
   mutate(month = month(sampledate), year = year(sampledate), yday = yday(sampledate)) %>% 
   filter(depth <= thermdepth_m) %>% #filter to epilimnion
-  filter(daynum >= straton_daynum & daynum < stratoff_daynum) %>% #filter to during strat
+  filter(daynum >= straton_daynum & daynum <= stratoff_daynum) %>% #filter to during strat
   # filter(is.na(icecovered)) %>% # filter to non-ice dates; gets X% more rows than filtering on strat
   filter(year > 1981)
 
@@ -87,7 +87,7 @@ nuts_hypo = lternuts.flagged %>% left_join(thermo, by = c("lakeid", "sampledate"
   left_join(strat, by = c("lakeid", "year4")) %>% 
   mutate(month = month(sampledate), year = year(sampledate), yday = yday(sampledate)) %>% 
   filter(depth > thermdepth_m) %>% #filter to epilimnion
-  filter(daynum >= straton_daynum & daynum < stratoff_daynum) %>% #filter to during strat
+  filter(daynum >= straton_daynum & daynum <= stratoff_daynum) %>% #filter to during strat
   # filter(is.na(icecovered)) %>% # filter to non-ice dates; gets Y% more rows than filtering on strat
   filter(year > 1981)
 
