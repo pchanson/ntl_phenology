@@ -20,7 +20,7 @@ n <- 60
 qual_col_pals = brewer.pal.info[brewer.pal.info$category == 'qual',]
 col_vector = unlist(mapply(brewer.pal, qual_col_pals$maxcolors, rownames(qual_col_pals)))
 
-df <- read_csv('../../Data/analysis_ready/final_combined_dates_filled_v1.csv')
+df <- read_csv('../../Data/analysis_ready/final_combined_dates_filled_v2.csv')
 
 str(df)
 
@@ -51,11 +51,13 @@ dates_wide_complete = na.omit(dates_wide)
 
 unique(dates_wide_complete$lakeid)
 
+vars_analyze = c("iceoff", "straton",  "chlor_spring", "secchi_openwater", "daphnia_biomass", "doc_epiMax", "totpuf_hypoMin",  "totpuf_epiMax", "anoxia_summer", "stability", "energy", "totpuf_epiMin", "totpuf_hypoMax", "stratoff", "iceon")
+
 df.matrix = as.matrix(dates_wide_complete %>%
   # select(c('chlor_fall','chlor_spring','secchi_openwater','daphnia_biomass',
   #          'total_zoop_biomass','straton', 'stratoff', 'energy', 'stability', 'anoxia_summer',
   #         'iceon', 'iceoff', 'doc')))
-    select( c("iceoff", "straton", "secchi_openwater", "daphnia_biomass", "doc", "chlor_spring",  "anoxia_summer", "stability", "energy", "stratoff", "iceon")))
+    select(vars_analyze))
 
 # names <- paste0(idx$id)#,'_',df.wide$year)
 names <- paste0(dates_wide_complete$lakeid)
@@ -79,7 +81,7 @@ map <- som(df.matrix,
            alpha = c(0.05, 0.01),
            radius = 1)
 
-plot(map, type='codes',palette.name = rainbow, labels = names, )
+plot(map, type='codes',palette.name = rainbow, labels = names)
 
 plot(map, type='mapping',col = n.colors,
      label = names,pchs = names)
@@ -90,11 +92,11 @@ plot(map, type='mapping',col = n.colors,
 
 data_train_matrix <- as.matrix(scale(df.matrix))
 
-som_grid <- somgrid(xdim = 9, ydim=9, topo="hexagonal")
+som_grid <- somgrid(xdim =7, ydim=7, topo="hexagonal")
 
 som_model <- som(data_train_matrix, 
                  grid=som_grid, 
-                 rlen=100, 
+                 rlen=1000, 
                  alpha=c(0.05,0.01), 
                  keep.data = TRUE)
 

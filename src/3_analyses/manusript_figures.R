@@ -168,29 +168,11 @@ data_train_matrix <- dat_wide %>%
   scale() %>% 
   as.matrix()
 
-# som_grid <- somgrid(xdim = 9, ydim=9, topo="hexagonal")
-
-set.seed(222)
-# the 4x4 first?
-g <- somgrid(xdim = 4, ydim = 4, topo = "rectangular" )
-
-map <- som(dat_wide %>% 
-             select(all_of(vars_order))%>% 
-             as.matrix(),
-           grid = g,
-           alpha = c(0.05, 0.01),
-           radius = 1)
-
-plot(map, type='codes',palette.name = rainbow, labels = names, )
-
-plot(map, type='mapping',col = n.colors,
-     label = names,pchs = names)
-
-# larger
-som_grid <- somgrid(xdim = 9, ydim=9, topo="hexagonal")
+set.seed(1)
+som_grid <- somgrid(xdim =7, ydim=7, topo="hexagonal")
 som_model <- som(data_train_matrix, 
                  grid=som_grid, 
-                 rlen=300, 
+                 rlen=500, 
                  alpha=c(0.05,0.01), 
                  keep.data = TRUE)
 
@@ -202,37 +184,157 @@ som_cluster <- cutree(hclust(dist(som_model$codes[[1]])),3)
 pretty_palette <- c("#1f77b4", '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', "#7f7f7f", "#bcbd22", "#17becf","#00FF00", "#9F81F7"
                     ,"#FFFF00", "#F6CECE","#610B21")
 
-jpeg("Figures/manuscript/Figure4a.jpeg",
-     width=6, height=6, units="in", 
+jpeg("Figures/manuscript/FigureSI_SOMmap.jpeg",
+     width=6, height=6, units="in",
      res=300)
 plot(som_model, type="mapping", bgcol = pretty_palette[som_cluster], main = "Clusters",
      label = names, pchs = names, cex =0.7) 
 add.cluster.boundaries(som_model, som_cluster)
 dev.off()
 
-layout(matrix(1:4,ncol=2,nrow=2,byrow=T))
+
+# plot SOM cluster info
+som_output_lakeYear = data.frame(
+  Unit = som_model$unit.classif,
+  Lake = names)
+
+unit_to_cluster = data.frame(
+  Unit = as.numeric(str_remove(names(som_cluster), "V")),
+  Cluster = unname(som_cluster)
+)  
+lakeColors_df = data.frame(
+  Lake = c("AL", "BM", "CR", "SP", "TR", "CB", "TB", "ME", "MO", "FI"),
+  Color = c("#d0d1e6", "#a6bddb", "#74a9cf", "#2b8cbe", "#045a8d", "#cc4c02", "#8c2d04", "#bae4b3", "#74c476", "#238b45")
+)
+
+Lake_colors = str_to_upper(lakeColors_df$Color)
+names(Lake_colors) = lakeColors_df$Lake
+
+som_output_lakeYear = som_output_lakeYear %>% 
+  left_join(unit_to_cluster) %>% 
+  bind_cols(as.data.frame(data_train_matrix)) %>% 
+  left_join(lakeColors_df)
+
+p4_clusterLakes = som_output_lakeYear %>% 
+  mutate(LakeType = NA) %>% 
+  mutate(LakeType = ifelse(Lake %in% c("FI", "ME", "MO"), "Southern", LakeType)) %>% 
+  mutate(LakeType = ifelse(Lake %in% c("TB", "CB"), "North. Bog", LakeType)) %>% 
+  mutate(LakeType = ifelse(is.na(LakeType), "Northern", LakeType)) %>% 
+  count(Cluster, Lake, Color) %>% 
+  mutate(Lake = factor(Lake, levels = c("AL", "BM", "CR", "SP", "TR", "CB", "TB", "ME", "MO", "FI"), ordered=T)) %>% 
+  ggplot(aes(x=Cluster, y=n, fill=Lake)) + 
+  geom_bar(stat="identity") +
+  coord_flip() +
+  theme_bw() +
+  scale_fill_manual(values=Lake_colors)
+
+ggsave("Figures/manuscript/Figure2_lakeClusters.jpeg",
+       p4_clusterLakes,
+       width=6,
+       height=6,
+       units="in",
+       dpi=300,
+       bg="white"
+)
+
+# plot of all cluster mean-scaled-dates
+all_cluster_devs = som_output_lakeYear %>% 
+  pivot_longer(cols = vars_order) 
+
+p4_SOMinputs_all = all_cluster_devs%>% 
+  mutate(name = factor(name, levels = rev(vars_order), labels = rev(vars_label), ordered = T))  %>% 
+  ggplot(aes(x=name, y=value, fill=as.factor(Cluster), group=interaction(Cluster, name)))+
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  theme_bw() +
+  coord_flip() +
+  geom_hline(yintercept = 0, size=2)+
+  labs(x="Event", y="Relative Timing", fill="Cluster")
+
+ggsave("Figures/manuscript/Figure3_SOMinputs_all.jpeg",
+       p4_SOMinputs_all,
+       width=4,
+       height=6,
+       units="in",
+       dpi=300,
+       bg="white"
+)
+
+sig_clusterVars = som_output_lakeYear %>% 
+  pivot_longer(cols = vars_order) %>% 
+  group_by(Cluster, name) %>% 
+  summarise(firstQuart = boxplot.stats(value)$stats[2],
+            thirdQuart = boxplot.stats(value)$stats[4]) %>% 
+  filter(!(0 > firstQuart & 0 < thirdQuart)) %>% 
+  select(Cluster, name)
+
+unique_cluster_vars = all_cluster_devs %>% 
+  select(Cluster, name) %>% 
+  distinct()
+
+p4_SOMinputs_sig = sig_clusterVars %>% 
+  left_join(all_cluster_devs) %>% 
+  full_join(unique_cluster_vars) %>% 
+  mutate(name = factor(name, levels = rev(vars_order), labels = rev(vars_label), ordered = T)) %>% 
+  ggplot(aes(x=name, y=value, fill=as.factor(Cluster))) +
+  geom_boxplot(position = position_dodge(preserve = "single")) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  theme_bw() +
+  coord_flip() +
+  geom_hline(yintercept = 0, size=2) +
+  labs(x="Event", y="Relative Timing", fill="Cluster")
+
+ggsave("Figures/manuscript/FigureSI_SOMinputs_sig.jpeg",
+       p4_SOMinputs_sig,
+       width=4,
+       height=6,
+       units="in",
+       dpi=300,
+       bg="white"
+)
+
+
+# OLDER CODE for visualizing the map
+
+# the 4x4 first?
+# g <- somgrid(xdim = 4, ydim = 4, topo = "rectangular" )
+# 
+# map <- som(dat_wide %>% 
+#              select(all_of(vars_order))%>% 
+#              as.matrix(),
+#            grid = g,
+#            alpha = c(0.05, 0.01),
+#            radius = 1)
+# 
+# plot(map, type='codes',palette.name = rainbow, labels = names)
+# 
+# plot(map, type='mapping',col = n.colors,
+#      label = names,pchs = names)
+
+# layout(matrix(1:4,ncol=2,nrow=2,byrow=T))
 vars_plot = c("iceoff", "secchi_openwater", "anoxia_summer", "iceon")
 vars_lab = c("ice off", "secchi", "anoxia", "ice on")
 for(i in 1:4){
   par(cex.main=2)
   var <- vars_plot[i] #define the variable to plot 
   var_unscaled <- aggregate(as.numeric(data_train_matrix_unscaled[,var]), by=list(som_model$unit.classif), FUN=mean, simplify=TRUE)[,2] 
-  plot(som_model, type = "property", property=var_unscaled, 
-       main=sprintf(
-         vars_lab[i]), 
-       palette.name=coolBlueHotRed, cex=1.75)
-  add.cluster.boundaries(som_model, som_cluster)
+  # plot(som_model, type = "property", property=var_unscaled, 
+  #      main=sprintf(
+  #        vars_lab[i]), 
+  #      palette.name=coolBlueHotRed, cex=1.75)
+  # add.cluster.boundaries(som_model, som_cluster)
 }
 # get rid of single WI data point that's always out on it's own?
 
 # length(vars_order)
-layout(matrix(1:12,ncol=4,nrow=3,byrow=T))
-# par()
-for(i in 1:11){
-  par(cex.main=1)
-  plot(som_model, type = "property", property=som_model$codes[[1]][,i], main=sprintf(vars_order[i]), palette.name=coolBlueHotRed)
-  add.cluster.boundaries(som_model, som_cluster)
-}
+# layout(matrix(1:12,ncol=4,nrow=3,byrow=T))
+# # par()
+# for(i in 1:11){
+#   par(cex.main=1)
+#   plot(som_model, type = "property", property=som_model$codes[[1]][,i], main=sprintf(vars_order[i]), palette.name=coolBlueHotRed)
+#   add.cluster.boundaries(som_model, som_cluster)
+# }
+
 
 # SI: N vs. S. PCA loading
 
