@@ -85,7 +85,7 @@ pPCAload = fviz_pca_var(pca,
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=16))
 
-ggsave("Figures/manuscript/Figure2.jpeg",
+ggsave("Figures/manuscript/OldFigure_PCAloading.jpeg",
        pPCAload,
        width=6,
        height=4,
@@ -125,7 +125,7 @@ pca_matrix_p2 = pca_res_cor %>%
   as.matrix() 
 rownames(pca_matrix_p2) = lakeid_pca
 
-jpeg("Figures/manuscript/Figure3.jpeg",
+jpeg("Figures/manuscript/OldFigure_PCAcorrs.jpeg",
      width=8, height=4, units="in", 
      res=300)
 par(mfrow=c(1,2))
@@ -251,7 +251,7 @@ p4_SOMinputs_all = all_cluster_devs%>%
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
   theme_bw() +
   coord_flip() +
-  geom_hline(yintercept = 0, size=2)+
+  geom_hline(yintercept = 0, size=1)+
   labs(x="Event", y="Relative Timing", fill="Cluster") +
   scale_fill_manual(values=clusterColors)
 
@@ -297,6 +297,90 @@ ggsave("Figures/manuscript/FigureSI_SOMinputs_sig.jpeg",
        bg="white"
 )
 
+# try SOM w/o ice dates
+data_train_matrix_noIce <- dat_wide %>% 
+  filter(!(lakeid == "WI" & year == 2011)) %>%
+  select(all_of(vars_order)) %>% 
+  select(-iceon, -iceoff) %>% 
+  scale() %>% 
+  as.matrix()
+
+set.seed(1)
+som_grid <- somgrid(xdim =7, ydim=7, topo="hexagonal")
+som_model_noIce <- som(data_train_matrix_noIce, 
+                 grid=som_grid, 
+                 rlen=500, 
+                 alpha=c(0.05,0.01), 
+                 keep.data = TRUE)
+
+par(mar=c(5,5,5,5))
+plot(som_model_noIce, type="changes")
+plot(som_model_noIce, type="count")
+
+som_cluster_noIce <- cutree(hclust(dist(som_model_noIce$codes[[1]])),3)
+pretty_palette <- c("#1f77b4", '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', "#7f7f7f", "#bcbd22", "#17becf","#00FF00", "#9F81F7"
+                    ,"#FFFF00", "#F6CECE","#610B21")
+
+plot(som_model_noIce, type="mapping", bgcol = pretty_palette[som_cluster_noIce], main = "Clusters",
+     label = names, pchs = names, cex =0.7) 
+add.cluster.boundaries(som_model_noIce, som_cluster_noIce)
+
+
+# plot SOM cluster info
+som_output_lakeYear_noIce = data.frame(
+  Unit = som_model_noIce$unit.classif,
+  Lake = names)
+
+unit_to_cluster_noIce = data.frame(
+  Unit = as.numeric(str_remove(names(som_cluster_noIce), "V")),
+  Cluster = unname(som_cluster_noIce)
+)  
+lakeColors_df = data.frame(
+  Lake = c("AL", "BM", "CR", "SP", "TR", "CB", "TB", "ME", "MO", "FI"),
+  Color = c("#d0d1e6", "#a6bddb", "#74a9cf", "#2b8cbe", "#045a8d", "#cc4c02", "#8c2d04", "#bae4b3", "#74c476", "#238b45")
+)
+
+Lake_colors = str_to_upper(lakeColors_df$Color)
+names(Lake_colors) = lakeColors_df$Lake
+
+som_output_lakeYear_noIce = som_output_lakeYear_noIce %>% 
+  left_join(unit_to_cluster_noIce) %>% 
+  bind_cols(as.data.frame(data_train_matrix_noIce)) %>% 
+  left_join(lakeColors_df)
+
+p4_clusterLakes_noIce = som_output_lakeYear_noIce %>% 
+  mutate(LakeType = NA) %>% 
+  mutate(LakeType = ifelse(Lake %in% c("FI", "ME", "MO"), "Southern", LakeType)) %>% 
+  mutate(LakeType = ifelse(Lake %in% c("TB", "CB"), "North. Bog", LakeType)) %>% 
+  mutate(LakeType = ifelse(is.na(LakeType), "Northern", LakeType)) %>% 
+  count(Cluster, Lake, Color) %>% 
+  mutate(Lake = factor(Lake, levels = c("AL", "BM", "CR", "SP", "TR", "CB", "TB", "ME", "MO", "FI"), ordered=T)) %>% 
+  ggplot(aes(x=Cluster, y=n, fill=Lake)) + 
+  geom_bar(stat="identity") +
+  coord_flip() +
+  theme_bw() +
+  scale_fill_manual(values=Lake_colors) +
+  labs(y="Number of Lake-Years")
+
+p4_clusterLakes_noIce
+clusterColors = c("1" = "#cc4c02", "2" = "#74c476", "3" = "#2b8cbe")
+
+# plot of all cluster mean-scaled-dates
+all_cluster_devs_noIce = som_output_lakeYear_noIce %>% 
+  pivot_longer(cols = vars_order[!vars_order %in% c("iceon", "iceoff")]) 
+
+p4_SOMinputs_all_noIce = all_cluster_devs_noIce %>% 
+  mutate(name = factor(name, levels = rev(vars_order), labels = rev(vars_label), ordered = T))  %>% 
+  ggplot(aes(x=name, y=value, fill=as.factor(Cluster), group=interaction(Cluster, name)))+
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  theme_bw() +
+  coord_flip() +
+  geom_hline(yintercept = 0, size=1)+
+  labs(x="Event", y="Relative Timing", fill="Cluster") +
+  scale_fill_manual(values=clusterColors)
+
+p4_SOMinputs_all_noIce
 
 # OLDER CODE for visualizing the map
 
