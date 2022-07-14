@@ -226,7 +226,8 @@ p4_clusterLakes = som_output_lakeYear %>%
   geom_bar(stat="identity") +
   coord_flip() +
   theme_bw() +
-  scale_fill_manual(values=Lake_colors)
+  scale_fill_manual(values=Lake_colors) +
+  labs(y="Number of Lake-Years")
 
 ggsave("Figures/manuscript/Figure2_lakeClusters.jpeg",
        p4_clusterLakes,
@@ -236,6 +237,8 @@ ggsave("Figures/manuscript/Figure2_lakeClusters.jpeg",
        dpi=300,
        bg="white"
 )
+
+clusterColors = c("1" = "#cc4c02", "2" = "#74c476", "3" = "#2b8cbe")
 
 # plot of all cluster mean-scaled-dates
 all_cluster_devs = som_output_lakeYear %>% 
@@ -249,7 +252,8 @@ p4_SOMinputs_all = all_cluster_devs%>%
   theme_bw() +
   coord_flip() +
   geom_hline(yintercept = 0, size=2)+
-  labs(x="Event", y="Relative Timing", fill="Cluster")
+  labs(x="Event", y="Relative Timing", fill="Cluster") +
+  scale_fill_manual(values=clusterColors)
 
 ggsave("Figures/manuscript/Figure3_SOMinputs_all.jpeg",
        p4_SOMinputs_all,
