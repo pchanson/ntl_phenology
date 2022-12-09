@@ -42,19 +42,25 @@ p1 <- ggsurvfit(s1, col = 'green') +
     x = "Days",
     y = "Overall probability of spring bloom after ice",
     title = 'Eutrophic'
-  ) 
+  ) + 
+  add_confidence_interval()+
+  add_risktable()
 p2 <- ggsurvfit(s2, col = 'blue') +
   labs(
     x = "Days",
     y = "Overall probability of spring bloom after ice",
     title = 'Oligotrophic'
-  )
+  )+ 
+  add_confidence_interval()+
+  add_risktable()
 p3 <- ggsurvfit(s3, col = 'brown') +
   labs(
     x = "Days",
     y = "Overall probability of spring bloom after ice",
     title = 'Dystrophic'
-  )
+  )+ 
+  add_confidence_interval()+
+  add_risktable()
 p1 + p2 + p3
 
 
@@ -91,17 +97,31 @@ p1 <- ggsurvfit(s1, col = 'green') +
     x = "Days",
     y = "Overall probability of anoxia after spring bloom",
     title = 'Eutrophic'
-  ) 
+  ) + 
+  add_confidence_interval()+
+  add_risktable()
 p2 <- ggsurvfit(s2, col = 'blue') +
   labs(
     x = "Days",
     y = "Overall probability of anoxia after spring bloom",
     title = 'Oligotrophic'
-  )
+  )+ 
+  add_confidence_interval()+
+  add_risktable()
 p3 <- ggsurvfit(s3, col = 'brown') +
   labs(
     x = "Days",
     y = "Overall probability of anoxia after spring bloom",
     title = 'Dystrophic'
-  )
+  )+ 
+  add_confidence_interval()+
+  add_risktable()
 p1 + p2 + p3
+
+df_eutro$state <- 'eutro'
+df_oligo$state <- 'oligo'
+df_dys$state <- 'dys'
+df_anoxia <- (rbind(df_eutro, df_oligo))
+df_anoxia <- rbind(df_anoxia, df_dys)
+
+survdiff(Surv(time, status) ~ state, data = df_anoxia)
