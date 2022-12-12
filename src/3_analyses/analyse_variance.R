@@ -1,4 +1,4 @@
-setwd('Projects/DSI/ntl_phenology/')
+setwd('C:/Users/kreinl1/OneDrive/OneDrive - UW-Madison/GitHub/ntl_phenology/Data/analysis_ready')
 
 library(tidyverse)
 library(survival)
@@ -11,7 +11,7 @@ library(ggpubr)
 library(ggpval)
 # library(condSURV)
 
-data <- read_csv('Data/analysis_ready/final_combined_dates_filled_v2.csv')
+data <- read_csv('final_combined_dates_filled_v2.csv')
 
 head(data)
 
@@ -23,6 +23,13 @@ df <- data %>%
          mean_trophic = mean(daynum_fill, na.rm = T))
 
 var.test(daynum_centered ~ trophic, df)
+
+straton<-df %>% 
+  filter(metric=="straton")
+
+kruskal.test(daynum_centered ~ trophic, data = straton)
+pairwise.wilcox.test(straton$daynum_centered, straton$trophic,
+                     p.adjust.method = "BH")
 
 ggplot(df) +
   geom_density(aes(daynum_fill - mean(daynum_fill, na.rm = T), group = trophic, fill = trophic), alpha = 0.5) +
