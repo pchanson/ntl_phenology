@@ -6,11 +6,7 @@ library(tidyverse)
 inUrl1 <- "https://pasta.lternet.edu/package/data/eml/knb-lter-ntl/31/29/5a5a5606737d760b61c43bc59460ccc9"
 infile1 <- tempfile()
 download.file(inUrl1, infile1, method = "libcurl")
-LTERsecchi <- read_csv(infile1, skip = 1, quote = "\"", guess_max = 1e+05, 
-                       col_names = c("lakeid", "year4", "daynum", "sampledate", 
-                                     "sta", "secview", "secnview", "timeon", "timeoff", 
-                                     "airtemp", "windir", "windspd", "waveht", "cloud", 
-                                     "ice"))
+LTERsecchi <- read_csv(infile1)
 
 table(LTERsecchi$lakeid)
 
@@ -26,27 +22,25 @@ secchi_peaks_formatted = LTERsecchi %>%
   slice_max(secnview) %>% 
   mutate(metric = "secchi") %>% 
   select(lakeid, metric, sampledate, year4, daynum, secnview) 
-# %>% 
-  # rename(year = year4)
 
 
 lakes = c("FI", "ME", "MO", "WI", "AL", "BM", "CB", "CR", "SP", "TB", "TR")
-pdf("Figures/data_checks/secchi_timeseries_withPeaks.pdf", width=11, height=8.5)
-for(i in 1:length(lakes)){
-  p = LTERsecchi %>% 
-    filter(lakeid == lakes[i]) %>% 
-    ggplot(aes(daynum, secnview)) +
-    geom_line() +
-    geom_point()+
-    geom_vline(data = secchi_peaks_formatted %>% filter(lakeid == lakes[i]), 
-               aes(xintercept=daynum), size=1) +
-    facet_wrap(~year4, scales="free_y") +
-    theme_bw() +
-    ggtitle(paste(lakes[i], "Secchi", sep=" - ")) +
-    theme(legend.position = c(0.8, 0.08), legend.direction = "horizontal") 
-  print(p)
-}
-dev.off()
+# pdf("Figures/data_checks/secchi_timeseries_withPeaks.pdf", width=11, height=8.5)
+# for(i in 1:length(lakes)){
+#   p = LTERsecchi %>% 
+#     filter(lakeid == lakes[i]) %>% 
+#     ggplot(aes(daynum, secnview)) +
+#     geom_line() +
+#     geom_point()+
+#     geom_vline(data = secchi_peaks_formatted %>% filter(lakeid == lakes[i]), 
+#                aes(xintercept=daynum), size=1) +
+#     facet_wrap(~year4, scales="free_y") +
+#     theme_bw() +
+#     ggtitle(paste(lakes[i], "Secchi", sep=" - ")) +
+#     theme(legend.position = c(0.8, 0.08), legend.direction = "horizontal") 
+#   print(p)
+# }
+# dev.off()
 
 # deal with when there's more than one peak with same max value in a year (see WI) -> take the middle one; round down if even number
 secchi_peaks_formatted_singlePeak = secchi_peaks_formatted %>% 
@@ -77,6 +71,7 @@ out_secchiPeaks_allDOYs = bind_rows(
   all_multpeak_LYs
   ) %>% 
   arrange(lakeid, year4)
+
 # and when there's not that many values? see AL
 nsamples = LTERsecchi %>% 
   group_by(lakeid, year4) %>% 
@@ -91,6 +86,7 @@ enough_samples = nsamples %>%
 
 out_secchiPeaks_allDOYs = left_join(enough_samples, out_secchiPeaks_allDOYs) %>% 
   mutate(metric = "secchi_all")
+
 #### also, make separate metric for just open water secchi peak? see ME
 # get ice on/off dates
 ice0 = read_csv("Data/derived/ntl_icedatescombo.csv")
@@ -101,6 +97,7 @@ ice0$lastice_year = lubridate::year(ice0$lastice)
 LTERsecchi$icecovered = NA
 ice_nomissing = ice0 %>% 
   filter(!is.na(firstice) & !is.na(lastice))
+
 for(i in 1:nrow(ice_nomissing)){
   cur_lake = ice_nomissing$lakeid[i]
   cur_startdate = ice_nomissing$firstice[i]
@@ -114,12 +111,15 @@ for(i in 1:nrow(ice_nomissing)){
 questionable = LTERsecchi %>% 
   filter(!is.na(icecovered) & is.na(ice)) %>% 
   arrange(lakeid, year4) # most of these check out; maybe data entry error?
+
 table(LTERsecchi %>% filter(!is.na(ice)) %>% pull(icecovered), useNA = 'ifany')
 table(LTERsecchi %>% filter(!is.na(icecovered)) %>% pull(ice), useNA = 'ifany')
+
 # go with anything with ice or icecovered gets tossed
 LTERsecchi_openwater = LTERsecchi %>% 
   filter(is.na(ice) & is.na(icecovered))
 table(LTERsecchi_openwater[, c("ice", "icecovered")], useNA = 'ifany')
+
 # repeat checks for enough samples and if there are multiple peaks in a year
 secchi_peaks_formatted_ow = LTERsecchi_openwater %>% 
   group_by(lakeid, year4) %>% 
@@ -127,23 +127,24 @@ secchi_peaks_formatted_ow = LTERsecchi_openwater %>%
   mutate(metric = "secchi") %>% 
   select(lakeid, metric, sampledate, year4, daynum, secnview) 
 
-lakes = c("FI", "ME", "MO", "WI", "AL", "BM", "CB", "CR", "SP", "TB", "TR")
-pdf("Figures/data_checks/secchi_timeseries_withPeaks_openwater.pdf", width=11, height=8.5)
-for(i in 1:length(lakes)){
-  p = LTERsecchi_openwater %>% 
-    filter(lakeid == lakes[i]) %>% 
-    ggplot(aes(daynum, secnview)) +
-    geom_line() +
-    geom_point()+
-    geom_vline(data = secchi_peaks_formatted_ow %>% filter(lakeid == lakes[i]), 
-               aes(xintercept=daynum), size=1) +
-    facet_wrap(~year4, scales="free_y") +
-    theme_bw() +
-    ggtitle(paste(lakes[i], "Secchi", sep=" - ")) +
-    theme(legend.position = c(0.8, 0.08), legend.direction = "horizontal") 
-  print(p)
-}
-dev.off() # there are some
+# lakes = c("FI", "ME", "MO", "WI", "AL", "BM", "CB", "CR", "SP", "TB", "TR")
+# pdf("Figures/data_checks/secchi_timeseries_withPeaks_openwater.pdf", width=11, height=8.5)
+# for(i in 1:length(lakes)){
+#   p = LTERsecchi_openwater %>% 
+#     filter(lakeid == lakes[i]) %>% 
+#     ggplot(aes(daynum, secnview)) +
+#     geom_line() +
+#     geom_point()+
+#     geom_vline(data = secchi_peaks_formatted_ow %>% filter(lakeid == lakes[i]), 
+#                aes(xintercept=daynum), size=1) +
+#     facet_wrap(~year4, scales="free_y") +
+#     theme_bw() +
+#     ggtitle(paste(lakes[i], "Secchi", sep=" - ")) +
+#     theme(legend.position = c(0.8, 0.08), legend.direction = "horizontal") 
+#   print(p)
+# }
+# dev.off() # there are some
+
 secchi_peaks_formatted_singlePeak_ow = secchi_peaks_formatted_ow %>% 
   group_by(lakeid, year4) %>% 
   summarise(N = n()) %>% 
