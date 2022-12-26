@@ -10,13 +10,13 @@ infile1 <- tempfile()
 download.file(inUrl1,infile1,method="curl")
 dt2 <-read_csv(infile1) |> rename(sampledate = sample_date)
 
+#Combine files
 dt = dt1 |> select(-towdepth) |> bind_rows(dt2)
 
 # Zooplankton ID codes
 codes = dt |> 
   group_by(species_code) |> 
   summarise(first(species_name))
-
 
 # by zoop group
 zoops = dt |> 
