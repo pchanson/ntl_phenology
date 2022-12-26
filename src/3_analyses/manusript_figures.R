@@ -19,9 +19,11 @@ library(RColorBrewer)
 dat = read_csv("Data/analysis_ready/final_combined_dates_filled_v2.csv")
 dat$sampledate = as.Date(paste0(dat$year-1, "-12-31")) + dat$daynum_fill
 
+table(dat$metric)
+
 # Fig 1: Ridges
-vars_order = c("iceoff", "straton",  "chlor_spring", "secchi_openwater", "daphnia_biomass", "doc_epiMax", "totpuf_hypoMin",  "totpuf_epiMax", "anoxia_summer", "stability", "energy", "totpuf_epiMin", "totpuf_hypoMax", "stratoff", "iceon")
-vars_label = c("ice off", "strat onset", "spring bloom", "clearwater", "daphnia", "DOC", "TP hypo min", "TP epi max",  "anoxia",  "stability", "energy", "TP epi min", "TP hypo max", "strat offset", "ice on")
+vars_order = c("iceoff", "straton",  "chlor_spring", "secchi_openwater", "daphnia_biomass", "zoopDensity", "doc_epiMax", "totpuf_hypoMin",  "totpuf_epiMax", "anoxia_summer", "stability", "energy", "totpuf_epiMin", "totpuf_hypoMax", "stratoff", "iceon")
+vars_label = c("ice off", "strat onset", "spring bloom", "clearwater", "daphnia", "zoopDensity", "DOC", "TP hypo min", "TP epi max",  "anoxia",  "stability", "energy", "TP epi min", "TP hypo max", "strat offset", "ice on")
 
 # add and extra lake in N
 lakes_order = c("AL", "BM", "CB", "CR", "SP", "TB", "TR", "", "FI", "ME", "MO", "WI")
@@ -50,7 +52,7 @@ pRidges = dat %>%
   theme(axis.text = element_text(size=6),
         strip.text=element_text(size=10),
         panel.spacing.y=unit(0.4,"lines")) +
-  guides(fill="none", color="none")
+  guides(fill="none", color="none"); pRidges
 
 ggsave("Figures/manuscript/Figure1.jpeg",
        pRidges,
