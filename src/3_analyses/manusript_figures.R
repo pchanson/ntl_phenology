@@ -54,12 +54,12 @@ pRidges = dat %>%
         panel.spacing.y=unit(0.4,"lines")) +
   guides(fill="none", color="none"); pRidges
 
-ggsave("Figures/manuscript/Figure1.jpeg",
+ggsave("Figures/manuscript/Figure1.png",
        pRidges,
        width=6,
        height=5,
        units="in",
-       dpi=300,
+       dpi=500,
        bg="white"
        )
 
