@@ -50,8 +50,8 @@ filter_lims <- function(x){
 #################### MANIPULATE DATA ####################
 # Add iceOn status
 nutrients = lternuts.flagged |> 
-  left_join(ice0 |> select(lakeid, year4, firstice)) |> 
-  mutate(iceOn = if_else(sampledate < firstice, TRUE, FALSE)) |> 
+  left_join(ice0 |> select(lakeid, year4, lastice)) |> 
+  mutate(iceOn = if_else(sampledate < lastice, TRUE, FALSE)) |> 
   mutate(iceOn = if_else(is.na(iceOn) & month(sampledate) <= 3, TRUE, iceOn)) |> 
   mutate(iceOn = if_else(is.na(iceOn) & month(sampledate) > 3, FALSE, iceOn))
 
@@ -174,7 +174,8 @@ hypo_max = nuts_hypo2 %>%
   ungroup() %>% 
   select(lakeid, metric, sampledate, year4, daynum)
 
-comb = bind_rows(epi_min, epi_max, hypo_min, hypo_max)
+comb = bind_rows(epi_min, epi_max, hypo_min, hypo_max) |> 
+  rename(year = year4)
 
 # Plot density distributions
 # ggplot(comb) +

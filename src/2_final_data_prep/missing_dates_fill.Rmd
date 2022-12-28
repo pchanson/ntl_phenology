@@ -15,7 +15,7 @@ lakes = c("AL", "BM", "CB", "CR", "SP", "TB", "TR", "FI", "ME", "MO", "WI")
 dat$lakeid = factor(dat$lakeid, 
                     levels = rev(lakes), 
                     ordered = T)
-vars = c("iceoff", "straton", "secchi_all", "secchi_openwater", "daphnia_biomass", "zoopDensity",
+vars = c("iceoff", "straton", "secchi_openwater_max", "secchi_openwater_min", "daphnia_biomass", "zoopDensity",
          "total_zoop_biomass", "chlor_all", "chlor_spring", "chlor_fall", "doc_epiMax",
          "totpuf_epiMax", "totpuf_epiMin", "totpuf_hypoMax", "totpuf_hypoMin", 
          "anoxia_summer", "stability", "energy", "stratoff", "iceon")
@@ -101,14 +101,14 @@ n_lakes_wide = left_join(no_dups, dat) %>%
 
 hold_data = na.omit(data.frame(n_lakes_wide %>%  ungroup() %>% select(-year, -N))) # , -doc_predict
 all = lm(doc_epiMax~(iceon+straton+stratoff+energy+
-                 stability+anoxia_summer+secchi_all+
-                 secchi_openwater+total_zoop_biomass+daphnia_biomass)*lakeid, data=hold_data)
+                 stability+anoxia_summer+
+                 secchi_openwater_max+total_zoop_biomass+daphnia_biomass)*lakeid, data=hold_data)
 i_o = lm(doc_epiMax~1, data=hold_data)
 hold_step = step(i_o, scope=formula(all))
 
 doc_model = lm(doc_epiMax~(iceon+straton+stratoff+energy+
-                 stability+anoxia_summer+secchi_all+
-                 secchi_openwater+total_zoop_biomass+daphnia_biomass)*lakeid, 
+                 stability+anoxia_summer+
+                 secchi_openwater_max+total_zoop_biomass+daphnia_biomass)*lakeid, 
                data=n_lakes_wide, 
                na.action = na.exclude)
 summary(doc_model)
@@ -163,7 +163,7 @@ dat_filled = full_join(dat, all_fill) %>%
 dat_filled$lakeid = factor(dat_filled$lakeid, 
                     levels = c("AL", "BM", "CB", "CR", "SP", "TB", "TR", "FI", "ME", "MO", "WI"), 
                     ordered = T)
-vars = c("iceoff", "straton", "secchi_all", "secchi_openwater", "daphnia_biomass","zoopDensity",
+vars = c("iceoff", "straton", "secchi_all", "secchi_openwater_max","secchi_openwater_min", "daphnia_biomass","zoopDensity",
         "total_zoop_biomass", "chlor_all", "chlor_spring", "chlor_fall", "doc_epiMax",
         "totpuf_epiMax", "totpuf_epiMin", "totpuf_hypoMax", "totpuf_hypoMin", 
         "anoxia", "anoxia_summer", "stability", "energy", "stratoff", "iceon")
@@ -273,8 +273,8 @@ missing_chlAll_MEMOWI = s_lakes_wide %>% filter(is.na(chlor_all) & lakeid != "FI
 missing_chlAll_MEMOWI$chl_all_fill = round(predict(chlAll_model_MEMOWI, missing_chlAll_MEMOWI))
 
 chlAll_model_FI = lm(chlor_all~(stratoff+energy+
-                 stability+anoxia_summer+secchi_all+
-                 secchi_openwater), 
+                 stability+anoxia_summer+
+                 secchi_openwater_max), 
                data=s_lakes_wide %>% filter(lakeid == "FI"))
 summary(chlAll_model_FI)
 plot(s_lakes_wide %>% filter(lakeid == "FI") %>% pull(chlor_all), 
