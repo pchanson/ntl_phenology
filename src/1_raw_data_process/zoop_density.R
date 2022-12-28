@@ -4,26 +4,25 @@ infile1 <- tempfile()
 download.file(inUrl1, infile1, method = "curl")
 dt1 <- read_csv(infile1)
 
-#### Download nothern lake zooplankton data from EDI ####
+#### Download northern lake zooplankton data from EDI ####
 inUrl1  <- "https://pasta.lternet.edu/package/data/eml/knb-lter-ntl/37/36/c4b652eea76cd431ac5fd3562b1837ee" 
 infile1 <- tempfile()
 download.file(inUrl1,infile1,method="curl")
-dt2 <-read_csv(infile1) |> rename(sampledate = sample_date)
+dt2 <-read_csv(infile1)
+
+# get ice on/off dates
+ice0 = read_csv("Data/derived/ntl_icedatescombo.csv") |> 
+  mutate(year4 = year(lastice)) |> 
+  filter(year4 >= 1980) |> 
+  select(lakeid, year4, lastice)
+
 
 #Combine files
-dt = dt1 |> select(-towdepth) |> bind_rows(dt2)
-
-# Zooplankton ID codes
-codes = dt |> 
-  group_by(species_code) |> 
-  summarise(first(species_name))
-
-# by zoop group
-zoops = dt |> 
+dt = dt1 |> select(-towdepth) |> 
+  bind_rows(dt2) |> 
+  left_join(ice0) |> 
+  filter(sample_date > lastice) |> 
   mutate(code = floor(species_code/10000)) |>
-  group_by(lakeid, sampledate, code) |> 
-  summarize(density = sum(density, na.rm = T)) |> 
-  mutate(month = month(sampledate), year = year(sampledate)) |> 
   mutate(zoopGroup = case_when(code == 1 ~ 'copepod nauplii',
                                code == 2 ~ 'copepod',
                                code == 3 ~ 'calanoid',
@@ -34,19 +33,35 @@ zoops = dt |>
                                code == 8 ~ 'unknown',
                                code == 9 ~ 'unknown'))
 
+# Zooplankton ID codes
+codes = dt |> 
+  group_by(species_code) |> 
+  summarise(first(species_name))
+
+# by zoop group
+# cladocera and copepods
+zoopDensity.cc = dt |> filter(code %in% c(2,3,5)) |> 
+  group_by(lakeid, year4, sample_date) |> 
+  summarize(density = sum(density, na.rm = T)) |> 
+  group_by(lakeid, year4) |> 
+  slice_max(density) |> 
+  mutate(metric = 'zoopDensity_CC', daynum = yday(sample_date))
+
 # all zoops
 zoopDensity = dt |> 
-  group_by(lakeid, sampledate) |> 
+  group_by(lakeid, year4, sample_date) |> 
   summarize(density = sum(density, na.rm = T)) |> 
-  mutate(month = month(sampledate), year = year(sampledate)) |> 
-  filter(month >= 4) |> 
-  group_by(lakeid, year) |> 
+  group_by(lakeid, year4) |> 
   slice_max(density) |> 
-  mutate(metric = 'zoopDensity', daynum = yday(sampledate))
+  mutate(metric = 'zoopDensity', daynum = yday(sample_date))
 
-ggplot(zoopDensity) + 
-  geom_point(aes(x = month, y = density)) +
+# Combine datasets 
+zoop.out = zoopDensity |> bind_rows(zoopDensity.cc) |> 
+  select(lakeid, metric, sample_date, year = year4, daynum)
+
+# Plot check
+ggplot(zoop.out) + 
+  geom_density(aes(x = daynum, color = metric)) +
   facet_wrap(~lakeid, scales = 'free_y')
 
-write_csv(zoopDensity |>  select(lakeid, metric, sampledate, year, daynum), 
-          "Data/final_metric_files/ntl_zoop_density.csv")
+write_csv(zoop.out, "Data/final_metric_files/ntl_zoop_density.csv")
