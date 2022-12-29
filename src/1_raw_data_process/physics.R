@@ -149,14 +149,14 @@ for (name in unique(dt1$lakeid)){
 
 # Export thermocline depths
 therm.df = do.call(rbind.data.frame, therm.list)
-# write.csv(therm.df, file ='Data/derived/thermocline.csv', quote = F, row.names = F)
+write.csv(therm.df, file ='Data/derived/thermocline.csv', quote = F, row.names = F)
 
 # Export physics metrics
 strat.df = do.call(rbind.data.frame, strat.list)
 strat.df.wide = strat.df %>% select(-duration) %>% 
   pivot_longer(cols = straton:anoxia_summer, names_to = "metric", values_to = "sampledate") %>% 
   mutate(daynum = yday(sampledate)) 
-# write_csv(strat.df.wide, "Data/final_metric_files/physics.csv")
+write_csv(strat.df.wide, "Data/final_metric_files/physics.csv")
 
 # Plot comparison with old data file
 test = read_csv('Data/old/phenology_dates_v1.csv') %>% 
