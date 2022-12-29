@@ -79,7 +79,6 @@ for (i in 1:length(lakenames)) {
   #   labs(title = lakenames[i])
   # c.plot.list[[i]] = c.plot
 
-  
 }
 
 # wrap_plots(c.plot.list)

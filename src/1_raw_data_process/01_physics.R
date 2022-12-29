@@ -19,11 +19,12 @@ inUrl3 <- "https://pasta.lternet.edu/package/data/eml/knb-lter-ntl/29/29/03e232a
 infile3 <- tempfile()
 download.file(inUrl3, infile3, method = "auto")
 
-dt1 <- read_csv(infile3) 
+dt0 <- read_csv(infile3) |> filter(!is.na(wtemp) & !is.na(o2))
+
 # Only use common depths
-usedepths = dt1 %>% group_by(depth) %>% tally() %>% filter(n >= 500) %>% pull(depth)
-dt1 = dt1 %>% filter(depth %in% usedepths) %>% 
-  filter(year4 >= 1982)
+# usedepths = dt1 %>% group_by(depth) %>% tally() %>% filter(n >= 500) %>% pull(depth)
+# dt1 = dt1 %>% filter(depth %in% usedepths) %>% 
+#   filter(year4 >= 1982)
 
 get_dens <- function(temp, salt){
   dens = 999.842594 + (6.793952 * 10^-2 * temp) - (9.095290 * 10^-3 * temp^2) +
@@ -40,10 +41,31 @@ bath <- read_csv('Data/derived/NTLhypsometry.csv') %>%
   bind_rows(data.frame('lakeid' = rep('FI',2), 'Depth_m' = c(0,18.9),
                        'Depth_ft' = c(0,0),'area' = c(874000, 0)))
 
+# Make full grid of depths and dates
+useYears = dt0 %>% 
+  group_by(lakeid, year4, sampledate) %>% tally() %>% 
+  group_by(lakeid, year4) %>% tally() %>% filter(n >= 5) |> select(-n)
+
+useDepths = dt0 |> group_by(lakeid, depth) %>% tally() %>% filter(n >= 300) %>% select(lakeid, depth)
+
+useDates =  dt0 |> group_by(lakeid, sampledate) %>% tally() %>% 
+  left_join(useDepths |> group_by(lakeid) |> summarise(depthN = n())) |> 
+  filter(n > depthN*0.6) |> # use days that have 60% of depth measurements
+  select(lakeid, sampledate)
+
+# Full grid of dates and depths
+fullDatesDepths = useDates |> full_join(useDepths) |> 
+  mutate(year4 = year(sampledate)) |> 
+  right_join(useYears)
+
+# Make original dataset fit to new grid
+
+dt1 = fullDatesDepths |> left_join(dt0)
+
 data.temp <- dt1 %>%
+  mutate(wtemp = if_else(flagwtemp == 'K' & !is.na(flagwtemp), NA_real_, wtemp)) |> 
   group_by(lakeid, sampledate) %>%
-  filter(is.na(flagwtemp), !is.na(wtemp)) %>%
-  filter(sum(!is.na(wtemp))>1) %>%
+  filter(sum(wtemp, na.rm = T) > 0) |> 
   fill(wtemp, .direction = 'up') %>%
   fill(wtemp, .direction = 'down') %>%
   mutate(iwtemp = na.approx(wtemp)) %>%
@@ -51,9 +73,9 @@ data.temp <- dt1 %>%
   select(lakeid, year = year4, sampledate, depth, iwtemp, wtemp, wdens)
 
 data.o2 <- dt1 %>%
+  mutate(o2 = if_else(flago2 == 'K' & !is.na(flago2), NA_real_, o2)) |> 
   group_by(lakeid, sampledate) %>%
-  filter(is.na(flagwtemp), !is.na(o2)) %>%
-  filter(sum(!is.na(o2))>1) %>%
+  filter(sum(o2, na.rm = T) > 0) |> 
   fill(o2, .direction = 'up') %>%
   fill(o2, .direction = 'down') %>%
   mutate(io2 = na.approx(o2)) %>%
@@ -65,14 +87,9 @@ strat.list = list()
 # Iterate for each lake
 for (name in unique(dt1$lakeid)){
   print(name)
-  # Some years only have a couple of samples
-  useYears = data.temp %>% filter(lakeid == name) %>% 
-    group_by(year, sampledate) %>% tally() %>% 
-    group_by(year) %>% tally() %>% filter(n >= 5) %>% pull(year)
-  
   # Data for single lake
-  data.temp.lake = data.temp %>% filter(lakeid == name) %>% filter(year %in% useYears)
-  data.o2.lake = data.o2 %>% filter(lakeid == name) %>% filter(year %in% useYears)
+  data.temp.lake = data.temp %>% filter(lakeid == name)
+  data.o2.lake = data.o2 %>% filter(lakeid == name) 
   
   #Get hyposometry for lake 
   hyp <- bath %>%
@@ -100,7 +117,7 @@ for (name in unique(dt1$lakeid)){
   therm.list[[name]] = data.frame(lakeid = name, sampledate = df.lake$sampledate, thermdepth_m = df.lake$thermdep)
   
   
-  dz = 0.1
+  dz = 0.5
   
   # Get energy 
   en <- data.temp.lake %>%
@@ -143,7 +160,7 @@ for (name in unique(dt1$lakeid)){
     filter(sampledate >= straton & sampledate <= stratoff) %>%
     summarise(anoxia_summer =  sampledate[which.min(do)])
   
-  # Join anoixa to strat dataframe
+  # Join anoxia to strat dataframe
   strat.list[[name]] = strat.df %>% left_join(en.df) %>% left_join(anoxia.df)     
 }
 
