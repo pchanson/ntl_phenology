@@ -4,26 +4,32 @@ library(ggcorrplot)
 library(corrr)
 library(patchwork)
 
+vars_order = c("iceoff", "straton", "secchi_openwater_max", "secchi_openwater_min", 
+               "zoopDensity_CC", "doc_epiMax", "totpuf_hypoMin",  "totpuf_epiMax", 
+               "anoxia_summer", "stability", "energy", "totpuf_epiMin", "totpuf_hypoMax", "stratoff", "iceon")
+
+
 # read in data
 dat = read_csv("Data/analysis_ready/final_combined_dates_filled_v2.csv")
-dat$sampledate = as.Date(paste0(dat$year-1, "-12-31")) + dat$daynum_fill
+# dat$sampledate = as.Date(paste0(dat$year-1, "-12-31")) + dat$daynum_fill
 
 dat2 = dat |> group_by(lakeid, metric) |> 
   summarise(day.mean = mean(daynum, na.rm = T), day.IQR = IQR(daynum, na.rm = T)) |> 
   ungroup() |> 
   mutate(lakeid = factor(lakeid, levels = c("AL", "BM", "CR", "SP", "TR", "TB", "CB", "FI", "ME", "MO", "WI"))) |> 
-  mutate(metric = factor(metric, levels = c("iceoff", "straton",  "chlor_spring", "secchi_openwater", "daphnia_biomass", "doc_epiMax", "totpuf_hypoMin",  "totpuf_epiMax", "anoxia_summer", "stability", "energy", "totpuf_epiMin", "totpuf_hypoMax", "stratoff", "iceon"))) |> 
+  mutate(metric = factor(metric, levels = vars_order)) |> 
   filter(!is.na(metric))
 
 ggplot(dat2) + 
   geom_hline(aes(yintercept = 28), linetype = 2) +
-  geom_jitter(aes(x = metric, y = day.IQR, fill = lakeid), shape = 21, size = 3, width = 0.2) +
+  geom_jitter(aes(x = metric, y = day.IQR, fill = lakeid), shape = 21, size = 2.5, width = 0.2, stroke = 0.2) +
   scale_fill_manual(values = c("#d0d1e6", "#a6bddb", "#74a9cf", "#2b8cbe", "#045a8d", "#cc4c02", 
                                "#8c2d04", "#bae4b3", "#74c476", "#238b45","gold")) +
   ylab('IQR (days)') +
   theme_bw(base_size = 9) +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
-        axis.title.x = element_blank()) 
+        axis.title.x = element_blank(), 
+        legend.key.height = unit(0.3,'cm')) 
 
 ggsave('Figures/manuscript/phenologyIQR.png', width = 5, height = 3.5, dpi = 500)
 
@@ -35,9 +41,7 @@ coff.df.list = list()
 for (i in 1:length(lakenames)) {
   useVars = dat |> 
     filter(lakeid == lakenames[i]) |> 
-    mutate(metric = factor(metric, levels = c("iceoff", "straton",  "chlor_spring", "secchi_openwater", "daphnia_biomass", 
-                                              "doc_epiMax", "totpuf_hypoMin",  "totpuf_epiMax", "anoxia_summer", "stability", 
-                                              "energy", "totpuf_epiMin", "totpuf_hypoMax", "stratoff", "iceon"))) |> 
+    mutate(metric = factor(metric, levels = vars_order)) |> 
     filter(!is.na(metric)) |> 
     select(year, metric, daynum) |> 
     arrange(metric) |> 
@@ -96,7 +100,7 @@ p1 = ggplot(data = coff.df, mapping = aes(x = Var1, y = Var2, fill = lakeid)) +
   theme_bw(base_size = 9) +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
         axis.title = element_blank(), 
-        legend.key.height = unit(0.5, 'cm')) +
+        legend.key.height = unit(0.3, 'cm')) +
   labs(caption = 'Figure X: Phenological metrics that have positive correlations (p > 0.05) at individual lakes.')
 
 ggsave(plot = p1, 'Figures/manuscript/phenologyCorr.png', width = 5, height = 3.5, dpi = 500)
