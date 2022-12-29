@@ -22,8 +22,8 @@ dat$sampledate = as.Date(paste0(dat$year-1, "-12-31")) + dat$daynum_fill
 table(dat$metric)
 
 # Fig 1: Ridges
-vars_order = c("iceoff", "straton",  "chlor_spring", "secchi_openwater_max", "secchi_openwater_min", "daphnia_biomass", "zoopDensity", "doc_epiMax", "totpuf_hypoMin",  "totpuf_epiMax", "anoxia_summer", "stability", "energy", "totpuf_epiMin", "totpuf_hypoMax", "stratoff", "iceon")
-vars_label = c("ice off", "strat onset", "spring bloom", "SecchiMax","SecchiMin", "daphnia", "zoopDensity", "DOC", "TP hypo min", "TP epi max",  "anoxia",  "stability", "energy", "TP epi min", "TP hypo max", "strat offset", "ice on")
+vars_order = c("iceoff", "straton", "secchi_openwater_max", "secchi_openwater_min", "zoopDensity_CC", "doc_epiMax", "totpuf_hypoMin",  "totpuf_epiMax", "anoxia_summer", "stability", "energy", "totpuf_epiMin", "totpuf_hypoMax", "stratoff", "iceon")
+vars_label = c("ice off", "strat onset", "SecchiMax","SecchiMin", "zoopDensity", "DOC", "TP hypo min", "TP epi max",  "anoxia",  "stability", "energy", "TP epi min", "TP hypo max", "strat offset", "ice on")
 
 # add and extra lake in N
 lakes_order = c("AL", "BM", "CB", "CR", "SP", "TB", "TR", "", "FI", "ME", "MO", "WI")
@@ -81,8 +81,7 @@ pPCAload = fviz_pca_var(pca,
              gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
              repel = TRUE,     # Avoid text overlapping
              arrowsize=1,
-             labelsize=3
-) +
+             labelsize=3) +
   labs(x="PC 1", y="PC 2", title="", color="Contribution")+ 
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=16))

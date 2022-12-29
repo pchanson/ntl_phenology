@@ -10,37 +10,26 @@ download.file(inUrl1, infile1, method = "libcurl")
 LTERsecchi <- read_csv(infile1)
 
 # get ice on/off dates
-ice0 = read_csv("Data/derived/ntl_icedatescombo.csv") |> 
-  mutate(year4 = year(lastice)) |> 
-  filter(year4 >= 1980) |> 
-  select(-year)
+ice0 = read_csv("Data/final_metric_files/ice.csv") |> 
+  filter(metric == 'iceoff') |> 
+  select(lakeid, year4 = year, lastice = sampledate)
 
 secchi = LTERsecchi |> select(lakeid:sampledate, secnview, ice) |> 
   filter(!is.na(secnview)) |> 
   left_join(ice0) |> 
-  mutate(iceOn = if_else(sampledate < lastice, TRUE, FALSE)) |> 
-  mutate(iceOn = if_else(is.na(iceOn) & month(sampledate) <= 3, TRUE, iceOn)) |> 
-  mutate(iceOn = if_else(is.na(iceOn) & month(sampledate) > 3, FALSE, iceOn)) |> 
+  filter(sampledate > lastice) |> 
   group_by(lakeid, year4) |> 
   mutate(n = n()) |> 
   filter(!n < 10) |> # filter out low year
   ungroup() |> select(-n)
-  
-# s.all = secchi |> 
-#   group_by(lakeid, year4) %>% 
-#   slice_max(secnview, with_ties = FALSE, n = 1) %>% # if ties, select the first 
-#   mutate(metric = "secchi_all_max") %>% 
-#   select(lakeid, metric, sampledate, year4, daynum, secnview)
 
 s.openwater.max = secchi |> 
-  filter(iceOn == FALSE) |> 
   group_by(lakeid, year4) %>% 
   slice_max(secnview, with_ties = FALSE, n = 1) %>% # if ties, select the first 
   mutate(metric = "secchi_openwater_max") %>% 
   select(lakeid, metric, sampledate, year4, daynum, secnview)
 
 s.openwater.min = secchi |> 
-  filter(iceOn == FALSE) |> 
   group_by(lakeid, year4) %>% 
   slice_min(secnview, with_ties = FALSE, n = 1) %>% # if ties, select the first 
   mutate(metric = "secchi_openwater_min") %>% 

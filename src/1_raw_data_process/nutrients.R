@@ -29,10 +29,9 @@ lternuts.flagged = LTERnutrients %>%
                           TRUE ~ item))
 
 # get ice on/off dates
-ice0 = read_csv("Data/derived/ntl_icedatescombo.csv") |> 
-  mutate(year4 = year(lastice)) |> 
-  filter(year4 >= 1980) |> 
-  select(-year)
+ice0 = read_csv("Data/final_metric_files/ice.csv") |> 
+  filter(metric == 'iceoff') |> 
+  select(lakeid, year4 = year, lastice = sampledate)
 
 #################### FUNCTIONS ####################
 # filtering function - turns outliers into NAs to be removed

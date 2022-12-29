@@ -1,3 +1,6 @@
+library(tidyverse)
+library(lubridate)
+
 #### Download southern lake zooplankton data from EDI ####
 inUrl1 <- "https://pasta.lternet.edu/package/data/eml/knb-lter-ntl/90/33/5880c7ba184589e239aec9c55f9d313b"
 infile1 <- tempfile()
@@ -11,11 +14,9 @@ download.file(inUrl1,infile1,method="curl")
 dt2 <-read_csv(infile1)
 
 # get ice on/off dates
-ice0 = read_csv("Data/derived/ntl_icedatescombo.csv") |> 
-  mutate(year4 = year(lastice)) |> 
-  filter(year4 >= 1980) |> 
-  select(lakeid, year4, lastice)
-
+ice0 = read_csv("Data/final_metric_files/ice.csv") |> 
+  filter(metric == 'iceoff') |> 
+  select(lakeid, year4 = year, lastice = sampledate)
 
 #Combine files
 dt = dt1 |> select(-towdepth) |> 
@@ -40,7 +41,7 @@ codes = dt |>
 
 # by zoop group
 # cladocera and copepods
-zoopDensity.cc = dt |> filter(code %in% c(2,3,5)) |> 
+zoopDensity.cc = dt |> filter(code %in% c(1,2,3,4,5)) |> 
   group_by(lakeid, year4, sample_date) |> 
   summarize(density = sum(density, na.rm = T)) |> 
   group_by(lakeid, year4) |> 
@@ -57,7 +58,7 @@ zoopDensity = dt |>
 
 # Combine datasets 
 zoop.out = zoopDensity |> bind_rows(zoopDensity.cc) |> 
-  select(lakeid, metric, sample_date, year = year4, daynum)
+  select(lakeid, metric, sampledate = sample_date, year = year4, daynum)
 
 # Plot check
 ggplot(zoop.out) + 
