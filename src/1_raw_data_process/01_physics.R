@@ -29,6 +29,7 @@ dt0 <- read_csv(infile3) |> filter(!is.na(wtemp) & !is.na(o2))
 dt0 = dt0 |> mutate(o2 = if_else(lakeid == 'ME' & sampledate == as.Date('2017-10-04'), NA_real_, o2)) |> 
   mutate(wtemp = if_else(lakeid == 'ME' & sampledate == as.Date('2007-05-14'), NA_real_, wtemp))
 
+View(dt0 |> filter(year4 == 2008) |> filter(lakeid %in% c('ME',"MO")))
 ############## ######## ###############
 
 # Only use common depths
@@ -100,6 +101,20 @@ for (name in unique(dt1$lakeid)){
   # Data for single lake
   data.temp.lake = data.temp %>% filter(lakeid == name)
   data.o2.lake = data.o2 %>% filter(lakeid == name) 
+  
+  # Often the top measurement and bottom measurement are high/low, which throws off
+  # calculating density differences. Take median of top and bottom 2 meters. 
+  maxDepth = max(data.temp.lake$depth, na.rm = T)
+  if (max(data.temp.lake$depth, na.rm = T) > 10) {
+    data.temp.lake = data.temp.lake |> 
+      mutate(iwtemp = if_else(depth <= 2, median(iwtemp[depth <= 2]), iwtemp)) |> 
+      mutate(iwtemp = if_else(depth >= (maxDepth-2), median(iwtemp[depth >= (maxDepth-2)]), iwtemp)) 
+    
+    data.o2.lake = data.o2.lake |>  
+      mutate(o2 = if_else(depth <= 2, median(o2[depth <= 2]), o2)) |> 
+      mutate(o2 = if_else(depth >= (maxDepth-2), median(o2[depth >= (maxDepth-2)]), o2)) 
+  }
+  
   
   #Get hyposometry for lake 
   hyp <- bath %>%

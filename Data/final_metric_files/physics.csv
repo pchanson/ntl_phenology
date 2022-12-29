@@ -205,7 +205,7 @@ year,lakeid,metric,sampledate,daynum
 1981,BM,stability,1981-08-26,238
 1981,BM,anoxia_summer,1981-06-30,181
 1982,BM,straton,1982-05-25,145
-1982,BM,stratoff,1982-10-18,291
+1982,BM,stratoff,1982-10-06,279
 1982,BM,energy,1982-08-05,217
 1982,BM,stability,1982-08-05,217
 1982,BM,anoxia_summer,1982-09-08,251
@@ -295,7 +295,7 @@ year,lakeid,metric,sampledate,daynum
 1999,BM,stability,1999-07-13,194
 1999,BM,anoxia_summer,1999-09-07,250
 2000,BM,straton,2000-05-02,123
-2000,BM,stratoff,2000-10-16,290
+2000,BM,stratoff,2000-10-03,277
 2000,BM,energy,2000-08-07,220
 2000,BM,stability,2000-09-07,251
 2000,BM,anoxia_summer,2000-08-24,237
@@ -353,7 +353,7 @@ year,lakeid,metric,sampledate,daynum
 2011,BM,stratoff,2011-10-03,276
 2011,BM,energy,2011-08-09,221
 2011,BM,stability,2011-08-23,235
-2011,BM,anoxia_summer,2011-09-19,262
+2011,BM,anoxia_summer,2011-09-06,249
 2012,BM,straton,2012-04-30,121
 2012,BM,stratoff,2012-10-01,275
 2012,BM,energy,2012-07-23,205
@@ -635,7 +635,7 @@ year,lakeid,metric,sampledate,daynum
 1988,CR,stability,1988-08-17,230
 1988,CR,anoxia_summer,1988-09-29,273
 1989,CR,straton,1989-05-17,137
-1989,CR,stratoff,1989-10-31,304
+1989,CR,stratoff,1989-10-19,292
 1989,CR,energy,1989-07-27,208
 1989,CR,stability,1989-08-24,236
 1989,CR,anoxia_summer,1989-10-05,278
@@ -720,7 +720,7 @@ year,lakeid,metric,sampledate,daynum
 2005,CR,stability,2005-07-28,209
 2005,CR,anoxia_summer,2005-10-07,280
 2006,CR,straton,2006-04-19,109
-2006,CR,stratoff,2006-10-18,291
+2006,CR,stratoff,2006-10-05,278
 2006,CR,energy,2006-08-10,222
 2006,CR,stability,2006-08-10,222
 2006,CR,anoxia_summer,2006-09-20,263
@@ -770,7 +770,7 @@ year,lakeid,metric,sampledate,daynum
 2015,CR,stability,2015-08-10,222
 2015,CR,anoxia_summer,2015-10-06,279
 2016,CR,straton,2016-05-11,132
-2016,CR,stratoff,2016-11-14,319
+2016,CR,stratoff,2016-10-25,299
 2016,CR,energy,2016-08-17,230
 2016,CR,stability,2016-08-17,230
 2016,CR,anoxia_summer,2016-10-25,299
@@ -880,7 +880,7 @@ year,lakeid,metric,sampledate,daynum
 2012,FI,stability,2012-08-09,222
 2012,FI,anoxia_summer,2012-09-06,250
 2013,FI,straton,2013-05-08,128
-2013,FI,stratoff,2013-11-01,305
+2013,FI,stratoff,2013-10-03,276
 2013,FI,energy,2013-07-23,204
 2013,FI,stability,2013-09-12,255
 2013,FI,anoxia_summer,2013-09-12,255
@@ -924,7 +924,7 @@ year,lakeid,metric,sampledate,daynum
 1996,ME,energy,1996-09-05,249
 1996,ME,stability,1996-07-08,190
 1996,ME,anoxia_summer,1996-09-05,249
-1997,ME,straton,1997-05-13,133
+1997,ME,straton,1997-05-28,148
 1997,ME,stratoff,1997-10-01,274
 1997,ME,energy,1997-08-06,218
 1997,ME,stability,1997-08-06,218
@@ -943,7 +943,7 @@ year,lakeid,metric,sampledate,daynum
 2000,ME,stratoff,2000-10-24,298
 2000,ME,energy,2000-08-16,229
 2000,ME,stability,2000-05-09,130
-2000,ME,anoxia_summer,2000-08-28,241
+2000,ME,anoxia_summer,2000-08-16,229
 2001,ME,straton,2001-05-07,127
 2001,ME,stratoff,2001-09-26,269
 2001,ME,energy,2001-08-13,225
@@ -975,11 +975,11 @@ year,lakeid,metric,sampledate,daynum
 2006,ME,stability,2006-09-06,249
 2006,ME,anoxia_summer,2006-08-07,219
 2007,ME,straton,2007-05-29,149
-2007,ME,stratoff,2007-10-29,302
+2007,ME,stratoff,2007-10-01,274
 2007,ME,energy,2007-08-06,218
 2007,ME,stability,2007-07-23,204
 2007,ME,anoxia_summer,2007-08-06,218
-2008,ME,straton,2008-05-12,133
+2008,ME,straton,2008-05-28,149
 2008,ME,stratoff,2008-09-29,273
 2008,ME,energy,2008-08-04,217
 2008,ME,stability,2008-08-18,231
@@ -999,7 +999,7 @@ year,lakeid,metric,sampledate,daynum
 2011,ME,energy,2011-08-04,216
 2011,ME,stability,2011-07-25,206
 2011,ME,anoxia_summer,2011-08-04,216
-2012,ME,straton,2012-04-17,108
+2012,ME,straton,2012-05-14,135
 2012,ME,stratoff,2012-10-01,275
 2012,ME,energy,2012-08-06,219
 2012,ME,stability,2012-08-06,219
@@ -1024,7 +1024,7 @@ year,lakeid,metric,sampledate,daynum
 2016,ME,energy,2016-08-15,228
 2016,ME,stability,2016-06-07,159
 2016,ME,anoxia_summer,2016-08-01,214
-2017,ME,straton,2017-04-17,107
+2017,ME,straton,2017-05-15,135
 2017,ME,stratoff,2017-10-04,277
 2017,ME,energy,2017-07-24,205
 2017,ME,stability,2017-08-23,235
@@ -1054,7 +1054,7 @@ year,lakeid,metric,sampledate,daynum
 1996,MO,energy,1996-09-05,249
 1996,MO,stability,1996-08-05,218
 1996,MO,anoxia_summer,1996-09-05,249
-1997,MO,straton,1997-05-28,148
+1997,MO,straton,1997-06-11,162
 1997,MO,stratoff,1997-09-30,273
 1997,MO,energy,1997-07-24,205
 1997,MO,stability,1997-07-24,205
@@ -1110,7 +1110,7 @@ year,lakeid,metric,sampledate,daynum
 2007,MO,stability,2007-07-09,190
 2007,MO,anoxia_summer,2007-08-07,219
 2008,MO,straton,2008-04-30,121
-2008,MO,stratoff,2008-10-31,305
+2008,MO,stratoff,2008-09-29,273
 2008,MO,energy,2008-08-05,218
 2008,MO,stability,2008-09-05,249
 2008,MO,anoxia_summer,2008-08-05,218
@@ -1153,7 +1153,7 @@ year,lakeid,metric,sampledate,daynum
 2016,MO,stratoff,2016-10-03,277
 2016,MO,energy,2016-08-16,229
 2016,MO,stability,2016-08-31,244
-2016,MO,anoxia_summer,2016-07-06,188
+2016,MO,anoxia_summer,2016-08-02,215
 2017,MO,straton,2017-04-19,109
 2017,MO,stratoff,2017-10-05,278
 2017,MO,energy,2017-07-25,206
@@ -1170,7 +1170,7 @@ year,lakeid,metric,sampledate,daynum
 2019,MO,stability,2019-07-23,204
 2019,MO,anoxia_summer,2019-08-06,218
 2020,MO,straton,2020-05-12,133
-2020,MO,stratoff,2020-11-05,310
+2020,MO,stratoff,2020-09-17,261
 2020,MO,energy,2020-07-09,191
 2020,MO,stability,2020-07-09,191
 2020,MO,anoxia_summer,2020-07-09,191
@@ -1233,7 +1233,7 @@ year,lakeid,metric,sampledate,daynum
 1992,SP,stratoff,1992-10-20,294
 1992,SP,energy,1992-08-24,237
 1992,SP,stability,1992-08-24,237
-1992,SP,anoxia_summer,1992-09-24,268
+1992,SP,anoxia_summer,1992-10-05,279
 1993,SP,straton,1993-05-18,138
 1993,SP,stratoff,1993-10-18,291
 1993,SP,energy,1993-08-23,235
@@ -1275,7 +1275,7 @@ year,lakeid,metric,sampledate,daynum
 2000,SP,stability,2000-09-06,250
 2000,SP,anoxia_summer,2000-09-06,250
 2001,SP,straton,2001-04-30,120
-2001,SP,stratoff,2001-10-29,302
+2001,SP,stratoff,2001-10-15,288
 2001,SP,energy,2001-08-06,218
 2001,SP,stability,2001-09-04,247
 2001,SP,anoxia_summer,2001-09-18,261
@@ -1288,7 +1288,7 @@ year,lakeid,metric,sampledate,daynum
 2003,SP,stratoff,2003-10-28,301
 2003,SP,energy,2003-08-20,232
 2003,SP,stability,2003-08-20,232
-2003,SP,anoxia_summer,2003-10-01,274
+2003,SP,anoxia_summer,2003-09-16,259
 2004,SP,straton,2004-05-10,131
 2004,SP,stratoff,2004-10-25,299
 2004,SP,energy,2004-08-02,215
@@ -1315,7 +1315,7 @@ year,lakeid,metric,sampledate,daynum
 2008,SP,stability,2008-08-25,238
 2008,SP,anoxia_summer,2008-09-08,252
 2009,SP,straton,2009-05-13,133
-2009,SP,stratoff,2009-10-29,302
+2009,SP,stratoff,2009-10-14,287
 2009,SP,energy,2009-08-19,231
 2009,SP,stability,2009-09-03,246
 2009,SP,anoxia_summer,2009-10-01,274
