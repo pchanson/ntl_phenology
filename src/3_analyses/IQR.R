@@ -3,6 +3,7 @@ library(lubridate)
 library(ggcorrplot)
 library(corrr)
 library(patchwork)
+library(xtable)
 
 vars_order = c("iceoff", "straton", "secchi_openwater_max", "secchi_openwater_min", 
                "zoopDensity_CC", "doc_epiMax", "totpuf_hypoMin",  "totpuf_epiMax", 
@@ -43,10 +44,10 @@ for (i in 1:length(lakenames)) {
     filter(lakeid == lakenames[i]) |> 
     mutate(metric = factor(metric, levels = vars_order)) |> 
     filter(!is.na(metric)) |> 
-    select(year, metric, daynum) |> 
+    dplyr::select(year, metric, daynum) |> 
     arrange(metric) |> 
     pivot_wider(names_from = metric, values_from = daynum) |> 
-    select(-year)
+    dplyr::select(-year)
   
   ###### Compute a correlation matrix ######
   all_na <- function(x) all(is.na(x))
@@ -57,15 +58,16 @@ for (i in 1:length(lakenames)) {
   
   usecorr <- round(cor(useVars.na,use = "pairwise.complete.obs", method = 'pearson'), 2)
   # Compute a matrix of correlation p-values
-  p.mat <- cor_pmat(useVars.na)
-  
+  p.mat <- cor_pmat(useVars.na) 
+
   # Melt
   usecorr <- reshape2::melt(usecorr, na.rm = FALSE, value.name = 'corr')
-  p.mat <- reshape2::melt(p.mat, na.rm = FALSE, value.name = 'p')
+  p.mat <- reshape2::melt(p.mat, na.rm = FALSE, value.name = 'p') 
+  # |> mutate(p = p.adjust(p, method = "holm"))
   
   coff.df = usecorr |> as_tibble() |> 
     left_join(p.mat) |> 
-    mutate(corr.p = if_else(p < 0.05, corr, NA_real_)) |> 
+    mutate(corr.p = if_else(p < 0.01, corr, NA_real_)) |> 
     mutate(lakeid = lakenames[i])
 
   coff.df.list[[i]] = coff.df
@@ -100,8 +102,13 @@ p1 = ggplot(data = coff.df, mapping = aes(x = Var1, y = Var2, fill = lakeid)) +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
         axis.title = element_blank(), 
         legend.key.height = unit(0.3, 'cm')) +
-  labs(caption = 'Figure X: Phenological metrics that have positive correlations (p > 0.05) at individual lakes.')
+  labs(caption = 'Figure X: Phenological metrics that have positive correlations (p < 0.01) at individual lakes.'); p1
 
 ggsave(plot = p1, 'Figures/manuscript/phenologyCorr.png', width = 5, height = 3.5, dpi = 500)
 
 
+coff.table = coff.df |> 
+  dplyr::select(lakeid, Var1, Var2, corr, p) |> 
+  arrange(lakeid)
+  
+print(xtable(coff.table), include.rownames = FALSE)
