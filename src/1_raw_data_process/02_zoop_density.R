@@ -65,4 +65,4 @@ ggplot(zoop.out) +
   geom_density(aes(x = daynum, color = metric)) +
   facet_wrap(~lakeid, scales = 'free_y')
 
-write_csv(zoop.out, "Data/final_metric_files/ntl_zoop_density.csv")
+write_csv(zoop.out, "Data/final_metric_files/zoop_density.csv")
