@@ -21,6 +21,16 @@ download.file(inUrl3, infile3, method = "auto")
 
 dt0 <- read_csv(infile3) |> filter(!is.na(wtemp) & !is.na(o2))
 
+############## Bad Data ###############
+# ME 2017-10-04 o2
+# ME 2007-05-14 wtemp
+# print(dt0 |> filter(lakeid == 'ME', sampledate == as.Date('2017-10-04')) |> select(lakeid,sampledate,wtemp,o2,o2sat),n=30)
+
+dt0 = dt0 |> mutate(o2 = if_else(lakeid == 'ME' & sampledate == as.Date('2017-10-04'), NA_real_, o2)) |> 
+  mutate(wtemp = if_else(lakeid == 'ME' & sampledate == as.Date('2007-05-14'), NA_real_, wtemp))
+
+############## ######## ###############
+
 # Only use common depths
 # usedepths = dt1 %>% group_by(depth) %>% tally() %>% filter(n >= 500) %>% pull(depth)
 # dt1 = dt1 %>% filter(depth %in% usedepths) %>% 

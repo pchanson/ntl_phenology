@@ -13,10 +13,6 @@ lakes_order = c("AL", "BM", "CB", "CR", "SP", "TB", "TR", "", "FI", "ME", "MO", 
 
 ##### Functions #####
 all_na <- function(x) all(is.na(x))
-useVars.na = useVars |>  mutate(
-  # across(all_na(), ~replace_na(.x, 0))
-  across(where(all_na), ~replace_na(.x, 0))
-)
 
 corrFunction <- function(x,y) {
   round(cor(x, y, use = "pairwise.complete.obs", method = 'pearson'), 2)
@@ -38,7 +34,7 @@ df1.Cor = df1 |>
   pivot_wider(names_from = lakeid, values_from = daynum) |> 
   mutate(across(where(all_na), ~replace_na(.x, 0))) |> 
   group_by(metric) |> 
-  summarise(cor = usecorrFunction(ME, MO), corP = corrPFunction(ME,MO))
+  summarise(cor = corrFunction(ME, MO), corP = corrPFunction(ME,MO))
 
   
 p1 = ggplot(df1) + 
@@ -66,7 +62,7 @@ df1.Cor = df1 |>
   pivot_wider(names_from = lakeid, values_from = daynum) |> 
   mutate(across(where(all_na), ~replace_na(.x, 0))) |> 
   group_by(metric) |> 
-  summarise(cor = usecorrFunction(CB, TB), corP = corrPFunction(CB, TB))
+  summarise(cor = corrFunction(CB, TB), corP = corrPFunction(CB, TB))
 
 
 p2 = ggplot(df1) + 
@@ -94,7 +90,7 @@ df1.Cor = df1 |>
   pivot_wider(names_from = lakeid, values_from = daynum) |> 
   mutate(across(where(all_na), ~replace_na(.x, 0))) |> 
   group_by(metric) |> 
-  summarise(cor = usecorrFunction(CR, SP), corP = corrPFunction(CR, SP))
+  summarise(cor = corrFunction(CR, SP), corP = corrPFunction(CR, SP))
 
 
 p3 = ggplot(df1) + 

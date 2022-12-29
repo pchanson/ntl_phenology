@@ -974,7 +974,7 @@ year,lakeid,metric,sampledate,daynum
 2006,ME,energy,2006-08-07,219
 2006,ME,stability,2006-09-06,249
 2006,ME,anoxia_summer,2006-08-07,219
-2007,ME,straton,2007-05-14,134
+2007,ME,straton,2007-05-29,149
 2007,ME,stratoff,2007-10-29,302
 2007,ME,energy,2007-08-06,218
 2007,ME,stability,2007-07-23,204
@@ -1028,7 +1028,7 @@ year,lakeid,metric,sampledate,daynum
 2017,ME,stratoff,2017-10-04,277
 2017,ME,energy,2017-07-24,205
 2017,ME,stability,2017-08-23,235
-2017,ME,anoxia_summer,2017-10-04,277
+2017,ME,anoxia_summer,2017-07-24,205
 2018,ME,straton,2018-05-07,127
 2018,ME,stratoff,2018-10-18,291
 2018,ME,energy,2018-08-22,234

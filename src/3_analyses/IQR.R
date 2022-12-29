@@ -22,7 +22,7 @@ dat2 = dat |> group_by(lakeid, metric) |>
 
 ggplot(dat2) + 
   geom_hline(aes(yintercept = 28), linetype = 2) +
-  geom_jitter(aes(x = metric, y = day.IQR, fill = lakeid), shape = 21, size = 2.5, width = 0.2, stroke = 0.2) +
+  geom_jitter(aes(x = metric, y = day.IQR, fill = lakeid), shape = 21, size = 2.5, width = 0.2, height = 0, stroke = 0.2) +
   scale_fill_manual(values = c("#d0d1e6", "#a6bddb", "#74a9cf", "#2b8cbe", "#045a8d", "#cc4c02", 
                                "#8c2d04", "#bae4b3", "#74c476", "#238b45","gold")) +
   ylab('IQR (days)') +
