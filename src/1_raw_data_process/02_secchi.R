@@ -9,6 +9,16 @@ infile1 <- tempfile()
 download.file(inUrl1, infile1, method = "libcurl")
 LTERsecchi <- read_csv(infile1)
 
+### Get TSI ###
+LTERsecchi |> filter(month(sampledate) %in% c(7,8)) |> 
+  group_by(lakeid) |> 
+  summarise(mean.Secchi = mean(secnview, na.rm = T)) |> 
+  mutate(TSI.SD = 60-14.41*log(mean.Secchi))
+
+# TSI < 40 Oligotrophic
+# TSI 40-50 Mesotrophic
+# TSI >50 Eutrophic
+
 # get ice on/off dates
 ice0 = read_csv("Data/final_metric_files/ice.csv") |> 
   filter(metric == 'iceoff') |> 
