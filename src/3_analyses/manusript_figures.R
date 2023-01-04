@@ -22,7 +22,7 @@ dat$sampledate = as.Date(paste0(dat$year-1, "-12-31")) + dat$daynum_fill
 table(dat$metric)
 
 # Fig 1: Ridges
-vars_order = c("iceoff", "straton", "secchi_openwater_max", "secchi_openwater_min", "zoopDensity_CC", "doc_epiMax", "totpuf_hypoMin",  "totpuf_epiMax", "anoxia_summer", "stability", "energy", "totpuf_epiMin", "totpuf_hypoMax", "stratoff", "iceon")
+vars_order = c("iceoff", "straton", "secchi_max", "secchi_min", "zoopDensity_CC", "doc_epiMax", "totpuf_hypoMin",  "totpuf_epiMax", "anoxia_summer", "stability", "energy", "totpuf_epiMin", "totpuf_hypoMax", "stratoff", "iceon")
 vars_label = c("ice off", "strat onset", "SecchiMax","SecchiMin", "zoopDensity", "DOC", "TP hypo min", "TP epi max",  "anoxia",  "stability", "energy", "TP epi min", "TP hypo max", "strat offset", "ice on")
 
 # add and extra lake in N
@@ -55,13 +55,7 @@ pRidges = dat %>%
   guides(fill="none", color="none"); pRidges
 
 ggsave("Figures/manuscript/Figure1.png",
-       pRidges,
-       width=6,
-       height=5,
-       units="in",
-       dpi=500,
-       bg="white"
-       )
+       pRidges, width=6, height=5, units="in", dpi=500, bg="white")
 
 # Fig 2: PCA loading
 dat_pca = dat %>% 

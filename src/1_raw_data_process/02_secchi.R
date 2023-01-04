@@ -36,13 +36,13 @@ secchi = LTERsecchi |> select(lakeid:sampledate, secnview, ice) |>
 s.openwater.max = secchi |> 
   group_by(lakeid, year4) %>% 
   slice_max(secnview, with_ties = FALSE, n = 1) %>% # if ties, select the first 
-  mutate(metric = "secchi_openwater_max") %>% 
+  mutate(metric = "secchi_max") %>% 
   select(lakeid, metric, sampledate, year4, daynum, secnview)
 
 s.openwater.min = secchi |> 
   group_by(lakeid, year4) %>% 
   slice_min(secnview, with_ties = FALSE, n = 1) %>% # if ties, select the first 
-  mutate(metric = "secchi_openwater_min") %>% 
+  mutate(metric = "secchi_min") %>% 
   select(lakeid, metric, sampledate, year4, daynum, secnview)
 
 secchi.out = s.openwater.max |> bind_rows(s.openwater.min) |> select(-secnview) |> 

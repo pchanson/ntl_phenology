@@ -15,7 +15,7 @@ lakes = c("AL", "BM", "CB", "CR", "SP", "TB", "TR", "FI", "ME", "MO", "WI")
 dat$lakeid = factor(dat$lakeid, 
                     levels = rev(lakes), 
                     ordered = T)
-vars = c("iceoff", "straton", "secchi_openwater_max", "secchi_openwater_min", "zoopDensity", "zoopDensity_CC",
+vars = c("iceoff", "straton", "secchi_max", "secchi_min", "zoopDensity", "zoopDensity_CC",
          "doc_epiMax", "totpuf_epiMax", "totpuf_epiMin", "totpuf_hypoMax", "totpuf_hypoMin", 
          "anoxia_summer", "stability", "energy", "stratoff", "iceon")
 dat$metric = factor(dat$metric,
@@ -54,13 +54,13 @@ n_lakes_wide = left_join(no_dups, dat) %>%
 hold_data = na.omit(data.frame(n_lakes_wide %>%  ungroup() %>% select(-year, -N))) # , -doc_predict
 all = lm(doc_epiMax~(iceon+straton+stratoff+energy+
                  stability+anoxia_summer+
-                 secchi_openwater_max)*lakeid, data=hold_data)
+                 secchi_max)*lakeid, data=hold_data)
 i_o = lm(doc_epiMax~1, data=hold_data)
 hold_step = step(i_o, scope=formula(all))
 
 doc_model = lm(doc_epiMax~(iceon+straton+stratoff+energy+
                  stability+anoxia_summer+
-                 secchi_openwater_max)*lakeid, 
+                 secchi_max)*lakeid, 
                data=n_lakes_wide, 
                na.action = na.exclude)
 summary(doc_model)
@@ -105,7 +105,7 @@ dat_filled = full_join(dat, all_fill) %>%
 dat_filled$lakeid = factor(dat_filled$lakeid, 
                     levels = c("AL", "BM", "CB", "CR", "SP", "TB", "TR", "FI", "ME", "MO", "WI"), 
                     ordered = T)
-vars = c("iceoff", "straton", "secchi_all", "secchi_openwater_max","secchi_openwater_min", "zoopDensity","zoopDensity_CC",
+vars = c("iceoff", "straton", "secchi_all", "secchi_max","secchi_min", "zoopDensity","zoopDensity_CC",
         "doc_epiMax","totpuf_epiMax", "totpuf_epiMin", "totpuf_hypoMax", "totpuf_hypoMin", 
         "anoxia", "anoxia_summer", "stability", "energy", "stratoff", "iceon")
 dat_filled$metric = factor(dat_filled$metric,

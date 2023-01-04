@@ -1,11 +1,12 @@
 library(tidyverse)
 library(patchwork)
+library(scales)
 
 # read in data
 dat = read_csv("Data/analysis_ready/final_combined_dates_filled_v2.csv")
 
 # Fig 1: Ridges
-vars_order = c("iceoff", "straton", "secchi_openwater_max", "secchi_openwater_min", "zoopDensity_CC", "doc_epiMax", "totpuf_hypoMin",  "totpuf_epiMax", "anoxia_summer", "stability", "energy", "totpuf_epiMin", "totpuf_hypoMax", "stratoff", "iceon")
+vars_order = c("iceoff", "straton", "secchi_max", "secchi_min", "zoopDensity_CC", "doc_epiMax", "totpuf_hypoMin",  "totpuf_epiMax", "anoxia_summer", "stability", "energy", "totpuf_epiMin", "totpuf_hypoMax", "stratoff", "iceon")
 vars_label = c("ice off", "strat onset", "SecchiMax","SecchiMin", "zoopDensity", "DOC", "TP hypo min", "TP epi max",  "anoxia",  "stability", "energy", "TP epi min", "TP hypo max", "strat offset", "ice on")
 
 # add and extra lake in N
@@ -21,6 +22,14 @@ corrPFunction <- function(x,y) {
   round(cor.test(x, y, method = 'pearson')$p.value, 3)
 }
 
+customTheme <- theme_bw(base_size = 8)  +
+  theme(legend.position = 'bottom', 
+        legend.title = element_blank(), 
+        axis.title = element_blank(),
+        legend.key.width = unit(0.2, 'cm'),
+        legend.key.height = unit(0.2, 'cm'),
+        legend.margin=margin(t = 0, unit='cm'),
+        plot.title = element_text(size = 8))
 
 ################################ ME and MO ################################
 df1 = dat %>% 
@@ -44,11 +53,10 @@ p1 = ggplot(df1) +
   geom_point(data = df1.Cor |> filter(corP <= 0.05), aes(x =  as.Date('2019-03-01'), y = metric), size = 1, shape = 8) +
   scale_fill_manual(values = c("#74c476", "#238b45")) + 
   scale_color_manual(values = c("#74c476", "#238b45")) + 
-  scale_x_date(labels = date_format("%b"), breaks = '2 months') +
-  theme_bw(base_size = 8)  +
-  theme(legend.position = 'bottom', 
-        legend.title = element_blank(), 
-        axis.title = element_blank()); p1
+  scale_x_date(labels = date_format("%b"), breaks = '3 months', minor_breaks = '1 month') +
+  labs(title = 'c) Eutrophic') +
+  customTheme
+
 
 ################################ CB and TB ################################
 df1 = dat %>% 
@@ -72,11 +80,9 @@ p2 = ggplot(df1) +
   geom_point(data = df1.Cor |> filter(corP <= 0.05), aes(x =  as.Date('2019-03-01'), y = metric), size = 1, shape = 8) +
   scale_fill_manual(values = c("#cc4c02","#8c2d04")) + 
   scale_color_manual(values = c("#cc4c02","#8c2d04")) + 
-  scale_x_date(labels = date_format("%b"), breaks = '2 months') +
-  theme_bw(base_size = 8)  +
-  theme(legend.position = 'bottom', 
-        legend.title = element_blank(), 
-        axis.title = element_blank()); p2
+  scale_x_date(labels = date_format("%b"), breaks = '3 months', minor_breaks = '1 month') +
+  labs(title = 'b) Dystrophic') +
+  customTheme
 
 ################################ CR and SP ################################
 df1 = dat %>% 
@@ -100,14 +106,11 @@ p3 = ggplot(df1) +
   geom_point(data = df1.Cor |> filter(corP <= 0.05), aes(x =  as.Date('2019-03-01'), y = metric), size = 1, shape = 8) +
   scale_fill_manual(values = c("#74a9cf", "#2b8cbe")) + 
   scale_color_manual(values = c("#74a9cf", "#2b8cbe")) + 
-  scale_x_date(labels = date_format("%b"), breaks = '2 months') +
-  theme_bw(base_size = 8)  +
-  theme(legend.position = 'bottom', 
-        legend.title = element_blank(), 
-        axis.title = element_blank()); p3
+  scale_x_date(labels = date_format("%b"), breaks = '3 months', minor_breaks = '1 month') +
+  labs(title = 'a) Oligotrophic') +
+  customTheme
 
 ################################ JOIN ################################
-p1 + p2 + p3 + plot_annotation(caption = 'Figure X. Boxplots of phenological metric distributions between pairs of similar lakes.
-                               Asterisk denotes a signficant positive correlation between the two lakes.')
+p3 + p2 + p1 
 
 ggsave('Figures/manuscript/lakeComparison_Boxplot.png', width = 5, height = 3.5, dpi = 500)
