@@ -5,9 +5,12 @@ figure1 <- function(path_in, path_out) {
   dat = read_csv(path_in)
   # dat$sampledate = as.Date(paste0(dat$year-1, "-12-31")) + dat$daynum_fill
   
-  # Fig 1: Ridges
-  vars_order = c("iceoff", "straton", "secchi_max", "secchi_min", "zoopDensity", "doc_epiMax", "drsif_epiMin", "totpuf_hypoMin",  "totpuf_epiMax", "anoxia_summer", "stability", "energy", "totpuf_epiMin", "totpuf_hypoMax", "stratoff", "iceon")
-  vars_label = c("ice off", "strat onset", "SecchiMax","SecchiMin", "zoopDensity", "DOC max", "Si Min", "TP hypo min", "TP epi max",  "anoxia",  "stability", "energy", "TP epi min", "TP hypo max", "strat offset", "ice on")
+  vars_order = c("iceoff", "straton", "secchi_max", "secchi_min", "zoopDensity", "doc_epiMax", 
+                 "drsif_epiMin", "totpuf_hypoMin",  "totpuf_epiMax", "anoxia_summer", "stability", 
+                 "energy", "totpuf_epiMin", "totpuf_hypoMax", "stratoff", "iceon")
+  vars_label = c("ice off", "strat onset", "SecchiMax","SecchiMin", "zoopDensity", "DOC max", 
+                 "Si Min", "TP hypo min", "TP epi max",  "anoxia",  "stability", "energy", 
+                 "TP epi min", "TP hypo max", "strat offset", "ice on")
   
   # add and extra lake in N
   lakes_order = c("AL", "BM", "CB", "CR", "SP", "TB", "TR", "", "FI", "ME", "MO", "WI")
