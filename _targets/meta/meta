@@ -1,6 +1,12 @@
 name|type|data|command|depend|seed|path|time|size|bytes|format|repository|iteration|parent|children|seconds|warnings|error
 combine_final_files|function|fce182cfc88ef346|||||||||||||||
 combine_final_files_csv|stem|42653a3525ed8d67|36b4d6a0c33e426e|fa675e45f185ec1c|885137793|Data/final_metric_files/final_combined_dates.csv|t19363.8968704218s|1a8a9ab7c3b0dab4|188674|file|local|vector|||0.296||
+figure1|function|0c96ede52d848063|||||||||||||||
+figure1_png|stem|a0e0ad62ecdc391c|008b9633fe02efde|4b68b96374bd550b|-1243988014||t19363.9448035592s|8619def19bb20a44|79|rds|local|vector|||5.628|no nonmissing arguments to min returning Inf. no nonmissing arguments to max returning Inf. 1m22mRemoved 234 rows containing nonfinite values stat_density_ridges.. no nonmissing arguments to max returning Inf. 1m22mUsing the size aesthietic with geom_segment was deprecated in ggplot2 3.4.0.36mℹ39m Please use the linewidth aesthetic instead.|
+figure2|function|283b5f19dd842fbe|||||||||||||||
+figure2_png|stem|8e595d44d3c6e3dd|8eb4102c724f539e|719787a4aee20fc1|590527149||t19363.9128420481s|8619def19bb20a44|79|rds|local|vector|||1.763|1m22mRemoved 44 rows containing nonfinite values stat_boxplot.. 1m22mRemoved 41 rows containing nonfinite values stat_boxplot.|
+figure3|function|257ced68e99bdd56|||||||||||||||
+figure3_png|stem|7e4bfec89e8249ac|1ce94f4081f8a94f|5700410b1efe1994|2088233791||t19363.9153464579s|8619def19bb20a44|79|rds|local|vector|||1.934|the standard deviation is zero. the standard deviation is zero. the standard deviation is zero. the standard deviation is zero. the standard deviation is zero. the standard deviation is zero. the standard deviation is zero. the standard deviation is zero. the standard deviation is zero. the standard deviation is zero. the standard deviation is zero. the standard deviation is zero. the standard deviation is zero. the standard deviation is zero. the standard deviation is zero. the standard deviation is zero. the standard deviation is zero. the standard deviation is zero. the standard deviation is zero. the standard deviation is zero. the standard deviation is zero. the standard deviation is zero. the standard deviation is zero. the standard deviation is zero. the standard deviation is zero. the standard deviation is zero. the standard deviation is zero. the standard deviation is zero. the standard deviation is zero. the standard deviation is zero. 1m22mRemoved 2 rows containing missing values geom_point.. 1m22mRemoved 1 rows containing missing values geom_point.|
 ice_csv|stem|34889b8665d21d80|fb46d4d4a759d012|a37ac3a0ea8a8720|469259864|Data/final_metric_files/ice.csv|t19363.7033402446s|84716486ab29f982|23053|file|local|vector|||3.362||
 ice_days|stem|34889b8665d21d80|fb46d4d4a759d012|a37ac3a0ea8a8720|-2133189578|Data/final_metric_files/ice.csv|t19363.6887946466s|84716486ab29f982|23053|file|local|vector|||3.206||
 icedates|function|1d8932f4806ff3be|||||||||||||||
@@ -10,6 +16,7 @@ nutrients|function|d87531f16da5a092|||||||||||||||
 nutrients_csv|stem|276a97e3a6d941f8|5bd0a78fbc9378a7|b84b69db101df855|-1176877555|Data/final_metric_files/nutrients.csv|t19363.8968669442s|285720c7e2a66c35|70146|file|local|vector|||8.664||
 p1_targets_list|object|41609bae6f7eaf33|||||||||||||||
 p2_targets_list|object|9bcb4e84807edc41|||||||||||||||
+p3_targets_list|object|61de7de0310cc49b|||||||||||||||
 packages|object|664955cbe60fed0c|||||||||||||||
 physics|function|530734131812f35b|||||||||||||||
 physics_csv|stem|7b4c13c1d07a1ed7|1400b2b74adee83d|4fc298e7e732983a|973165131|Data/final_metric_files/physics.csv|t19363.7034585308s|5968a25f5554b9e9|61810|file|local|vector|||10.203|1m22mOne or more parsing issues, call problems on your data frame for details,e.g.  dat  vroom...  problemsdat|
