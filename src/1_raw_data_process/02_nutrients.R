@@ -75,58 +75,6 @@ nutrients <- function(path_in, physics_file, ice_file, path_out) {
     filter(sampledate >= straton & daynum <= stratoff) %>% #filter to during strat
     filter(year4 > 1981)
   
-  # What plot looks like with outliers
-  # DOC
-  # ggplot(nuts_epi %>% filter(item == 'doc')) +
-  #   geom_path(aes(x = as.Date(yday(sampledate), origin = as.Date('2019-01-01')), y = value, group = year4)) +
-  #   geom_point(aes(x = as.Date(yday(sampledate), origin = as.Date('2019-01-01')), y = value, group = year4)) +
-  #   scale_x_date(labels = date_format("%b")) +
-  #   facet_wrap(~lakeid, scales = 'free_y') +
-  #   theme_bw(base_size = 9) +
-  #   theme(axis.title.x = element_blank())
-  # 
-  # ggplot(nuts_hypo %>% filter(item == 'doc')) +
-  #   geom_path(aes(x = as.Date(yday(sampledate), origin = as.Date('2019-01-01')), y = value, group = year4)) +
-  #   geom_point(aes(x = as.Date(yday(sampledate), origin = as.Date('2019-01-01')), y = value, group = year4)) +
-  #   scale_x_date(labels = date_format("%b")) +
-  #   facet_wrap(~lakeid, scales = 'free_y') +
-  #   theme_bw(base_size = 9) +
-  #   theme(axis.title.x = element_blank())
-  # 
-  # # TP
-  # ggplot(nuts_epi %>% filter(item == 'totpuf')) +
-  #   geom_path(aes(x = as.Date(yday(sampledate), origin = as.Date('2019-01-01')), y = value, group = year4)) +
-  #   geom_point(aes(x = as.Date(yday(sampledate), origin = as.Date('2019-01-01')), y = value, group = year4)) +
-  #   scale_x_date(labels = date_format("%b")) +
-  #   facet_wrap(~lakeid, scales = 'free_y') +
-  #   theme_bw(base_size = 9) +
-  #   theme(axis.title.x = element_blank())
-  # 
-  # ggplot(nuts_hypo %>% filter(item == 'totpuf')) +
-  #   geom_path(aes(x = as.Date(yday(sampledate), origin = as.Date('2019-01-01')), y = value, group = year4)) +
-  #   geom_point(aes(x = as.Date(yday(sampledate), origin = as.Date('2019-01-01')), y = value, group = year4)) +
-  #   scale_x_date(labels = date_format("%b")) +
-  #   facet_wrap(~lakeid, scales = 'free_y') +
-  #   theme_bw(base_size = 9) +
-  #   theme(axis.title.x = element_blank())
-  # 
-  # # TN
-  # ggplot(nuts_epi %>% filter(item == 'totnuf')) +
-  #   geom_path(aes(x = as.Date(yday(sampledate), origin = as.Date('2019-01-01')), y = value, group = year4)) +
-  #   geom_point(aes(x = as.Date(yday(sampledate), origin = as.Date('2019-01-01')), y = value, group = year4)) +
-  #   scale_x_date(labels = date_format("%b")) +
-  #   facet_wrap(~lakeid, scales = 'free_y') +
-  #   theme_bw(base_size = 9) +
-  #   theme(axis.title.x = element_blank())
-  # 
-  # ggplot(nuts_hypo %>% filter(item == 'totnuf')) +
-  #   geom_path(aes(x = as.Date(yday(sampledate), origin = as.Date('2019-01-01')), y = value, group = year4)) +
-  #   geom_point(aes(x = as.Date(yday(sampledate), origin = as.Date('2019-01-01')), y = value, group = year4)) +
-  #   scale_x_date(labels = date_format("%b")) +
-  #   facet_wrap(~lakeid, scales = 'free_y') +
-  #   theme_bw(base_size = 9) +
-  #   theme(axis.title.x = element_blank())
-  
   # Exclude outliers based on statistics. Remove < 5th and > 95th percentile
   nuts_epi2 = nuts_epi %>% 
     group_by(lakeid, item) %>% 
@@ -142,7 +90,7 @@ nutrients <- function(path_in, physics_file, ice_file, path_out) {
     group_by(lakeid, item, sampledate, year4) %>% 
     summarise(value = mean(value, na.rm = T))
   
-  # find day of max DOC
+  # find day min or max values
   epi_min = nuts_epi2 %>% 
     group_by(lakeid, year4, item) %>% 
     slice_min(value, with_ties = FALSE, n = 1) %>% # if ties, select the first 
