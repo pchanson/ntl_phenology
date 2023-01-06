@@ -1,10 +1,15 @@
 name|type|data|command|depend|seed|path|time|size|bytes|format|repository|iteration|parent|children|seconds|warnings|error
+combine_final_files|function|fce182cfc88ef346|||||||||||||||
+combine_final_files_csv|stem|021cface338bc75f|36b4d6a0c33e426e|c5ef8e765dd73aa8|885137793|Data/final_metric_files/final_combined_dates.csv|t19363.7290191326s|12ab89a6002c8147|189604|file|local|vector|||0.455||
 ice_csv|stem|34889b8665d21d80|fb46d4d4a759d012|a37ac3a0ea8a8720|469259864|Data/final_metric_files/ice.csv|t19363.7033402446s|84716486ab29f982|23053|file|local|vector|||3.362||
 ice_days|stem|34889b8665d21d80|fb46d4d4a759d012|a37ac3a0ea8a8720|-2133189578|Data/final_metric_files/ice.csv|t19363.6887946466s|84716486ab29f982|23053|file|local|vector|||3.206||
 icedates|function|1d8932f4806ff3be|||||||||||||||
+missing_dates_fill|function|031ddad6b1018ba5|||||||||||||||
+missing_dates_fill_csv|stem|c7fb7030f9573a8d|124485fbb54c050e|56e354727af91121|-2068274627|Data/analysis_ready/final_combined_dates_filled_v2.csv|t19363.7290265682s|403755f7039ed3f2|245634|file|local|vector|||0.635||
 nutrients|function|4814b5557aca6952|||||||||||||||
 nutrients_csv|stem|cba7cc5e43aa069b|5bd0a78fbc9378a7|bd05d1cef8ac2972|-1176877555|Data/final_metric_files/nutrients.csv|t19363.7047225724s|d0871ba19e769212|58087|file|local|vector|||4.361||
 p1_targets_list|object|34fdd3c69a985f0c|||||||||||||||
+p2_targets_list|object|9bcb4e84807edc41|||||||||||||||
 packages|object|664955cbe60fed0c|||||||||||||||
 physics|function|530734131812f35b|||||||||||||||
 physics_csv|stem|7b4c13c1d07a1ed7|1400b2b74adee83d|4fc298e7e732983a|973165131|Data/final_metric_files/physics.csv|t19363.7034585308s|5968a25f5554b9e9|61810|file|local|vector|||10.203|1m22mOne or more parsing issues, call problems on your data frame for details,e.g.  dat  vroom...  problemsdat|

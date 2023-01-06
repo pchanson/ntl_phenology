@@ -15,5 +15,6 @@ packages <- c('tidyverse',
               "pracma")
 
 source("src/1_raw_data_process.R")
+source("src/2_final_data_prep.R")
 # complete list of targets
-c(p1_targets_list)
+c(p1_targets_list, p2_targets_list)
