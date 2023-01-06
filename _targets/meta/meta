@@ -1,20 +1,20 @@
 name|type|data|command|depend|seed|path|time|size|bytes|format|repository|iteration|parent|children|seconds|warnings|error
 combine_final_files|function|fce182cfc88ef346|||||||||||||||
-combine_final_files_csv|stem|021cface338bc75f|36b4d6a0c33e426e|c5ef8e765dd73aa8|885137793|Data/final_metric_files/final_combined_dates.csv|t19363.7290191326s|12ab89a6002c8147|189604|file|local|vector|||0.455||
+combine_final_files_csv|stem|42653a3525ed8d67|36b4d6a0c33e426e|fa675e45f185ec1c|885137793|Data/final_metric_files/final_combined_dates.csv|t19363.8968704218s|1a8a9ab7c3b0dab4|188674|file|local|vector|||0.296||
 ice_csv|stem|34889b8665d21d80|fb46d4d4a759d012|a37ac3a0ea8a8720|469259864|Data/final_metric_files/ice.csv|t19363.7033402446s|84716486ab29f982|23053|file|local|vector|||3.362||
 ice_days|stem|34889b8665d21d80|fb46d4d4a759d012|a37ac3a0ea8a8720|-2133189578|Data/final_metric_files/ice.csv|t19363.6887946466s|84716486ab29f982|23053|file|local|vector|||3.206||
 icedates|function|1d8932f4806ff3be|||||||||||||||
-missing_dates_fill|function|031ddad6b1018ba5|||||||||||||||
-missing_dates_fill_csv|stem|c7fb7030f9573a8d|124485fbb54c050e|56e354727af91121|-2068274627|Data/analysis_ready/final_combined_dates_filled_v2.csv|t19363.7290265682s|403755f7039ed3f2|245634|file|local|vector|||0.635||
-nutrients|function|4814b5557aca6952|||||||||||||||
-nutrients_csv|stem|cba7cc5e43aa069b|5bd0a78fbc9378a7|bd05d1cef8ac2972|-1176877555|Data/final_metric_files/nutrients.csv|t19363.7047225724s|d0871ba19e769212|58087|file|local|vector|||4.361||
-p1_targets_list|object|34fdd3c69a985f0c|||||||||||||||
+missing_dates_fill|function|fcdf979a14573483|||||||||||||||
+missing_dates_fill_csv|stem|48055cf81807783b|124485fbb54c050e|d0f73029a6d8415d|-2068274627|Data/analysis_ready/final_combined_dates_filled_v2.csv|t19363.9000177595s|a4138cb05166f9a2|244926|file|local|vector|||0.706||
+nutrients|function|d87531f16da5a092|||||||||||||||
+nutrients_csv|stem|276a97e3a6d941f8|5bd0a78fbc9378a7|b84b69db101df855|-1176877555|Data/final_metric_files/nutrients.csv|t19363.8968669442s|285720c7e2a66c35|70146|file|local|vector|||8.664||
+p1_targets_list|object|41609bae6f7eaf33|||||||||||||||
 p2_targets_list|object|9bcb4e84807edc41|||||||||||||||
 packages|object|664955cbe60fed0c|||||||||||||||
 physics|function|530734131812f35b|||||||||||||||
 physics_csv|stem|7b4c13c1d07a1ed7|1400b2b74adee83d|4fc298e7e732983a|973165131|Data/final_metric_files/physics.csv|t19363.7034585308s|5968a25f5554b9e9|61810|file|local|vector|||10.203|1m22mOne or more parsing issues, call problems on your data frame for details,e.g.  dat  vroom...  problemsdat|
 physics_days|stem|7b4c13c1d07a1ed7|1400b2b74adee83d|4fc298e7e732983a|-1704211764|Data/final_metric_files/physics.csv|t19363.698205717s|5968a25f5554b9e9|61810|file|local|vector|||11.136|1m22mOne or more parsing issues, call problems on your data frame for details,e.g.  dat  vroom...  problemsdat|
-secchi|function|540df3c22b1133a9|||||||||||||||
-secchi_csv|stem|33c563023e2ed65a|66e195c2de0e5359|5fd3b3c558de8e18|1053825497|Data/final_metric_files/secchi.csv|t19363.7087657211s|80c2df514ad37785|24779|file|local|vector|||2.762||
-zoopDensity|function|afafe290c48be56d|||||||||||||||
-zoopDensity_csv|stem|0aedba30e9cf5200|9d108b893289ef03|ceced0ca8d9385c1|-320082380|Data/final_metric_files/zoop_density.csv|t19363.7144414225s|0b08a32afb98dcff|24996|file|local|vector|||4.45||
+secchi|function|cccb9a9869378a65|||||||||||||||
+secchi_csv|stem|33c563023e2ed65a|6535bf0199b45a4e|f6f60ee41114d60a|1053825497|Data/final_metric_files/secchi.csv|t19363.8897492065s|80c2df514ad37785|24779|file|local|vector|||1.887||
+zoopDensity|function|f0fc5dd8225f6bc1|||||||||||||||
+zoopDensity_csv|stem|92c7c56d7628b70c|9d108b893289ef03|5166e2748db9a7ee|-320082380|Data/final_metric_files/zoop_density.csv|t19363.8967665512s|a59b4a5c53981107|12003|file|local|vector|||4.577||

@@ -1,5 +1,5 @@
 
-secchi <- function(path_out) {
+secchi <- function(ice_file, path_out) {
   # Updated 2022-12-28
   
   #################### LOAD DATA ####################
@@ -19,7 +19,7 @@ secchi <- function(path_out) {
   # TSI >50 Eutrophic
   
   # get ice on/off dates
-  ice0 = read_csv("Data/final_metric_files/ice.csv") |> 
+  ice0 = read_csv(ice_file) |> 
     filter(metric == 'iceoff') |> 
     select(lakeid, year4 = year, lastice = sampledate)
   

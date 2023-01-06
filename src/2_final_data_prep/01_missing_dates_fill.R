@@ -6,14 +6,15 @@
 missing_dates_fill <- function(path_in, path_out) {
     
   # Read in combined files
-  dat = read_csv(path_in)
-  lakes = c("AL", "BM", "CB", "CR", "SP", "TB", "TR", "FI", "ME", "MO", "WI")
-  dat$lakeid = factor(dat$lakeid, 
-                      levels = rev(lakes), 
-                      ordered = T)
-  vars = c("iceoff", "straton", "secchi_max", "secchi_min", "zoopDensity", "zoopDensity_CC",
+  dat = read_csv(path_in) |> 
+    mutate(lakeid = factor(lakeid, 
+            levels = rev(c("AL", "BM", "CB", "CR", "SP", "TB", "TR", "FI", "ME", "MO", "WI"))))
+
+  
+  vars = c("iceoff", "straton", "secchi_max", "secchi_min", "zoopDensity", "drsif_epiMin", 
            "doc_epiMax", "totpuf_epiMax", "totpuf_epiMin", "totpuf_hypoMax", "totpuf_hypoMin", 
            "anoxia_summer", "stability", "energy", "stratoff", "iceon")
+  
   dat$metric = factor(dat$metric,
                       levels = rev(vars),
                       ordered=T)
@@ -96,9 +97,7 @@ missing_dates_fill <- function(path_in, path_out) {
   dat_filled$lakeid = factor(dat_filled$lakeid, 
                       levels = c("AL", "BM", "CB", "CR", "SP", "TB", "TR", "FI", "ME", "MO", "WI"), 
                       ordered = T)
-  vars = c("iceoff", "straton", "secchi_all", "secchi_max","secchi_min", "zoopDensity","zoopDensity_CC",
-          "doc_epiMax","totpuf_epiMax", "totpuf_epiMin", "totpuf_hypoMax", "totpuf_hypoMin", 
-          "anoxia", "anoxia_summer", "stability", "energy", "stratoff", "iceon")
+ 
   dat_filled$metric = factor(dat_filled$metric,
                       levels = rev(vars),
                       ordered=T)

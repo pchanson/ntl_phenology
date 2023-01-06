@@ -46,18 +46,18 @@ zoopDensity <- function(path_out) {
     summarize(density = sum(density, na.rm = T)) |> 
     group_by(lakeid, year4) |> 
     slice_max(density) |> 
-    mutate(metric = 'zoopDensity_CC', daynum = yday(sample_date))
-  
-  # all zoops
-  zoopDensity = dt |> 
-    group_by(lakeid, year4, sample_date) |> 
-    summarize(density = sum(density, na.rm = T)) |> 
-    group_by(lakeid, year4) |> 
-    slice_max(density) |> 
     mutate(metric = 'zoopDensity', daynum = yday(sample_date))
-  
+  # 
+  # # all zoops
+  # zoopDensity = dt |> 
+  #   group_by(lakeid, year4, sample_date) |> 
+  #   summarize(density = sum(density, na.rm = T)) |> 
+  #   group_by(lakeid, year4) |> 
+  #   slice_max(density) |> 
+  #   mutate(metric = 'zoopDensity', daynum = yday(sample_date))
+  # 
   # Combine datasets 
-  zoop.out = zoopDensity |> bind_rows(zoopDensity.cc) |> 
+  zoop.out = zoopDensity.cc |> 
     select(lakeid, metric, sampledate = sample_date, year = year4, daynum)
   
   # Plot check
