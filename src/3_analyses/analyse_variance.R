@@ -27,9 +27,16 @@ var.test(daynum_centered ~ trophic, df)
 straton<-df %>% 
   filter(metric=="straton")
 
-kruskal.test(daynum_centered ~ trophic, data = straton)
+straton_kw<-kruskal.test(daynum_centered ~ trophic, data = straton)
+summary(straton_kw)
+straton_kw$p.value
 pairwise.wilcox.test(straton$daynum_centered, straton$trophic,
                      p.adjust.method = "BH")
+
+
+analysis_df<-data.frame(c(""))
+
+
 
 ggplot(df) +
   geom_density(aes(daynum_fill - mean(daynum_fill, na.rm = T), group = trophic, fill = trophic), alpha = 0.5) +

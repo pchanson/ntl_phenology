@@ -5,16 +5,98 @@ library(RolWinMulCor)
 library(tidyr)
 library(BINCOR)
 
-data = read_csv("../Data/phenology_data.csv")
+data = read_csv("C:/Users/kreinl1/OneDrive/OneDrive - UW-Madison/GitHub/ntl_phenology/Data/analysis_ready/final_combined_dates_filled_v2.csv")
+
+data %>% drop_na(daynum)
+data = subset(data, select = -c(sampledate,filled_flag,daynum_fill) )
 
 wide<-pivot_wider(data,
-  names_from="variable", values_from = value)
+  names_from="metric", values_from = daynum)
 
-wide_sub<-wide[,c("year","daphnia","clearwater","id")]
+test<-data.frame(wide[,(4:15)])
 
-#test<-roll_cor(wide_sub$daphnia, wide_sub$clearwater, width = 10, min_obs = 1)
-plot(test)
+cormat<-cor(x=test, method = "pearson", use = "pairwise.complete.obs")
 
+cormat_p<-cor_pmat(x=test, method = "pearson", use = "pairwise.complete.obs")
+
+library(reshape2)
+melted_cormat <- melt(cormat)
+head(melted_cormat)
+
+dev.off()
+
+library(ggplot2)
+ggplot(data = melted_cormat, aes(x=Var1, y=Var2, fill=value)) + 
+  geom_raster()+
+  scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
+                       midpoint = 0, limit = c(-1,1), space = "Lab", 
+                       name="Pearson\nCorrelation") +
+  theme_minimal()+ 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+                                   size = 12, hjust = 1))+
+  coord_fixed()
+
+#####################
+library(rstatix)
+test0<-data.frame(wide[,(4:15)])
+
+cor.mat <- test %>% cor_mat()
+
+cor.mat %>% cor_get_pval()
+
+cor.mat %>%
+  cor_reorder() %>%
+  pull_lower_triangle() %>%
+  cor_plot(label = TRUE)
+
+
+###########
+
+OL<-wide %>% 
+  filter(lakeid=="BM"|lakeid=="CR"|lakeid=="SP"|lakeid=="TR")
+  
+test<-data.frame(OL[,(4:15)])
+
+cor.mat <- test %>% cor_mat()
+
+cor.mat %>% cor_get_pval()
+
+cor.mat %>%
+  cor_reorder() %>%
+  pull_lower_triangle() %>%
+  cor_plot(label = TRUE)
+
+
+EU<-wide %>% 
+  filter(lakeid=="ME"|lakeid=="MO"|lakeid=="WI")
+
+test<-data.frame(EU[,(4:15)])
+
+cor.mat <- test %>% cor_mat()
+
+cor.mat %>% cor_get_pval()
+
+cor.mat %>%
+  cor_reorder() %>%
+  pull_lower_triangle() %>%
+  cor_plot(label = TRUE)
+
+
+DYS<-wide %>% 
+  filter(lakeid=="CB"|lakeid=="TB")
+
+test<-data.frame(DYS[,(4:15)])
+
+cor.mat <- test %>% cor_mat()
+
+cor.mat %>% cor_get_pval()
+
+cor.mat %>%
+  cor_reorder() %>%
+  pull_lower_triangle() %>%
+  cor_plot(label = TRUE)
+
+  
 
 ###########
 #Alequash
