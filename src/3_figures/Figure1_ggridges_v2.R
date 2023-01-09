@@ -1,16 +1,24 @@
 dat = read_csv(path_in)
-# dat$sampledate = as.Date(paste0(dat$year-1, "-12-31")) + dat$daynum_fill
 
-vars_order = c("", "iceoff", "straton", "secchi_max", "secchi_min", "zoopDensity", "doc_epiMax", 
-               "drsif_epiMin", "totpuf_hypoMin",  "totpuf_epiMax", "anoxia_summer", "stability", 
-               "energy", "totpuf_epiMin", "totpuf_hypoMax", "stratoff", "iceon")
-vars_label = c("","ice off", "strat onset", "SecchiMax","SecchiMin", "zoopDensity", "DOC max", 
-               "Si Min", "TP hypo min", "TP epi max",  "anoxia",  "stability", "energy", 
-               "TP epi min", "TP hypo max", "strat offset", "ice on")
+# vars_order = c("", "iceoff", "straton", "secchi_max", "secchi_min", "zoopDensity", "doc_epiMax", 
+#                "drsif_epiMin", "totpuf_hypoMin",  "totpuf_epiMax", "anoxia_summer", "stability", 
+#                "energy", "totpuf_epiMin", "totpuf_hypoMax", "stratoff", "iceon")
+# vars_label = c("","ice off", "strat onset", "SecchiMax","SecchiMin", "zoopDensity", "DOC max", 
+#                "Si Min", "TP hypo min", "TP epi max",  "anoxia",  "stability", "energy", 
+#                "TP epi min", "TP hypo max", "strat offset", "ice on")
 
-lakes_order = c("AL", "BM", "CB", "CR", "SP", "TB", "TR", "", "FI", "ME", "MO", "WI")
+vars_order = c("", "iceoff", "straton", "stability", "energy","stratoff", "iceon",
+               "doc_epiMax", "drsif_epiMin",  "totpuf_epiMax", "totpuf_epiMin", "totpuf_hypoMax","totpuf_hypoMin", 
+               "anoxia_summer", "secchi_max", "secchi_min", "zoopDensity")
 
-dat.iqr = dat |> group_by(lakeid, metric) |> 
+vars_label = c("","ice off", "strat onset", "stability", "energy", 'strat offset','ice on',
+               'DOC epi max', 'Si min', 'TP epi max', 'TP epi min', 'TP hypo max', 'TP hypo min',
+               'anoxia', 'SecchiMax', 'SecchiMin', 'zoopDensity')
+
+lakes_order = c("AL", "BM", "CB", "CR", "SP", "TB", "TR", "ME", "MO", "WI")
+
+dat.iqr = dat |> 
+  group_by(lakeid, metric) |> 
   summarise(day.mean = mean(daynum, na.rm = T), day.IQR = IQR(daynum, na.rm = T)) |> 
   ungroup() |> 
   mutate(lakeid = factor(lakeid, levels = lakes_order)) |> 
@@ -27,8 +35,10 @@ plotridge <- function(uselakes) {
     stat_density_ridges(aes(x = as.Date(daynum, origin = as.Date('2019-01-01')), 
                             y= metric, col = metric, fill = metric), 
                         alpha = 0.5, quantile_lines = T, quantiles = 2, size = 0.3) +
-    scale_fill_manual(values=met.brewer("Archambault", length(vars_order))) + 
-    scale_color_manual(values=met.brewer("Archambault", length(vars_order))) +
+    # scale_fill_manual(values=met.brewer("Archambault", length(vars_order))) + 
+    # scale_color_manual(values=met.brewer("Archambault", length(vars_order))) +
+    scale_fill_manual(values = rev(c(rep('#e3d35d',6), rep('#97bab7',7), rep('#bf7058',4)))) +
+    scale_color_manual(values = rev(c(rep('#e3d35d',6), rep('#97bab7',7), rep('#bf7058',4)))) +
     scale_x_date(labels = date_format("%b")) +
     facet_wrap(~lakeid, nrow = 1, strip.position = "top") +
     theme_minimal(base_size = 8) + 
@@ -57,8 +67,8 @@ plotiqr <- function(uselakes) {
     geom_vline(aes(xintercept = 28), linetype = 2) +
     geom_jitter(aes(y = metric, x = day.IQR, fill = metric), shape = 21, size = 1.5, width = 0.2, height = 0, stroke = 0.2) +
     xlab('IQR (days)') +
-    scale_fill_manual(values=met.brewer("Archambault", length(vars_order))) + 
-    scale_color_manual(values=met.brewer("Archambault", length(vars_order))) +
+    scale_fill_manual(values = rev(c(rep('#e3d35d',6), rep('#97bab7',7), rep('#bf7058',4)))) +
+    # scale_fill_manual(values=met.brewer("Archambault", length(vars_order))) + 
     theme_minimal(base_size = 8) +
     # labs(title = 'IQR (days)') +
     theme(axis.text.y = element_blank(),
@@ -72,7 +82,7 @@ plotiqr <- function(uselakes) {
 
 
 
-p1 = plotridge(uselakes = c("BM", "TR"))
+p1 = plotridge(uselakes = c("BM", "TR")); p1
 p1.5 = plotridge(uselakes = c("CR", "SP"))
 p2 = plotridge(uselakes = c("CB","TB"))
 p3 = plotridge(uselakes = c("AL", "WI"))

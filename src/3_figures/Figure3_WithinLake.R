@@ -110,11 +110,8 @@ figure3 <- function(path_in, path_out) {
     # filter(!is.na(corr.p)) |>
     # filter(corr.p > 0 & corr.p < 1) |>
     mutate(lakeid = if_else(!is.na(corr.p), lakeid, as.factor(NA_character_))) |> 
-    mutate(lakeid = if_else(corr.p < 1, lakeid, as.factor(NA_character_))) |> 
-    # need a row with ice on so axes match up in figure 
-    bind_rows(data.frame(Var1 = factor('iceon'), Var2 = factor('iceon'), 
-                         corr = NA, p = NA, corr.p = NA, lakeid = NA))
-  
+    mutate(lakeid = if_else(corr.p < 1, lakeid, as.factor(NA_character_)))
+
   # # Pot correlations 
   # plot.Cor = ggplot(data = coff.df, mapping = aes(x = Var1, y = Var2, fill = lakeid, color = lakeid)) +
   #   geom_jitter(shape = 21, size = 2.5, width = 0.15, height = 0.15, alpha = 0.8, stroke = 0.2) +
@@ -134,7 +131,12 @@ figure3 <- function(path_in, path_out) {
   
   plotcor <- function(uselakes, usecolors) {
     coff.df |> filter(lakeid %in% uselakes) |> 
-      
+      # need a row with ice on so axes match up in figure 
+      bind_rows(data.frame(Var1 = factor('iceon'), Var2 = factor('iceon'), 
+                           corr = NA, p = NA, corr.p = NA, lakeid = NA)) |> 
+      bind_rows(data.frame(Var1 = factor('drsif_epiMin'), Var2 = factor('drsif_epiMin'), 
+                           corr = NA, p = NA, corr.p = NA, lakeid = NA)) |> 
+    
     # coff.df |> mutate(if_else(lakeid %in% uselakes, ))  
     ggplot(mapping = aes(x = Var1, y = Var2, fill = lakeid, color = lakeid)) +
       geom_jitter(shape = 21, size = 2, width = 0.15, height = 0.15, alpha = 0.8, stroke = 0.2) +
