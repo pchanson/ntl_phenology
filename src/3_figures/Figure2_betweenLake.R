@@ -6,11 +6,19 @@ figure2 <- function(path_in, path_out) {
   
   dat = read_csv(path_in)
   
-  vars_order = c("iceoff", "straton", "secchi_max", "secchi_min", "zoopDensity", "doc_epiMax", 
-                 "drsif_epiMin", "totpuf_hypoMin",  "totpuf_epiMax", "anoxia_summer", "stability", 
-                 "energy", "totpuf_epiMin", "totpuf_hypoMax", "stratoff", "iceon")
-  vars_label = c("ice off", "strat onset", "SecchiMax","SecchiMin", "zoopDensity", "DOC max", 
-                 "Si Min", "TP hypo min", "TP epi max",  "anoxia",  "stability", "energy", 
+  # vars_order = c("iceoff", "straton", "secchi_max", "secchi_min", "zoopDensity", "doc_epiMax", 
+  #                "drsif_epiMin", "totpuf_hypoMin",  "totpuf_epiMax", "anoxia_summer", "stability", 
+  #                "energy", "totpuf_epiMin", "totpuf_hypoMax", "stratoff", "iceon")
+  # vars_label = c("ice off", "strat onset", "SecchiMax","SecchiMin", "zoopDensity", "DOC max", 
+  #                "Si Min", "TP hypo min", "TP epi max",  "anoxia",  "stability", "energy", 
+  #                "TP epi min", "TP hypo max", "strat offset", "ice on")
+  
+  vars_order = c("iceoff", "straton","drsif_epiMin","zoopDensity","secchi_max",  
+                  "secchi_min", "anoxia_summer", "stability", "energy", 
+                 "totpuf_epiMin", "totpuf_hypoMax", "stratoff", "iceon")
+  
+  vars_label = c("ice off", "strat onset",   "Si Min", "zoopDensity", "SecchiMax",
+                "SecchiMin", "anoxia",  "stability", "energy", 
                  "TP epi min", "TP hypo max", "strat offset", "ice on")
   
   # add and extra lake in N
@@ -33,7 +41,8 @@ figure2 <- function(path_in, path_out) {
           legend.key.width = unit(0.2, 'cm'),
           legend.key.height = unit(0.2, 'cm'),
           legend.margin=margin(t = 0, unit='cm'),
-          plot.title = element_text(size = 8))
+          plot.title = element_text(size = 8),
+          panel.grid.major = element_line(size = 0.2))
   
   ################################ ME and MO ################################
   df1 = dat %>% 

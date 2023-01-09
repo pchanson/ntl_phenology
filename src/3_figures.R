@@ -10,7 +10,7 @@ tar_option_set(packages = c("lubridate",
 
 source("src/3_figures/Figure1_ggridges.R")
 source("src/3_figures/Figure2_betweenLake.R")
-source("src/3_figures/Figure3_IQR.R")
+source("src/3_figures/Figure3_WithinLake.R")
 
 p3_targets_list <- list(
   tar_target(
