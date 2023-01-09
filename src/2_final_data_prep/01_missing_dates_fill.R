@@ -2,8 +2,9 @@
 ############## Fill Missing Phenology Dates ##############
 ######################################################################
 
+# vars_in is the vector of variables of interest
 
-missing_dates_fill <- function(path_in, path_out) {
+missing_dates_fill <- function(path_in, path_out, vars_order) {
     
   # Read in combined files
   dat = read_csv(path_in) |> 
@@ -11,12 +12,8 @@ missing_dates_fill <- function(path_in, path_out) {
             levels = rev(c("AL", "BM", "CB", "CR", "SP", "TB", "TR", "FI", "ME", "MO", "WI"))))
 
   
-  vars = c("iceoff", "straton", "secchi_max", "secchi_min", "zoopDensity", "drsif_epiMin", 
-           "doc_epiMax", "totpuf_epiMax", "totpuf_epiMin", "totpuf_hypoMax", "totpuf_hypoMin", 
-           "anoxia_summer", "stability", "energy", "stratoff", "iceon")
-  
   dat$metric = factor(dat$metric,
-                      levels = rev(vars),
+                      levels = rev(vars_order),
                       ordered=T)
   
   #' # Data
@@ -99,7 +96,7 @@ missing_dates_fill <- function(path_in, path_out) {
                       ordered = T)
  
   dat_filled$metric = factor(dat_filled$metric,
-                      levels = rev(vars),
+                      levels = rev(vars_order),
                       ordered=T)
   
   dat_filled %>% 

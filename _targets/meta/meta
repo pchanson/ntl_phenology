@@ -1,21 +1,21 @@
 name|type|data|command|depend|seed|path|time|size|bytes|format|repository|iteration|parent|children|seconds|warnings|error
 combine_final_files|function|fce182cfc88ef346|||||||||||||||
-combine_final_files_csv|stem|42653a3525ed8d67|36b4d6a0c33e426e|fa675e45f185ec1c|885137793|Data/final_metric_files/final_combined_dates.csv|t19363.8968704218s|1a8a9ab7c3b0dab4|188674|file|local|vector|||0.296||
+combine_final_files_csv|stem|c28dcc67c454d977|36b4d6a0c33e426e|2b0884a69ce22fd0|885137793|Data/final_metric_files/final_combined_dates.csv|t19366.7986673556s|f4d2fd158f302281|186876|file|local|vector|||0.305||
 figure1|function|0c96ede52d848063|||||||||||||||
 figure1_png|stem|a0e0ad62ecdc391c|008b9633fe02efde|4b68b96374bd550b|-1243988014||t19363.9448035592s|8619def19bb20a44|79|rds|local|vector|||5.628|no nonmissing arguments to min returning Inf. no nonmissing arguments to max returning Inf. 1m22mRemoved 234 rows containing nonfinite values stat_density_ridges.. no nonmissing arguments to max returning Inf. 1m22mUsing the size aesthietic with geom_segment was deprecated in ggplot2 3.4.0.36mℹ39m Please use the linewidth aesthetic instead.|
 figure2|function|945bc13928953e1a|||||||||||||||
-figure2_png|stem|8e595d44d3c6e3dd|8eb4102c724f539e|e8a3b5e714e571e0|590527149||t19366.7356691626s|8619def19bb20a44|79|rds|local|vector|||1.646|1m22mThe size argument of element_line is deprecated as of ggplot2 3.4.0.36mℹ39m Please use the linewidth argument instead.. 1m22mRemoved 19 rows containing nonfinite values stat_boxplot.. 1m22mRemoved 17 rows containing nonfinite values stat_boxplot.|
+figure2_png|stem|8e595d44d3c6e3dd|8eb4102c724f539e|e8a3b5e714e571e0|590527149||t19366.8157889897s|8619def19bb20a44|79|rds|local|vector|||1.716|1m22mThe size argument of element_line is deprecated as of ggplot2 3.4.0.36mℹ39m Please use the linewidth argument instead.. 1m22mRemoved 19 rows containing nonfinite values stat_boxplot.. 1m22mRemoved 17 rows containing nonfinite values stat_boxplot.|
 figure3|function|8603301ef7efb80d|||||||||||||||
 figure3_png|stem|7e4bfec89e8249ac|1ce94f4081f8a94f|6be6533343193708|2088233791||t19366.7626391708s|8619def19bb20a44|79|rds|local|vector|||1.548|the standard deviation is zero. the standard deviation is zero. the standard deviation is zero. the standard deviation is zero. the standard deviation is zero. the standard deviation is zero. the standard deviation is zero. the standard deviation is zero. the standard deviation is zero. the standard deviation is zero. the standard deviation is zero. the standard deviation is zero. the standard deviation is zero. 1m22mThe size argument of element_line is deprecated as of ggplot2 3.4.0.36mℹ39m Please use the linewidth argument instead.. 1m22mRemoved 2 rows containing missing values geom_point.. 1m22mRemoved 2 rows containing missing values geom_point.. 1m22mRemoved 2 rows containing missing values geom_point.|
 ice_csv|stem|34889b8665d21d80|fb46d4d4a759d012|a37ac3a0ea8a8720|469259864|Data/final_metric_files/ice.csv|t19363.7033402446s|84716486ab29f982|23053|file|local|vector|||3.362||
 ice_days|stem|34889b8665d21d80|fb46d4d4a759d012|a37ac3a0ea8a8720|-2133189578|Data/final_metric_files/ice.csv|t19363.6887946466s|84716486ab29f982|23053|file|local|vector|||3.206||
 icedates|function|1d8932f4806ff3be|||||||||||||||
-missing_dates_fill|function|fcdf979a14573483|||||||||||||||
-missing_dates_fill_csv|stem|48055cf81807783b|124485fbb54c050e|d0f73029a6d8415d|-2068274627|Data/analysis_ready/final_combined_dates_filled_v2.csv|t19363.9000177595s|a4138cb05166f9a2|244926|file|local|vector|||0.706||
-nutrients|function|d87531f16da5a092|||||||||||||||
-nutrients_csv|stem|276a97e3a6d941f8|5bd0a78fbc9378a7|b84b69db101df855|-1176877555|Data/final_metric_files/nutrients.csv|t19363.8968669442s|285720c7e2a66c35|70146|file|local|vector|||8.664||
+missing_dates_fill|function|8642d536829df1f0|||||||||||||||
+missing_dates_fill_csv|stem|ac8daf5e4ca315ea|d8c40976305e7806|2ac3895a1dabfce4|-2068274627|Data/analysis_ready/final_combined_dates_filled_v2.csv|t19366.8157959305s|07bf0ad766a2671d|244484|file|local|vector|||0.57||
+nutrients|function|7ab0b34d9430a8a8|||||||||||||||
+nutrients_csv|stem|1058cf41ad3d0cff|5bd0a78fbc9378a7|ab5c5cec791fed8e|-1176877555|Data/final_metric_files/nutrients.csv|t19366.7986634788s|57faa76344aff1e7|68198|file|local|vector|||10.832||
 p1_targets_list|object|41609bae6f7eaf33|||||||||||||||
-p2_targets_list|object|9bcb4e84807edc41|||||||||||||||
+p2_targets_list|object|3940ebbd3c8e50e1|||||||||||||||
 p3_targets_list|object|61de7de0310cc49b|||||||||||||||
 packages|object|664955cbe60fed0c|||||||||||||||
 physics|function|530734131812f35b|||||||||||||||
@@ -23,5 +23,7 @@ physics_csv|stem|7b4c13c1d07a1ed7|1400b2b74adee83d|4fc298e7e732983a|973165131|Da
 physics_days|stem|7b4c13c1d07a1ed7|1400b2b74adee83d|4fc298e7e732983a|-1704211764|Data/final_metric_files/physics.csv|t19363.698205717s|5968a25f5554b9e9|61810|file|local|vector|||11.136|1m22mOne or more parsing issues, call problems on your data frame for details,e.g.  dat  vroom...  problemsdat|
 secchi|function|cccb9a9869378a65|||||||||||||||
 secchi_csv|stem|33c563023e2ed65a|6535bf0199b45a4e|f6f60ee41114d60a|1053825497|Data/final_metric_files/secchi.csv|t19363.8897492065s|80c2df514ad37785|24779|file|local|vector|||1.887||
+vars_label|stem|c1ed87b3d30a9fd6|a5e29de1cff94365|a3dad144c40657ed|-1723395617||t19366.8135546557s|274be9fab5df2fde|169|rds|local|vector|||0.017||
+vars_order|stem|d901ba3c5d1bc9ef|587fca9037658912|a3dad144c40657ed|382671554||t19366.7963045418s|3c3e0d6d1d399035|184|rds|local|vector|||0.018||
 zoopDensity|function|f0fc5dd8225f6bc1|||||||||||||||
 zoopDensity_csv|stem|92c7c56d7628b70c|9d108b893289ef03|5166e2748db9a7ee|-320082380|Data/final_metric_files/zoop_density.csv|t19363.8967665512s|a59b4a5c53981107|12003|file|local|vector|||4.577||

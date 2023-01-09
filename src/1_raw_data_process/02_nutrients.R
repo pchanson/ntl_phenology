@@ -1,15 +1,20 @@
 
 nutrients <- function(path_in, physics_file, ice_file, path_out) {
   # Updated 2022-12-28
-  varsWant = c("doc_epiMax", "totpuf_epiMax", "totpuf_epiMin", "totpuf_hypoMax", "totpuf_hypoMin", "drsif_epiMin")
+  varsWant = c("doc_epiMax", "totpuf_epiMin", #"totpuf_epiMax", 
+               "totpuf_hypoMax", #"totpuf_hypoMin", 
+               "drsif_epiMin", 
+               "totnuf_epiMin", "totnuf_hypoMax")
   
   #################### FUNCTIONS ####################
   # filtering function - turns outliers into NAs to be removed
   filter_lims <- function(x){
-    # l <- boxplot.stats(x)$stats[1]
-    # u <- boxplot.stats(x)$stats[5]
-    l = quantile(x, probs = 0.05)
-    u = quantile(x, probs = 0.95)
+    # l = quantile(x, probs = 0.001)
+    # u = quantile(x, probs = 0.999)
+    stdx = sd(x)
+    
+    u = mean(x, na.rm = T) + 3*stdx
+    l = mean(x, na.rm = T) - 3*stdx
     for (i in 1:length(x)){
       x[i] <- ifelse(x[i]>l & x[i]<u, x[i], NA)
     }

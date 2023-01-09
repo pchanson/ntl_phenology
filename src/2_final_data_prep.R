@@ -7,6 +7,13 @@ source('src/2_final_data_prep/00_combine_final_files.R')
 source('src/2_final_data_prep/01_missing_dates_fill.R')
 
 p2_targets_list <- list(
+  tar_target(name = vars_order, c("iceoff", "straton", "stability", "energy","stratoff", "iceon",
+                           "doc_epiMax", "drsif_epiMin",  "totnuf_epiMin", "totpuf_epiMin", 
+                           "totnuf_hypoMax","totpuf_hypoMax", 
+                           "anoxia_summer", "secchi_max", "secchi_min", "zoopDensity")),
+  tar_target(name = vars_label, c("ice off", "strat onset",   "Si Min", "zoopDensity", "SecchiMax",
+                                  "SecchiMin", "anoxia",  "stability", "energy",
+                                  "TP epi min", "TP hypo max", "strat offset", "ice on")),
   tar_target(
     name = combine_final_files_csv,
     combine_final_files(
@@ -22,7 +29,8 @@ p2_targets_list <- list(
     name = missing_dates_fill_csv,
     missing_dates_fill(
       path_in = combine_final_files_csv,
-      path_out = "Data/analysis_ready/final_combined_dates_filled_v2.csv"),
+      path_out = "Data/analysis_ready/final_combined_dates_filled_v2.csv",
+      vars_order = vars_order),
     format = "file"
   )
 )

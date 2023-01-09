@@ -13,12 +13,12 @@ figure2 <- function(path_in, path_out) {
   #                "Si Min", "TP hypo min", "TP epi max",  "anoxia",  "stability", "energy", 
   #                "TP epi min", "TP hypo max", "strat offset", "ice on")
   
-  vars_order = c("iceoff", "straton","drsif_epiMin","zoopDensity","secchi_max",  
-                  "secchi_min", "anoxia_summer", "stability", "energy", 
+  vars_order = c("iceoff", "straton","drsif_epiMin","zoopDensity","secchi_max",
+                  "secchi_min", "anoxia_summer", "stability", "energy",
                  "totpuf_epiMin", "totpuf_hypoMax", "stratoff", "iceon")
-  
+
   vars_label = c("ice off", "strat onset",   "Si Min", "zoopDensity", "SecchiMax",
-                "SecchiMin", "anoxia",  "stability", "energy", 
+                "SecchiMin", "anoxia",  "stability", "energy",
                  "TP epi min", "TP hypo max", "strat offset", "ice on")
   
   # add and extra lake in N
