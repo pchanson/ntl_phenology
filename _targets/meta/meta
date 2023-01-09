@@ -3,6 +3,8 @@ combine_final_files|function|fce182cfc88ef346|||||||||||||||
 combine_final_files_csv|stem|c28dcc67c454d977|36b4d6a0c33e426e|2b0884a69ce22fd0|885137793|Data/final_metric_files/final_combined_dates.csv|t19366.7986673556s|f4d2fd158f302281|186876|file|local|vector|||0.305||
 figure1|function|0c96ede52d848063|||||||||||||||
 figure1_png|stem|a0e0ad62ecdc391c|008b9633fe02efde|4b68b96374bd550b|-1243988014||t19363.9448035592s|8619def19bb20a44|79|rds|local|vector|||5.628|no nonmissing arguments to min returning Inf. no nonmissing arguments to max returning Inf. 1m22mRemoved 234 rows containing nonfinite values stat_density_ridges.. no nonmissing arguments to max returning Inf. 1m22mUsing the size aesthietic with geom_segment was deprecated in ggplot2 3.4.0.36mℹ39m Please use the linewidth aesthetic instead.|
+figure1_v2|function|c554ec7d06dc73d7|||||||||||||||
+figure1_v2_png|stem|8de1c5408b366e8e|ab45a3e9f124433a|7d0a47ad27f23657|-501755400||t19366.8602350451s|0b52c5847220add9|82|rds|local|vector|||5.677|1m22mThe size argument of element_line is deprecated as of ggplot2 3.4.0.36mℹ39m Please use the linewidth argument instead.. 1m22mRemoved 44 rows containing nonfinite values stat_density_ridges.. 1m22mUsing the size aesthietic with geom_segment was deprecated in ggplot2 3.4.0.36mℹ39m Please use the linewidth aesthetic instead.. 1m22mRemoved 38 rows containing nonfinite values stat_density_ridges.. 1m22mRemoved 34 rows containing nonfinite values stat_density_ridges.. 1m22mRemoved 48 rows containing nonfinite values stat_density_ridges.. 1m22mRemoved 73 rows containing nonfinite values stat_density_ridges.. 1m22mRemoved 4 rows containing missing values geom_point.. 1m22mRemoved 2 rows containing missing values geom_point.. 1m22mRemoved 2 rows containing missing values geom_point.. 1m22mRemoved 4 rows containing missing values geom_point.|
 figure2|function|945bc13928953e1a|||||||||||||||
 figure2_png|stem|8e595d44d3c6e3dd|8eb4102c724f539e|e8a3b5e714e571e0|590527149||t19366.8157889897s|8619def19bb20a44|79|rds|local|vector|||1.716|1m22mThe size argument of element_line is deprecated as of ggplot2 3.4.0.36mℹ39m Please use the linewidth argument instead.. 1m22mRemoved 19 rows containing nonfinite values stat_boxplot.. 1m22mRemoved 17 rows containing nonfinite values stat_boxplot.|
 figure3|function|8603301ef7efb80d|||||||||||||||
@@ -16,7 +18,7 @@ nutrients|function|7ab0b34d9430a8a8|||||||||||||||
 nutrients_csv|stem|1058cf41ad3d0cff|5bd0a78fbc9378a7|ab5c5cec791fed8e|-1176877555|Data/final_metric_files/nutrients.csv|t19366.7986634788s|57faa76344aff1e7|68198|file|local|vector|||10.832||
 p1_targets_list|object|41609bae6f7eaf33|||||||||||||||
 p2_targets_list|object|3940ebbd3c8e50e1|||||||||||||||
-p3_targets_list|object|61de7de0310cc49b|||||||||||||||
+p3_targets_list|object|a44795c76904da78|||||||||||||||
 packages|object|664955cbe60fed0c|||||||||||||||
 physics|function|530734131812f35b|||||||||||||||
 physics_csv|stem|7b4c13c1d07a1ed7|1400b2b74adee83d|4fc298e7e732983a|973165131|Data/final_metric_files/physics.csv|t19363.7034585308s|5968a25f5554b9e9|61810|file|local|vector|||10.203|1m22mOne or more parsing issues, call problems on your data frame for details,e.g.  dat  vroom...  problemsdat|
