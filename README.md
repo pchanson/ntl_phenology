@@ -3,4 +3,4 @@ Scripts and outputs to process the long-term NTL-LTER data by Cal Buelo, Kait Re
 
 Long-term lake data were obtained from the North Temperate Lakes Long-Term Ecological Research program (#DEB-1440297 and #DEB-2025982).
 
-![](Figures/phenology.png)<!-- -->
+![](Figures/manuscript/Figure1.png)<!-- -->
