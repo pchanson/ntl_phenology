@@ -10,14 +10,7 @@
 
 figure3 <- function(path_in, path_out) {
   
-  # vars_order = c("iceoff", "straton", "secchi_max", "secchi_min", "zoopDensity", "doc_epiMax", 
-  #                "drsif_epiMin", "totpuf_hypoMin",  "totpuf_epiMax", "anoxia_summer", "stability", 
-  #                "energy", "totpuf_epiMin", "totpuf_hypoMax", "stratoff", "iceon")
-  # vars_label = c("ice off", "strat onset", "SecchiMax","SecchiMin", "zoopDensity", "DOC max", 
-  #                "Si Min", "TP hypo min", "TP epi max",  "anoxia",  "stability", "energy", 
-  #                "TP epi min", "TP hypo max", "strat offset", "ice on")
-  
-
+ 
   # dat2 = dat |> group_by(lakeid, metric) |> 
   #   summarise(day.mean = mean(daynum, na.rm = T), day.IQR = IQR(daynum, na.rm = T)) |> 
   #   ungroup() |> 
@@ -44,13 +37,15 @@ figure3 <- function(path_in, path_out) {
   # read in data
   dat = read_csv(path_in) |> filter(lakeid != 'FI')
   
-  vars_order = c("iceoff", "straton","drsif_epiMin","zoopDensity","secchi_max",  
-                 "secchi_min", "anoxia_summer", "stability", "energy", 
-                 "totpuf_epiMin", "totpuf_hypoMax", "stratoff", "iceon")
+  vars_order = c("iceoff", "straton", "stability", "energy","stratoff", "iceon",
+                  "drsif_epiMin",  "totnuf_epiMin", "totpuf_epiMin", 
+                 "totnuf_hypoMax","totpuf_hypoMax", 
+                 "anoxia_summer", "secchi_max", "secchi_min", "zoopDensity")
   
-  vars_label = c("ice off", "strat onset",   "Si Min", "zoopDensity", "SecchiMax",
-                 "SecchiMin", "anoxia",  "stability", "energy", 
-                 "TP epi min", "TP hypo max", "strat offset", "ice on")
+  vars_label = c("ice off", "strat onset", "stability", "energy", 'strat offset','ice on',
+                 'Si epi min', 'TN epi min', 'TP epi min', 
+                 'TN hypo max', 'TP hypo max',
+                 'anoxia', 'SecchiMax', 'SecchiMin', 'zoopDensity')
   
   dat = dat |> filter(metric %in% vars_order)
   
@@ -85,7 +80,7 @@ figure3 <- function(path_in, path_out) {
     
     coff.df = usecorr |> as_tibble() |> 
       left_join(p.mat) |> 
-      mutate(corr.p = if_else(p < 0.05, corr, NA_real_)) |> 
+      mutate(corr.p = if_else(p <= 0.01, corr, NA_real_)) |> 
       mutate(lakeid = lakenames[i])
   
     coff.df.list[[i]] = coff.df
@@ -112,30 +107,21 @@ figure3 <- function(path_in, path_out) {
     mutate(lakeid = if_else(!is.na(corr.p), lakeid, as.factor(NA_character_))) |> 
     mutate(lakeid = if_else(corr.p < 1, lakeid, as.factor(NA_character_)))
 
-  # # Pot correlations 
-  # plot.Cor = ggplot(data = coff.df, mapping = aes(x = Var1, y = Var2, fill = lakeid, color = lakeid)) +
-  #   geom_jitter(shape = 21, size = 2.5, width = 0.15, height = 0.15, alpha = 0.8, stroke = 0.2) +
-  #   # geom_tile(color = 'gray') +
-  #   scale_fill_manual(values = c("#d0d1e6", "#a6bddb", "#74a9cf", "#2b8cbe", "#045a8d", "#cc4c02", 
-  #                                "#8c2d04", #"#bae4b3", 
-  #                                "#74c476", "#238b45","gold"), na.translate = F) +
-  #   scale_color_manual(values = rep('black', 10), na.translate = F) +
-  #   scale_x_discrete(breaks = vars_order, labels = vars_label) +
-  #   scale_y_discrete(breaks = vars_order, labels = vars_label) +
-  #   theme_bw(base_size = 9) +
-  #   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
-  #         axis.title = element_blank(), 
-  #         legend.key.height = unit(0.3, 'cm'),
-  #         legend.title = element_blank()); plot.Cor
+  
+  emptyDF = expand_grid(Var1 = vars_order, Var2 = vars_order) |> 
+    mutate(corr = NA, p = NA, corr.p = NA, lakeid = NA) |> 
+    mutate(Var1 = factor(Var1, levels = vars_order)) |> 
+    mutate(Var2 = factor(Var2, levels = vars_order)) 
   
   
   plotcor <- function(uselakes, usecolors) {
+    
+    box1 = 6.5
+    box2 = 11.5
+    
     coff.df |> filter(lakeid %in% uselakes) |> 
       # need a row with ice on so axes match up in figure 
-      bind_rows(data.frame(Var1 = factor('iceon'), Var2 = factor('iceon'), 
-                           corr = NA, p = NA, corr.p = NA, lakeid = NA)) |> 
-      bind_rows(data.frame(Var1 = factor('drsif_epiMin'), Var2 = factor('drsif_epiMin'), 
-                           corr = NA, p = NA, corr.p = NA, lakeid = NA)) |> 
+      bind_rows(emptyDF) |> 
     
     # coff.df |> mutate(if_else(lakeid %in% uselakes, ))  
     ggplot(mapping = aes(x = Var1, y = Var2, fill = lakeid, color = lakeid)) +
@@ -145,6 +131,10 @@ figure3 <- function(path_in, path_out) {
                                               scale_color_manual(values = rep('black', 10), na.translate = F) +
       scale_x_discrete(breaks = vars_order, labels = vars_label) +
       scale_y_discrete(breaks = vars_order, labels = vars_label) +
+      geom_segment(aes(x = box1, y = -Inf, xend = box1, yend = box1), linetype = 2, size = 0.2, show.legend=FALSE) +
+      geom_segment(aes(x = -Inf, y = box1, xend = box1, yend = box1), linetype = 2, size = 0.2, show.legend=FALSE) +
+      geom_segment(aes(x = box2, y = -Inf, xend = box2, yend = box2), linetype = 2, size = 0.2, show.legend=FALSE) +
+      geom_segment(aes(x = -Inf, y = box2, xend = box2, yend = box2), linetype = 2, size = 0.2, show.legend=FALSE) +
       theme_bw(base_size = 9) +
       theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1, size = 6),
             axis.text.y = element_text(size = 6),

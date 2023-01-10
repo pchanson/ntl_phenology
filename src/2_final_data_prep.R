@@ -11,9 +11,6 @@ p2_targets_list <- list(
                            "doc_epiMax", "drsif_epiMin",  "totnuf_epiMin", "totpuf_epiMin", 
                            "totnuf_hypoMax","totpuf_hypoMax", 
                            "anoxia_summer", "secchi_max", "secchi_min", "zoopDensity")),
-  tar_target(name = vars_label, c("ice off", "strat onset",   "Si Min", "zoopDensity", "SecchiMax",
-                                  "SecchiMin", "anoxia",  "stability", "energy",
-                                  "TP epi min", "TP hypo max", "strat offset", "ice on")),
   tar_target(
     name = combine_final_files_csv,
     combine_final_files(
