@@ -16,10 +16,10 @@ zoopDensity <- function(path_out) {
   # get ice on/off dates
   ice0 = read_csv("Data/final_metric_files/ice.csv") |> 
     filter(metric == 'iceoff') |> 
-    select(lakeid, year4 = year, lastice = sampledate)
+    dplyr::select(lakeid, year4 = year, lastice = sampledate)
   
   #Combine files
-  dt = dt1 |> select(-towdepth) |> 
+  dt = dt1 |> dplyr::select(-towdepth) |> 
     bind_rows(dt2) |> 
     left_join(ice0) |> 
     filter(sample_date > lastice) |> 
@@ -62,12 +62,15 @@ zoopDensity <- function(path_out) {
     group_by(lakeid, year4, sample_date) |> 
     summarize(density = sum(density, na.rm = T)) |> 
     group_by(lakeid, year4) |> 
-    slice_max(density) |> 
+    slice_max(density, with_ties = FALSE, n = 1) |> 
     mutate(metric = 'zoopDensity_spring', daynum = yday(sample_date))
   
   # Combine datasets 
   zoop.out = zoopDensity.cc |> bind_rows(zoopDensity.cc.spring) |> 
-    select(lakeid, metric, sampledate = sample_date, year = year4, daynum)
+    dplyr::select(lakeid, metric, sampledate = sample_date, year = year4, daynum)
+  
+  # Check for duplicates
+  zoop.out |> group_by(lakeid, metric, year) |> filter(n() > 1)
   
   # Plot check
   ggplot(zoop.out) + 
