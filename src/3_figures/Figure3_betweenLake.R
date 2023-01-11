@@ -2,7 +2,7 @@ library(tidyverse)
 library(patchwork)
 library(scales)
 
-figure2 <- function(path_in, path_out) {
+figure3 <- function(path_in, path_out) {
   
   dat = read_csv(path_in)
   

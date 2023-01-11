@@ -8,9 +8,8 @@
 # create a plot of the correlation of the phenology data for the 11 lakes, and
 # the plot is saved as a ".png" file.
 
-figure3 <- function(path_in, path_out) {
+figureSI_withinLake <- function(path_in, path_out) {
   
- 
   # dat2 = dat |> group_by(lakeid, metric) |> 
   #   summarise(day.mean = mean(daynum, na.rm = T), day.IQR = IQR(daynum, na.rm = T)) |> 
   #   ungroup() |> 
@@ -159,7 +158,7 @@ figure3 <- function(path_in, path_out) {
     plot_annotation(tag_levels = 'a', tag_suffix = ')') &
     theme(plot.tag = element_text(size  = 8))
 
-  ggsave(plot = plot.Cor, path_out, width = 6, 
+  ggsave(plot = plot.Cor, filename = path_out, width = 6, 
          height = 3, dpi = 500)
 
 }
