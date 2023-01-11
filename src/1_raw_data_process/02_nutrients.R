@@ -1,6 +1,6 @@
 
-nutrients <- function(path_in, physics_file, ice_file, path_out) {
-  # Updated 2022-12-28
+nutrients <- function(ice_file, path_out) {
+  # Updated 2023-01-11
   varsWant = c("doc_epiMax", "totpuf_epiMin", #"totpuf_epiMax", 
                "totpuf_hypoMax", #"totpuf_hypoMin", 
                "drsif_epiMin", "drsif_epiSpringMin",
@@ -37,7 +37,8 @@ nutrients <- function(path_in, physics_file, ice_file, path_out) {
     rename_all(~str_replace_all(.,"flag","")) %>%
     pivot_longer(-(lakeid:event), names_to = c('.value','item'), names_sep = '_') %>%
     filter(!is.na(value) & value>= 0) %>%
-    filter(!str_detect(error,'A|K|L|H|Q') | is.na(error)) %>%
+    # filter(!str_detect(error,'A|K|L|H|Q') | is.na(error)) %>%
+    filter(!str_detect(error,'A|K|H|Q') | is.na(error)) %>% #Removed H
     dplyr::select(-error) %>% 
     mutate(value = case_when(str_detect(item, ".sloh") ~ value*1000, #change sloh from mg to µg
                              TRUE ~ value)) %>% 
@@ -48,6 +49,7 @@ nutrients <- function(path_in, physics_file, ice_file, path_out) {
   lternuts.flagged = lternuts.flagged |> 
     mutate(value = filter_lims(value))
   
+ 
   # get ice on/off dates
   ice0 = read_csv(ice_file) |> 
     filter(metric == 'iceoff') |> 
@@ -61,65 +63,64 @@ nutrients <- function(path_in, physics_file, ice_file, path_out) {
     filter(depth == max(depth)) |> 
     rename(maxDepth = depth)
   
+  # Limit to surface or bottom and exclude years with < 9 measurements in that year
+  surfNuts = lternuts.flagged |> filter(depth <= 1) |> 
+    group_by(lakeid, year4, daynum, sampledate, item) |> 
+    summarise(value = mean(value, na.rm = T)) |> 
+    mutate(layer = 'surf') |> 
+    group_by(lakeid, year4, item) |> 
+    filter(n() >= 9)
+    
+  botNuts = lternuts.flagged |> left_join(maxDepths) |> 
+    filter(depth == maxDepth) |> 
+    group_by(lakeid, year4, daynum, sampledate, item) |> 
+    summarise(value = mean(value, na.rm = T)) |> 
+    mutate(layer = 'bot') |> 
+    group_by(lakeid, year4, item) |> 
+    filter(n() >= 9)
   
   #################### MANIPULATE DATA ####################
   
-  # Load stratification dates
-  # strat = read_csv(physics_file) %>% 
-  #   filter(metric %in% c('straton', 'stratoff')) %>% 
-  #   dplyr::select(-daynum) %>% 
-  #   pivot_wider(names_from = "metric", values_from = "sampledate") %>% 
-  #   rename(year4 = year)
-  
   # restrict to epi/hypo and stratification period
-  nuts = lternuts.flagged %>% 
-    # left_join(strat, by = c("lakeid", "year4")) %>% 
-    # filter(sampledate >= straton & daynum <= stratoff) %>% #filter to during strat
+  nuts = surfNuts %>% bind_rows(botNuts) |> 
     left_join(ice0) |> 
-    filter(sampledate > lastice) |> 
-    left_join(maxDepths) |> 
-    filter(depth == 0 | depth == maxDepth) 
-
-  # Take mean of any duplicates
-  nuts.mean = nuts |> 
-    group_by(lakeid, item, sampledate, year4, depth) |> 
-    summarise(value = mean(value, na.rm = T))
-
+    filter(sampledate > lastice)
+  
   # find day min or max values
-  epi_min = nuts.mean %>% 
-    filter(depth == 0) |> 
+  epi_min = nuts %>% 
+    filter(layer == 'surf') |> 
     group_by(lakeid, year4, item) %>% 
     slice_min(value, with_ties = FALSE, n = 1) %>% # if ties, select the first 
     mutate(daynum = yday(sampledate), metric = paste0(item, "_epiMin")) %>% 
     ungroup() %>% 
     dplyr::select(lakeid, metric, sampledate, year4, daynum)
   
-  epi_max = nuts.mean %>% 
-    filter(depth == 0) |> 
+  epi_max = nuts %>% 
+    filter(layer == 'surf') |> 
     group_by(lakeid, year4, item) %>% 
     slice_max(value, with_ties = FALSE, n = 1) %>% # if ties, select the first 
     mutate(daynum = yday(sampledate), metric = paste0(item, "_epiMax")) %>% 
     ungroup() %>% 
     dplyr::select(lakeid, metric, sampledate, year4, daynum)
   
-  hypo_min = nuts.mean %>% 
-    filter(depth != 0) |> 
+  hypo_min = nuts %>% 
+    filter(layer == 'bot') |> 
     group_by(lakeid, year4, item) %>% 
     slice_min(value, with_ties = FALSE, n = 1) %>% # if ties, select the first 
     mutate(daynum = yday(sampledate), metric = paste0(item, "_hypoMin")) %>% 
     ungroup() %>% 
     dplyr::select(lakeid, metric, sampledate, year4, daynum)
   
-  hypo_max = nuts.mean %>% 
-    filter(depth != 0) |> 
+  hypo_max = nuts %>% 
+    filter(layer == 'bot') |> 
     group_by(lakeid, year4, item) %>% 
     slice_max(value, with_ties = FALSE, n = 1) %>% # if ties, select the first 
     mutate(daynum = yday(sampledate), metric = paste0(item, "_hypoMax")) %>% 
     ungroup() %>% 
     dplyr::select(lakeid, metric, sampledate, year4, daynum)
   
-  epi_springmin = nuts.mean %>% 
-    filter(depth == 0) |> 
+  epi_springmin = nuts %>% 
+    filter(layer == 'surf') |> 
     filter(yday(sampledate) < 200) |> 
     group_by(lakeid, year4, item) %>% 
     slice_min(value, with_ties = FALSE, n = 1) %>% # if ties, select the first 
@@ -136,7 +137,7 @@ nutrients <- function(path_in, physics_file, ice_file, path_out) {
   #   geom_density(aes(x = daynum)) +
   #   facet_grid(rows=vars(lakeid), cols=vars(metric))
   
-  write_csv(comb %>% filter(metric %in% varsWant),file = path_out)
+  write_csv(comb %>% filter(metric %in% varsWant), file = path_out)
   
   return(path_out) 
 }

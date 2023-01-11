@@ -2,27 +2,11 @@ library(tidyverse)
 library(patchwork)
 library(scales)
 
-figure3 <- function(path_in, path_out) {
+figure3 <- function(path_in, path_out, path_out2, vars_order, vars_labels) {
   
-  dat = read_csv(path_in)
+  dat = read_csv(path_in) |> filter(lakeid != 'FI')
   
-  # vars_order = c("iceoff", "straton", "secchi_max", "secchi_min", "zoopDensity", "doc_epiMax", 
-  #                "drsif_epiMin", "totpuf_hypoMin",  "totpuf_epiMax", "anoxia_summer", "stability", 
-  #                "energy", "totpuf_epiMin", "totpuf_hypoMax", "stratoff", "iceon")
-  # vars_label = c("ice off", "strat onset", "SecchiMax","SecchiMin", "zoopDensity", "DOC max", 
-  #                "Si Min", "TP hypo min", "TP epi max",  "anoxia",  "stability", "energy", 
-  #                "TP epi min", "TP hypo max", "strat offset", "ice on")
-  
-  vars_order = c("iceoff", "straton","drsif_epiMin","zoopDensity","secchi_max",
-                  "secchi_min", "anoxia_summer", "stability", "energy",
-                 "totpuf_epiMin", "totpuf_hypoMax", "stratoff", "iceon")
-
-  vars_label = c("ice off", "strat onset",   "Si Min", "zoopDensity", "SecchiMax",
-                "SecchiMin", "anoxia",  "stability", "energy",
-                 "TP epi min", "TP hypo max", "strat offset", "ice on")
-  
-  # add and extra lake in N
-  lakes_order = c("AL", "BM", "CB", "CR", "SP", "TB", "TR", "", "FI", "ME", "MO", "WI")
+  lakes_order = c("AL", "BM", "CB", "CR", "SP", "TB", "TR", "ME", "MO", "WI")
   
   ##### Functions #####
   all_na <- function(x) all(is.na(x))
@@ -45,87 +29,64 @@ figure3 <- function(path_in, path_out) {
           panel.grid.major = element_line(size = 0.2))
   
   ################################ ME and MO ################################
-  df1 = dat %>% 
-    filter(lakeid %in% c('ME','MO')) |> 
-    filter(metric %in% vars_order) %>% 
-    mutate(lakeid = factor(lakeid, levels = lakes_order),
-           metric = factor(metric, levels = rev(vars_order), labels = rev(vars_label))) 
+  
+  compareLakes <- function(useLakes, colors, useTitle) {
     
-  df1.Cor = df1 |> 
-    select(lakeid, year, metric, daynum) |> 
-    pivot_wider(names_from = lakeid, values_from = daynum) |> 
-    mutate(across(where(all_na), ~replace_na(.x, 0))) |> 
-    group_by(metric) |> 
-    summarise(cor = corrFunction(ME, MO), corP = corrPFunction(ME,MO))
-  
+    df1 = dat %>% 
+      filter(lakeid %in% useLakes) |> 
+      filter(metric %in% vars_order) %>% 
+      mutate(lakeid = factor(lakeid, levels = lakes_order),
+             metric = factor(metric, levels = rev(vars_order), labels = rev(vars_labels))) 
     
-  p1 = ggplot(df1) + 
-    geom_boxplot(aes(x = as.Date(daynum, origin = as.Date('2019-01-01')), 
-                            y = metric, color = lakeid, fill = lakeid), 
-                        alpha = 0.5, position = position_dodge(0.2), linewidth = 0.2, outlier.size = 1, outlier.stroke = 0.2) +
-    geom_point(data = df1.Cor |> filter(corP <= 0.05), aes(x =  as.Date('2019-03-01'), y = metric), size = 1, shape = 8) +
-    scale_fill_manual(values = c("#74c476", "#238b45")) + 
-    scale_color_manual(values = c("#74c476", "#238b45")) + 
-    scale_x_date(labels = date_format("%b"), breaks = '3 months', minor_breaks = '1 month') +
-    labs(title = 'c) Eutrophic') +
-    customTheme
+    df1.Cor = df1 |> 
+      dplyr::select(lakeid, year, metric, daynum) |> 
+      pivot_wider(names_from = lakeid, values_from = daynum) |> 
+      mutate(across(where(all_na), ~replace_na(.x, 0))) |> 
+      group_by(metric) |>
+      na.omit() |> 
+      filter(n() >= 9) |> 
+      rename(Lake1 = 3, Lake2 = 4) |> 
+      summarise(cor = corrFunction(Lake1,Lake2), corP = corrPFunction(Lake1, Lake2))
+    
+    
+    p1 = ggplot(df1) + 
+      geom_boxplot(aes(x = as.Date(daynum, origin = as.Date('2019-01-01')), 
+                       y = metric, color = lakeid, fill = lakeid), 
+                   alpha = 0.5, position = position_dodge(0.2), size = 0.2, outlier.size = 1, outlier.stroke = 0.2) +
+      geom_point(data = df1.Cor |> filter(corP <= 0.05), aes(x =  as.Date('2019-03-01'), y = metric), size = 1, shape = 8) +
+      geom_hline(aes(yintercept = 4.5), linetype = 2, size = 0.2) +
+      geom_hline(aes(yintercept = 9.5), linetype = 2, size = 0.2) +
+      scale_fill_manual(values = colors) + 
+      scale_color_manual(values = colors) + 
+      scale_x_date(labels = date_format("%b"), breaks = '3 months', minor_breaks = '1 month') +
+      labs(title = useTitle) +
+      customTheme
+    
+    return(p1) 
+  }
   
   
-  ################################ CB and TB ################################
-  df1 = dat %>% 
-    filter(lakeid %in% c('CB','TB')) |> 
-    filter(metric %in% vars_order) %>% 
-    mutate(lakeid = factor(lakeid, levels = lakes_order),
-           metric = factor(metric, levels = rev(vars_order), labels = rev(vars_label))) 
-  
-  df1.Cor = df1 |> 
-    select(lakeid, year, metric, daynum) |> 
-    pivot_wider(names_from = lakeid, values_from = daynum) |> 
-    mutate(across(where(all_na), ~replace_na(.x, 0))) |> 
-    group_by(metric) |> 
-    summarise(cor = corrFunction(CB, TB), corP = corrPFunction(CB, TB))
-  
-  
-  p2 = ggplot(df1) + 
-    geom_boxplot(aes(x = as.Date(daynum, origin = as.Date('2019-01-01')), 
-                     y = metric, color = lakeid, fill = lakeid), 
-                 alpha = 0.5, position = position_dodge(0.2), linewidth = 0.2, outlier.size = 1, outlier.stroke = 0.2) +
-    geom_point(data = df1.Cor |> filter(corP <= 0.05), aes(x =  as.Date('2019-03-01'), y = metric), size = 1, shape = 8) +
-    scale_fill_manual(values = c("#cc4c02","#8c2d04")) + 
-    scale_color_manual(values = c("#cc4c02","#8c2d04")) + 
-    scale_x_date(labels = date_format("%b"), breaks = '3 months', minor_breaks = '1 month') +
-    labs(title = 'b) Dystrophic') +
-    customTheme
-  
-  ################################ CR and SP ################################
-  df1 = dat %>% 
-    filter(lakeid %in% c('CR','SP')) |> 
-    filter(metric %in% vars_order) %>% 
-    mutate(lakeid = factor(lakeid, levels = lakes_order),
-           metric = factor(metric, levels = rev(vars_order), labels = rev(vars_label))) 
-  
-  df1.Cor = df1 |> 
-    select(lakeid, year, metric, daynum) |> 
-    pivot_wider(names_from = lakeid, values_from = daynum) |> 
-    mutate(across(where(all_na), ~replace_na(.x, 0))) |> 
-    group_by(metric) |> 
-    summarise(cor = corrFunction(CR, SP), corP = corrPFunction(CR, SP))
-  
-  
-  p3 = ggplot(df1) + 
-    geom_boxplot(aes(x = as.Date(daynum, origin = as.Date('2019-01-01')), 
-                     y = metric, color = lakeid, fill = lakeid), 
-                 alpha = 0.5, position = position_dodge(0.2), linewidth = 0.2, outlier.size = 1, outlier.stroke = 0.2) +
-    geom_point(data = df1.Cor |> filter(corP <= 0.05), aes(x =  as.Date('2019-03-01'), y = metric), size = 1, shape = 8) +
-    scale_fill_manual(values = c("#74a9cf", "#2b8cbe")) + 
-    scale_color_manual(values = c("#74a9cf", "#2b8cbe")) + 
-    scale_x_date(labels = date_format("%b"), breaks = '3 months', minor_breaks = '1 month') +
-    labs(title = 'a) Oligotrophic') +
-    customTheme
+  p1 = compareLakes(useLakes = c('SP','TR'), colors = c("#74a9cf", "#2b8cbe"), useTitle = 'a) Oligotrophic')
+  p2 = compareLakes(useLakes = c('CB','TB'), colors =  c("#cc4c02","#8c2d04"), useTitle = 'b) Dystrophic')  
+  p3 = compareLakes(useLakes = c('ME','MO'), colors = c("#74c476", "#238b45"), useTitle = 'c) Eutrophic')
   
   ################################ JOIN ################################
-  p3 + p2 + p1 
+  p1 + p2 + p3
   
-  ggsave(path_out, width = 5, height = 3.5, dpi = 500)
-
+  ggsave(filename = path_out, width = 6, height = 3.5, dpi = 500)
+  
+  # All oligotrophic lake pairs 
+  p10 = compareLakes(useLakes = c('CR','SP'), colors = c("#74a9cf", "#2b8cbe"), useTitle = NULL)
+  p11 = compareLakes(useLakes = c('CR','BM'), colors = c("#74a9cf", "#2b8cbe"), useTitle = NULL)
+  p12 = compareLakes(useLakes = c('CR','TR'), colors = c("#74a9cf", "#2b8cbe"), useTitle = NULL)
+  p13 = compareLakes(useLakes = c('SP','BM'), colors = c("#74a9cf", "#2b8cbe"), useTitle = NULL)
+  p14 = compareLakes(useLakes = c('SP','TR'), colors = c("#74a9cf", "#2b8cbe"), useTitle = NULL)
+  p15 = compareLakes(useLakes = c('BM','TR'), colors = c("#74a9cf", "#2b8cbe"), useTitle = NULL)
+  
+  p10 + p11 + p12 + p13 + p14 + p15
+  
+  ggsave(filename = path_out2, width = 6, height = 5, dpi = 500)
+  
 }
+
+

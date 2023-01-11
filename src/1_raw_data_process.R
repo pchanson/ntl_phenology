@@ -26,9 +26,7 @@ p1_targets_list <- list(
   ),
   tar_target(
     name = nutrients_csv,
-    nutrients(path_in = "Data/derived/thermocline.csv",
-            physics_file = physics_csv,
-            ice_file = ice_csv,
+    nutrients(ice_file = ice_csv,
             path_out = "Data/final_metric_files/nutrients.csv"),
     format = "file",
   ),

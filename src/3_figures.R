@@ -13,6 +13,7 @@ source("src/3_figures/Figure1_ggridges_v2.R")
 source("src/3_figures/Figure2_PEGmodel.R")
 source("src/3_figures/Figure3_betweenLake.R")
 source("src/3_figures/FigureSI_WithinLake.R")
+source("src/3_figures/FigureSI_MK.R")
 
 p3_targets_list <- list(
   # tar_target(
@@ -20,6 +21,14 @@ p3_targets_list <- list(
   #   figure1(path_in = 'Data/analysis_ready/final_combined_dates_filled_v2.csv',
   #     path_out = "Figures_manuscript/Figure1.png")
   # ),
+  tar_target(name = vars_order2, c("iceoff", "straton", "stability", "energy","stratoff", "iceon",
+                                  "drsif_epiMin",  "totnuf_epiMin", "totpuf_epiMin", 
+                                  "totnuf_hypoMax","totpuf_hypoMax", 
+                                  "anoxia_summer", "secchi_max", "secchi_min", "zoopDensity")),
+  tar_target(name = vars_labels, c("ice off", "strat onset", "stability", "energy", 'strat offset','ice on',
+                                   'Si epi min', 'TN epi min', 'TP epi min', 
+                                   'TN hypo max', 'TP hypo max',
+                                   'anoxia', 'SecchiMax', 'SecchiMin', 'zoopDensity')),
   tar_target(
     name = figure1_v2_png,
     figure1_v2(path_in = 'Data/analysis_ready/final_combined_dates_filled_v2.csv',
@@ -34,12 +43,24 @@ p3_targets_list <- list(
   tar_target(
     name = figure3_png,
     figure3(path_in = 'Data/analysis_ready/final_combined_dates_filled_v2.csv',
-            path_out = "Figures_manuscript/Figure3.png")
+            path_out = "Figures_manuscript/Figure3.png",
+            path_out2 = 'Figures_manuscript/FigureSI_lakePairs.png',
+            vars_order = vars_order2,
+            vars_labels = vars_labels)
   ),
   tar_target(
     name = figureSI_withinLake_png,
     figureSI_withinLake(path_in = 'Data/analysis_ready/final_combined_dates_filled_v2.csv',
-            path_out = "Figures_manuscript/FigureSI_withinLake.png")
+            path_out = "Figures_manuscript/FigureSI_withinLake.png",
+            vars_order = vars_order2,
+            vars_labels = vars_labels)
+  ),
+  tar_target(
+    name = figureSI_MK_png,
+    figureSI_MK(path_in = 'Data/analysis_ready/final_combined_dates_filled_v2.csv',
+                path_out = "Figures_manuscript/FigureSI_MK.png",
+                vars_order = vars_order2,
+                vars_labels = vars_labels)
   )
 
 )

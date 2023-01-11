@@ -11,13 +11,18 @@ figure2 <- function(path_in, path_out, path_out2) {
   
   # Read in data
   dat = read_csv(path_in) |> 
-    filter(!(lakeid == 'WI' & year < 2007)) |> 
-    left_join(lakenames)
+    # filter(!(lakeid == 'WI' & year < 2007)) |> 
+    filter(lakeid %in% lakeorder) |> 
+    filter(metric %in% useorder) |> 
+    group_by(lakeid, year) %>%
+    mutate(missing = if_else(any(is.na(daynum)), TRUE, FALSE)) |>
+    ungroup() |> 
+    mutate(daynum = if_else(missing == TRUE, NA_real_, daynum)) 
   
   # Find PEG years
-  PEGyears = dat |> filter(lakeid %in% lakeorder) |> 
-    filter(metric %in% useorder) |> 
-    group_by(lakeid, lakenames, year) |> 
+  PEGyears = dat |> 
+    filter(missing == FALSE) |> 
+    group_by(lakeid, year) |> 
     mutate(order = case_when(metric == 'drsif_epiSpringMin' ~ 1,
                              metric == 'zoopDensity_spring' ~ 2,
                              metric == 'secchi_springmax' ~ 3)) |> 
@@ -28,7 +33,7 @@ figure2 <- function(path_in, path_out, path_out2) {
                            first(rank) == 1 & last(rank) == 2.5 ~ TRUE,
                            TRUE ~ FALSE)) |> 
     slice(1) |> 
-    dplyr::select(lakeid, lakenames, year, use)
+    dplyr::select(lakeid, year, use)
   
   # Peg percent years 
   PEGyears |> group_by(lakeid) |> 
@@ -70,8 +75,10 @@ figure2 <- function(path_in, path_out, path_out2) {
   # Lake names
   names = lakenames |> pull(lakenames)
   
-  dat |> filter(metric == 'iceoff') |> 
-    dplyr::select(lakeid, lakenames, year, daynum) |> left_join(PEGyears) |> 
+  read_csv(path_in) |> filter(metric == 'iceoff') |> 
+    dplyr::select(lakeid, year, daynum) |> 
+    left_join(PEGyears) |>
+    left_join(lakenames) |> 
     mutate(use = if_else(use == TRUE, 'PEG year', 'Other')) |> 
     # mutate(use = factor(use, levels = c('PEG year', 'Other'))) |> 
     mutate(lakenames = factor(lakenames, levels = names)) |> 

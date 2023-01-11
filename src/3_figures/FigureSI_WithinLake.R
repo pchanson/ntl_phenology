@@ -8,45 +8,12 @@
 # create a plot of the correlation of the phenology data for the 11 lakes, and
 # the plot is saved as a ".png" file.
 
-figureSI_withinLake <- function(path_in, path_out) {
-  
-  # dat2 = dat |> group_by(lakeid, metric) |> 
-  #   summarise(day.mean = mean(daynum, na.rm = T), day.IQR = IQR(daynum, na.rm = T)) |> 
-  #   ungroup() |> 
-  #   mutate(lakeid = factor(lakeid, levels = c("AL", "BM", "CR", "SP", "TR", "CB", "TB", "FI", "ME", "MO", "WI"))) |> 
-  #   mutate(metric = factor(metric, levels = vars_order)) |> 
-  #   filter(!is.na(metric))
-  # 
-  # plot.IQR = ggplot(dat2) + 
-  #   geom_hline(aes(yintercept = 28), linetype = 2) +
-  #   geom_jitter(aes(x = metric, y = day.IQR, fill = lakeid), shape = 21, size = 2.5, width = 0.2, height = 0, stroke = 0.2) +
-  #   scale_fill_manual(values = c("#d0d1e6", "#a6bddb", "#74a9cf", "#2b8cbe", "#045a8d", "#cc4c02", 
-  #                                "#8c2d04", "#bae4b3", "#74c476", "#238b45","gold")) +
-  #   ylab('IQR (days)') +
-  #   scale_x_discrete(breaks = vars_order, labels = vars_label) +
-  #   theme_bw(base_size = 9) +
-  #   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
-  #         axis.title.x = element_blank(), 
-  #         legend.key.height = unit(0.3,'cm'),
-  #         legend.title = element_blank())
-  
-  # ggsave(plot = plot.IQR, 'Figures/manuscript/phenologyIQR.png', width = 5, height = 3.5, dpi = 500)
+figureSI_withinLake <- function(path_in, path_out, vars_order, vars_labels) {
   
   ################################ Correlation ################################
   # read in data
-  dat = read_csv(path_in) |> filter(lakeid != 'FI')
-  
-  vars_order = c("iceoff", "straton", "stability", "energy","stratoff", "iceon",
-                  "drsif_epiMin",  "totnuf_epiMin", "totpuf_epiMin", 
-                 "totnuf_hypoMax","totpuf_hypoMax", 
-                 "anoxia_summer", "secchi_max", "secchi_min", "zoopDensity")
-  
-  vars_label = c("ice off", "strat onset", "stability", "energy", 'strat offset','ice on',
-                 'Si epi min', 'TN epi min', 'TP epi min', 
-                 'TN hypo max', 'TP hypo max',
-                 'anoxia', 'SecchiMax', 'SecchiMin', 'zoopDensity')
-  
-  dat = dat |> filter(metric %in% vars_order)
+  dat = read_csv(path_in) |> filter(lakeid != 'FI') |> 
+    filter(metric %in% vars_order)
   
   # Select data
   lakenames =  c("AL", "BM", "CR", "SP", "TR", "TB", "CB", "ME", "MO", "WI")
@@ -128,8 +95,8 @@ figureSI_withinLake <- function(path_in, path_out) {
       # geom_tile(color = 'gray') +
       scale_fill_manual(values = usecolors, na.translate = F) +
                                               scale_color_manual(values = rep('black', 10), na.translate = F) +
-      scale_x_discrete(breaks = vars_order, labels = vars_label) +
-      scale_y_discrete(breaks = vars_order, labels = vars_label) +
+      scale_x_discrete(breaks = vars_order, labels = vars_labels) +
+      scale_y_discrete(breaks = vars_order, labels = vars_labels) +
       geom_segment(aes(x = box1, y = -Inf, xend = box1, yend = box1), linetype = 2, size = 0.2, show.legend=FALSE) +
       geom_segment(aes(x = -Inf, y = box1, xend = box1, yend = box1), linetype = 2, size = 0.2, show.legend=FALSE) +
       geom_segment(aes(x = box2, y = -Inf, xend = box2, yend = box2), linetype = 2, size = 0.2, show.legend=FALSE) +
