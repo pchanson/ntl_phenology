@@ -55,9 +55,18 @@ zoopDensity <- function(path_out) {
   #   group_by(lakeid, year4) |> 
   #   slice_max(density) |> 
   #   mutate(metric = 'zoopDensity', daynum = yday(sample_date))
-  # 
+  
+  # spring only
+  zoopDensity.cc.spring = dt |> filter(code %in% c(1,2,3,4,5)) |> 
+    filter(yday(sample_date) < 200) |>
+    group_by(lakeid, year4, sample_date) |> 
+    summarize(density = sum(density, na.rm = T)) |> 
+    group_by(lakeid, year4) |> 
+    slice_max(density) |> 
+    mutate(metric = 'zoopDensity_spring', daynum = yday(sample_date))
+  
   # Combine datasets 
-  zoop.out = zoopDensity.cc |> 
+  zoop.out = zoopDensity.cc |> bind_rows(zoopDensity.cc.spring) |> 
     select(lakeid, metric, sampledate = sample_date, year = year4, daynum)
   
   # Plot check

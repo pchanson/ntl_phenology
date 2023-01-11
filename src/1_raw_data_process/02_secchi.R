@@ -44,7 +44,17 @@ secchi <- function(ice_file, path_out) {
     mutate(metric = "secchi_min") %>% 
     select(lakeid, metric, sampledate, year4, daynum, secnview)
   
-  secchi.out = s.openwater.max |> bind_rows(s.openwater.min) |> select(-secnview) |> 
+  s.spring.max = secchi |> 
+    filter(yday(sampledate) < 200) |>
+    group_by(lakeid, year4) %>% 
+    slice_max(secnview, with_ties = FALSE, n = 1) %>% # if ties, select the first 
+    mutate(metric = "secchi_springmax") %>% 
+    select(lakeid, metric, sampledate, year4, daynum, secnview)
+  
+  
+  secchi.out = s.openwater.max |> bind_rows(s.openwater.min) |> 
+    bind_rows(s.spring.max) |> 
+    select(-secnview) |> 
     rename(year = year4)
   
   write_csv(secchi.out, path_out)

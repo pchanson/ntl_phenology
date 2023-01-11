@@ -10,7 +10,8 @@ p2_targets_list <- list(
   tar_target(name = vars_order, c("iceoff", "straton", "stability", "energy","stratoff", "iceon",
                            "doc_epiMax", "drsif_epiMin",  "totnuf_epiMin", "totpuf_epiMin", 
                            "totnuf_hypoMax","totpuf_hypoMax", 
-                           "anoxia_summer", "secchi_max", "secchi_min", "zoopDensity")),
+                           "anoxia_summer", "secchi_max", "secchi_min", "zoopDensity",
+                           "drsif_epiSpringMin","zoopDensity_spring","secchi_springmax")),
   tar_target(
     name = combine_final_files_csv,
     combine_final_files(
