@@ -25,7 +25,7 @@ p3_targets_list <- list(
                                   "drsif_epiMin",  "totnuf_epiMin", "totpuf_epiMin", 
                                   "totnuf_hypoMax","totpuf_hypoMax", 
                                   "anoxia_summer", "secchi_max", "secchi_min", "zoopDensity")),
-  tar_target(name = vars_labels, c("ice off", "strat onset", "stability", "energy", 'strat offset','ice on',
+  tar_target(name = vars_labels2, c("ice off", "strat onset", "stability", "energy", 'strat offset','ice on',
                                    'Si epi min', 'TN epi min', 'TP epi min', 
                                    'TN hypo max', 'TP hypo max',
                                    'anoxia', 'SecchiMax', 'SecchiMin', 'zoopDensity')),
@@ -44,23 +44,21 @@ p3_targets_list <- list(
     name = figure3_png,
     figure3(path_in = missing_dates_fill_csv,
             path_out = "Figures_manuscript/Figure3.png",
-            path_out2 = 'Figures_manuscript/FigureSI_lakePairs.png',
-            vars_order = vars_order2,
-            vars_labels = vars_labels)
+            path_out2 = 'Figures_manuscript/FigureSI_lakePairs.png')
   ),
   tar_target(
     name = figureSI_withinLake_png,
     figureSI_withinLake(path_in = missing_dates_fill_csv,
             path_out = "Figures_manuscript/FigureSI_withinLake.png",
             vars_order = vars_order2,
-            vars_labels = vars_labels)
+            vars_labels = vars_labels2)
   ),
   tar_target(
     name = figureSI_MK_png,
     figureSI_MK(path_in = missing_dates_fill_csv,
                 path_out = "Figures_manuscript/FigureSI_MK.png",
                 vars_order = vars_order2,
-                vars_labels = vars_labels)
+                vars_labels = vars_labels2)
   )
 
 )

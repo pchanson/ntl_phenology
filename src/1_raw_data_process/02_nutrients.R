@@ -38,7 +38,7 @@ nutrients <- function(ice_file, path_out) {
     pivot_longer(-(lakeid:event), names_to = c('.value','item'), names_sep = '_') %>%
     filter(!is.na(value) & value>= 0) %>%
     # filter(!str_detect(error,'A|K|L|H|Q') | is.na(error)) %>%
-    filter(!str_detect(error,'A|K|H|Q') | is.na(error)) %>% #Removed H
+    filter(!str_detect(error,'A|K|H|Q') | is.na(error)) %>% #Removed L
     dplyr::select(-error) %>% 
     mutate(value = case_when(str_detect(item, ".sloh") ~ value*1000, #change sloh from mg to µg
                              TRUE ~ value)) %>% 
