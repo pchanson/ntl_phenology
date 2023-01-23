@@ -25,7 +25,11 @@ nutrients <- function(ice_file, path_out) {
   inUrl1 <- "https://pasta.lternet.edu/package/data/eml/knb-lter-ntl/1/57/802d63a4c35050b09ef6d1e7da3efd3f"
   infile1 <- tempfile()
   download.file(inUrl1, infile1, method = "curl")
-  LTERnutrients <- read_csv(infile1)
+  
+  # There is an offset between state lab of hygeiene (SLOH) drsif and NLT drsif. 
+  # A linear model of sloh ~ ntl has a slope of 2.28 with r2 of 0.94. 
+  LTERnutrients <- read_csv(infile1) |> 
+    mutate(drsif = 2.28 * drsif)
   
   # removed flagged data
   lternuts.flagged = LTERnutrients %>%
