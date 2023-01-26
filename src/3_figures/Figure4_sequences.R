@@ -1,4 +1,4 @@
-setwd('Projects/DSI/ntl_phenology/')
+# setwd('Projects/DSI/ntl_phenology/')
 
 library(tidyverse)
 library(survival)

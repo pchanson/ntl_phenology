@@ -1,5 +1,5 @@
 lakeid,metric,sampledate,year,daynum
-AL,secchi_max,1982-11-30,1982,334
+AL,secchi_max,1982-07-05,1982,186
 AL,secchi_max,1983-07-20,1983,201
 AL,secchi_max,1984-06-21,1984,173
 AL,secchi_max,1985-07-11,1985,192
@@ -640,7 +640,7 @@ TB,secchi_min,1991-05-23,1991,143
 TB,secchi_min,1992-05-04,1992,125
 TB,secchi_min,1993-06-14,1993,165
 TB,secchi_min,1994-10-18,1994,291
-TB,secchi_min,1995-11-09,1995,313
+TB,secchi_min,1995-07-11,1995,192
 TB,secchi_min,1996-05-31,1996,152
 TB,secchi_min,1997-10-08,1997,281
 TB,secchi_min,1998-04-21,1998,111

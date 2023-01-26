@@ -19,14 +19,21 @@ secchi <- function(ice_file, path_out) {
   # TSI >50 Eutrophic
   
   # get ice on/off dates
-  ice0 = read_csv(ice_file) |> 
+  iceOff = read_csv(ice_file) |> 
     filter(metric == 'iceoff') |> 
     select(lakeid, year4 = year, lastice = sampledate)
   
+  iceOn = read_csv(ice_file) |> 
+    filter(metric == 'iceon') |> 
+    select(lakeid, year4 = year, firstice = daynum)
+  
+  
   secchi = LTERsecchi |> select(lakeid:sampledate, secnview, ice) |> 
     filter(!is.na(secnview)) |> 
-    left_join(ice0) |> 
+    left_join(iceOff) |> 
     filter(sampledate > lastice) |> 
+    left_join(iceOn) |> 
+    filter(daynum < firstice) |>  # using daynum because ice-on can switch years
     group_by(lakeid, year4) |> 
     mutate(n = n()) |> 
     filter(!n < 10) |> # filter out low year
