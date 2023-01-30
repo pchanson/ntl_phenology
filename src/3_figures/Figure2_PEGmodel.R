@@ -21,8 +21,9 @@ figure2 <- function(path_in, path_out, path_out2) {
   
   # Find PEG years
   PEGyears = dat |> 
-    filter(missing == FALSE) |> 
+    # filter(missing == FALSE) |> 
     group_by(lakeid, year) |> 
+    mutate(n = n()) |> filter(n == 3) |> 
     mutate(order = case_when(metric == 'drsif_epiSpringMin' ~ 1,
                              metric == 'zoopDensity_spring' ~ 2,
                              metric == 'secchi_springmax' ~ 3)) |> 
