@@ -41,6 +41,28 @@ figure2 <- function(path_in, path_out, path_out2) {
     summarise(total = n(), PEG = sum(use)) |> 
     mutate(PEGper = 100*PEG/total)
   
+  # PEG days between silica min and max Secchi
+  dat |> dplyr::select(lakeid, year, metric, daynum) |> 
+    pivot_wider(names_from = metric, values_from = daynum) |> 
+    mutate(diff = secchi_springmax - drsif_epiSpringMin) |> 
+    group_by(lakeid) |> 
+    summarise(meandiff = mean(diff, na.rm = T), mediandiff = median(diff, na.rm = T))
+  
+  # t-test on days 
+  stat.out = dat |> 
+    filter(lakeid %in% c('ME','MO','CR','TR','AL')) |> 
+    dplyr::select(lakeid, year, metric, daynum) |> 
+    pivot_wider(names_from = metric, values_from = daynum) |> 
+    mutate(diff = secchi_springmax - drsif_epiSpringMin) |> 
+    dplyr::select(year, lakeid, diff) |> 
+    mutate(lakeid = as.factor(lakeid)) |> 
+  pairwise_t_test(
+    diff ~ lakeid, paired = FALSE, 
+    p.adjust.method = "bonferroni"
+  )
+  
+  print(stat.out, n = 60)
+  
   p2 = dat |> filter(lakeid %in% lakeorder) |>
     left_join(PEGyears) |> 
     mutate(lakeid = factor(lakeid, levels = lakeorder)) |> 

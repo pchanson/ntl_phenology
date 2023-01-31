@@ -63,7 +63,7 @@ figureSI_MK <- function(path_in, path_out, vars_order, vars_labels) {
                                         n.breaks=9, limits=c(-lmt,lmt), na.value = "grey98") +
     geom_hline(yintercept = 3.5) +
     geom_vline(xintercept = 6.5) +
-    geom_vline(xintercept = 11.5) +
+    geom_vline(xintercept = 12.5) +
     scale_x_discrete(expand = c(0,0), labels = vars_labels) +
     scale_y_discrete(expand = c(0,0)) +
     theme_bw(base_size = 8) +

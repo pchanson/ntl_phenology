@@ -6,7 +6,8 @@ tar_option_set(packages = c("lubridate",
                             "ggridges",
                             "patchwork",
                             "ggcorrplot",
-                            "corrr"))
+                            "corrr",
+                            "rstatix"))
 
 # source("src/3_figures/Figure1_ggridges.R")
 source("src/3_figures/Figure1_ggridges_v2.R")
@@ -22,13 +23,14 @@ p3_targets_list <- list(
   #     path_out = "Figures_manuscript/Figure1.png")
   # ),
   tar_target(name = vars_order2, c("iceoff", "straton", "stability", "energy","stratoff", "iceon",
-                                  "drsif_epiMin",  "totnuf_epiMin", "totpuf_epiMin", 
-                                  "totnuf_hypoMax","totpuf_hypoMax", 
-                                  "anoxia_summer", "secchi_max", "secchi_min", "zoopDensity")),
+                                   "drsif_epiSpringMin", "drsif_epiMin",  "totnuf_epiMin", "totpuf_epiMin", 
+                                   "totnuf_hypoMax","totpuf_hypoMax", 
+                                   "anoxia_summer", "secchi_springmax", "secchi_max", "secchi_min", 
+                                   "zoopDensity_spring", "zoopDensity")),
   tar_target(name = vars_labels2, c("ice off", "strat onset", "stability", "energy", 'strat offset','ice on',
-                                   'Si epi min', 'TN epi min', 'TP epi min', 
-                                   'TN hypo max', 'TP hypo max',
-                                   'anoxia', 'SecchiMax', 'SecchiMin', 'zoopDensity')),
+                                    'Si spring min', 'Si epi min', 'TN epi min', 'TP epi min', 
+                                    'TN hypo max', 'TP hypo max',
+                                    'anoxia', 'Secchi spring max', 'SecchiMax', 'SecchiMin','zoopSpring', 'zoopDensity')),
   tar_target(
     name = figure1_v2_png,
     figure1_v2(path_in = missing_dates_fill_csv,
@@ -49,9 +51,7 @@ p3_targets_list <- list(
   tar_target(
     name = figureSI_withinLake_png,
     figureSI_withinLake(path_in = missing_dates_fill_csv,
-            path_out = "Figures_manuscript/FigureSI_withinLake.png",
-            vars_order = vars_order2,
-            vars_labels = vars_labels2)
+            path_out = "Figures_manuscript/FigureSI_withinLake.png")
   ),
   tar_target(
     name = figureSI_MK_png,

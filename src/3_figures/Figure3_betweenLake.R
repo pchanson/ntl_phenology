@@ -64,8 +64,8 @@ figure3 <- function(path_in, path_out, path_out2) {
                        y = metric, color = lakeid, fill = lakeid), 
                    alpha = 0.5, position = position_dodge(0.2), size = 0.2, outlier.size = 1, outlier.stroke = 0.2) +
       geom_point(data = df1.Cor |> filter(corP <= 0.05), aes(x =  as.Date('2019-03-01'), y = metric), size = 1, shape = 8) +
-      geom_hline(aes(yintercept = 4.5), linetype = 2, size = 0.2) +
-      geom_hline(aes(yintercept = 9.5), linetype = 2, size = 0.2) +
+      geom_hline(aes(yintercept = 6.5), linetype = 2, size = 0.2) +
+      geom_hline(aes(yintercept = 12.5), linetype = 2, size = 0.2) +
       scale_fill_manual(values = colors) + 
       scale_color_manual(values = colors) + 
       scale_x_date(labels = date_format("%b"), breaks = '3 months', minor_breaks = '1 month') +

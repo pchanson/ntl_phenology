@@ -8,7 +8,19 @@
 # create a plot of the correlation of the phenology data for the 11 lakes, and
 # the plot is saved as a ".png" file.
 
-figureSI_withinLake <- function(path_in, path_out, vars_order, vars_labels) {
+figureSI_withinLake <- function(path_in, path_out) {
+  
+  
+  vars_order = c("iceoff", "straton", "stability", "energy","stratoff", "iceon",
+                 "drsif_epiSpringMin", "drsif_epiMin",  "totnuf_epiMin", "totpuf_epiMin", 
+                 "totnuf_hypoMax","totpuf_hypoMax", 
+                 "anoxia_summer", "secchi_springmax", "secchi_max", "secchi_min", "zoopDensity_spring", "zoopDensity")
+  
+  vars_labels = c("ice off", "strat onset", "stability", "energy", 'strat offset','ice on',
+                  'Si spring min', 'Si epi min', 'TN epi min', 'TP epi min', 
+                  'TN hypo max', 'TP hypo max',
+                  'anoxia', 'Secchi spring max', 'SecchiMax', 'SecchiMin','zoopSpring', 'zoopDensity')
+  
   
   ################################ Correlation ################################
   # read in data
@@ -83,7 +95,7 @@ figureSI_withinLake <- function(path_in, path_out, vars_order, vars_labels) {
   plotcor <- function(uselakes, usecolors) {
     
     box1 = 6.5
-    box2 = 11.5
+    box2 = 12.5
     
     coff.df |> filter(lakeid %in% uselakes) |> 
       # need a row with ice on so axes match up in figure 
@@ -97,12 +109,12 @@ figureSI_withinLake <- function(path_in, path_out, vars_order, vars_labels) {
                                               scale_color_manual(values = rep('black', 10), na.translate = F) +
       scale_x_discrete(breaks = vars_order, labels = vars_labels) +
       scale_y_discrete(breaks = vars_order, labels = vars_labels) +
-      geom_segment(aes(x = box1, y = -Inf, xend = box1, yend = box1), linetype = 2, size = 0.2, show.legend=FALSE) +
-      geom_segment(aes(x = -Inf, y = box1, xend = box1, yend = box1), linetype = 2, size = 0.2, show.legend=FALSE) +
-      geom_segment(aes(x = box2, y = -Inf, xend = box2, yend = box2), linetype = 2, size = 0.2, show.legend=FALSE) +
-      geom_segment(aes(x = -Inf, y = box2, xend = box2, yend = box2), linetype = 2, size = 0.2, show.legend=FALSE) +
+      geom_segment(aes(x = box1, y = -Inf, xend = box1, yend = box1), linetype = 2, linewidth = 0.2, show.legend=FALSE) +
+      geom_segment(aes(x = -Inf, y = box1, xend = box1, yend = box1), linetype = 2, linewidth = 0.2, show.legend=FALSE) +
+      geom_segment(aes(x = box2, y = -Inf, xend = box2, yend = box2), linetype = 2, linewidth = 0.2, show.legend=FALSE) +
+      geom_segment(aes(x = -Inf, y = box2, xend = box2, yend = box2), linetype = 2, linewidth = 0.2, show.legend=FALSE) +
       theme_bw(base_size = 9) +
-      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1, size = 6),
+      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1, size = 5),
             axis.text.y = element_text(size = 6),
             legend.position = 'bottom', 
             legend.title = element_blank(), 
@@ -110,7 +122,7 @@ figureSI_withinLake <- function(path_in, path_out, vars_order, vars_labels) {
             legend.key.width = unit(0.2, 'cm'),
             legend.key.height = unit(0.2, 'cm'),
             legend.margin=margin(t = 0, unit='cm'),
-            panel.grid.major = element_line(size = 0.2))
+            panel.grid.major = element_line(linewidth = 0.2))
   }
   
   p1 = plotcor(uselakes = c("BM", "CR", "SP", "TR"), 
