@@ -1,18 +1,10 @@
-# setwd('Projects/DSI/ntl_phenology/')
-
 library(tidyverse)
-library(survival)
 library(lubridate)
-library(ggsurvfit)
-library(gtsummary)
-library(tidycmprsk)
 library(patchwork)
-library(ggpubr)
-library(ggpval)
-library(pacman)
 library(TraMineR)
 library(MetBrewer)
-# library(condSURV)
+library(depmixS4)
+library(seqHMM)
 
 data <-  read_csv('Data/analysis_ready/final_combined_dates_filled_v2.csv')
 
@@ -24,21 +16,13 @@ df <- data %>%
                                  ifelse(lakeid %in% c('CR', 'SP'), 'oligotrophic',
                                         'rest')))) %>%
   group_by(trophic, metric) %>%
-  mutate(daynum_centered = daynum_fill - mean(daynum_fill, na.rm = T),
-         mean_trophic = mean(daynum_fill, na.rm = T))
+  mutate(
+    daynum_centered = daynum - mean(daynum, na.rm = T),
+         mean_trophic = mean(daynum, na.rm = T))
 
 
 
-# Load the depmixS4 package
-library(depmixS4)
-# library(MmgraphR)
 
-
-# install.packages('seqHMM')
-#https://cran.r-project.org/web/packages/seqHMM/vignettes/seqHMM.pdf
-# library(devtools)
-# install_github("helske/seqHMM")
-library(seqHMM)
 
 
 ###############################
@@ -46,13 +30,11 @@ diss <- c()
 sequencePlots = list()
 costs <- list()
 
-# df_red=df
+
 df_red = df %>%
   filter(metric %in% c('iceoff', 'iceon', 'straton', 'stratoff', 'stability', 'minimum_oxygen', 'secchi_max')) |> 
   mutate(metric = factor(metric, levels = c('iceoff', 'straton','secchi_max','stability', 'minimum_oxygen', 'stratoff','iceon')))
 
-#'secchi_min', 
-#'zoopDensity'))
 
 metric_n <- length(unique(df_red$metric))
 
@@ -63,14 +45,13 @@ for (lakenames in unique(df_red$lakeid)){
     data_HMM = df_red %>%
       filter(lakeid == lakenames) %>%
       mutate(year_norm = year - min(year),
-             time_norm = daynum_fill + year_norm * 365) %>%
+             time_norm = daynum + year_norm * 365) %>%
       rename(event = metric,
              time = time_norm,
              hidden_state = year_norm) %>%
       mutate(event = as.factor(event),
              hidden_state = as.factor(year)) %>%
       arrange(hidden_state, time) %>%
-      # group_by(lakeid) %>%
       mutate(event = as.numeric(event)) %>%
       dplyr::select(event, hidden_state)
     data_HMM <- data_HMM[,-1]
@@ -80,15 +61,13 @@ for (lakenames in unique(df_red$lakeid)){
     data_HMM_plot = df_red %>%
       filter(lakeid == lakenames) %>%
       mutate(year_norm = year - min(year),
-             time_norm = daynum_fill + year_norm * 365) %>%
+             time_norm = daynum + year_norm * 365) %>%
       rename(event = metric,
              time = time_norm,
              hidden_state = year_norm) %>%
       mutate(event = as.factor(event),
              hidden_state = as.factor(year)) %>%
       arrange(hidden_state, time) %>%
-      # group_by(lakeid) %>%
-      # mutate(event = as.numeric(event)) %>%
       dplyr::select(event, hidden_state)
     data_HMM_plot <- data_HMM_plot[,-1]
     
@@ -102,36 +81,21 @@ for (lakenames in unique(df_red$lakeid)){
     
     data =as.data.frame(data_HMM[, -1])
   
-  pheno_seq <- seqdef(data, start = 1, labels = levels(df_red$metric))
-  
 
-  
-  
   seq <- seqdef(data)
-  seqdplot(seq)
+
   
   trate = seqtrate(seq)
   heatTrate = reshape2::melt(trate)
-  # ggplot(heatTrate, aes(Var2, Var1)) +
-  #   geom_tile(aes(fill = value))
-  # 
-  # seqHtplot(seq, with.legend = "right", legend.prop=0.4)
-  # scost <- seqsubm(seq, method = "TRATE")
+
   scost <- seqsubm(seq, method="CONSTANT", cval=2)
   mean_data = data_plot %>% group_by(event_id) %>% count(event) %>% filter(n==max(n))
   mean_data_seq = as.data.frame(t(as.matrix(match(mean_data$event,  levels(df_red$metric)))))
   colnames(mean_data_seq) = colnames(data)
-  mean_seq = seqdef(mean_data_seq)
-  
-  # https://medium.com/@surfingthroughlifeasapostdoc/sequence-analysis-time-use-data-atus-in-r-760d80b8d08b
+
   om_time <- seqdist(seq, method = "OM", indel = 1, sm = scost, full.matrix = FALSE)
-  # seqdist(seq, method = 'OM', sm = seqsubm(seq, method="CONSTANT", cval=2))
-  om_time <- om_time#/max(om_time)
-  round(om_time, 1)
-  
-  medoid <- seqrep(seq, diss = om_time, criterion = 'dist', nrep = 1)
-  print(medoid, format = 'SPS')
-  # seqrplot(seq, diss = om_time, border = NA)
+
+
   
   costs[[match(lakenames, unique(df_red$lakeid))]] = as.vector(om_time)
   
@@ -168,22 +132,4 @@ p.out = (sequencePlots[['BM']] +   sequencePlots[['TR']]) /
 ggsave(p.out, filename = 'Figures_manuscript/Figure4.png', dpi = 500, width = 6, height = 6)
 
 
-
-# ggplot() +
-#   geom_density(data = as.data.frame(costs[[2]]), aes(x = costs[[2]])) + 
-#   geom_density(data = as.data.frame(costs[[7]]), aes(x = costs[[7]])) + 
-#   geom_density(data = as.data.frame(costs[[4]]), aes(x = costs[[4]])) + 
-#   geom_density(data = as.data.frame(costs[[5]]), aes(x = costs[[5]]))  
-# 
-# ggplot() +
-#   geom_density(data = as.data.frame(costs[[3]]), aes(x = costs[[3]])) +
-#   geom_density(data = as.data.frame(costs[[6]]), aes(x = costs[[6]])) 
-# 
-# ggplot() +
-#   geom_density(data = as.data.frame(costs[[1]]), aes(x = costs[[1]])) +
-#   geom_density(data = as.data.frame(costs[[10]]), aes(x = costs[[10]])) 
-# ggplot() +
-#   geom_density(data = as.data.frame(costs[[8]]), aes(x = costs[[8]])) +
-#   geom_density(data = as.data.frame(costs[[9]]), aes(x = costs[[9]])) 
-#   
   
