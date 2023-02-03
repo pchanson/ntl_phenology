@@ -48,8 +48,8 @@ costs <- list()
 
 # df_red=df
 df_red = df %>%
-  filter(metric %in% c('iceoff', 'iceon', 'straton', 'stratoff', 'stability', 'anoxia_summer', 'secchi_max')) |> 
-  mutate(metric = factor(metric, levels = c( 'iceoff', 'straton','secchi_max','stability', 'anoxia_summer', 'stratoff','iceon')))
+  filter(metric %in% c('iceoff', 'iceon', 'straton', 'stratoff', 'stability', 'minimum_oxygen', 'secchi_max')) |> 
+  mutate(metric = factor(metric, levels = c('iceoff', 'straton','secchi_max','stability', 'minimum_oxygen', 'stratoff','iceon')))
 
 #'secchi_min', 
 #'zoopDensity'))
@@ -135,12 +135,13 @@ for (lakenames in unique(df_red$lakeid)){
   
   costs[[match(lakenames, unique(df_red$lakeid))]] = as.vector(om_time)
   
-  diss =append(diss, c(round(mean(om_time),2)))
+  diss = append(diss, c(round(mean(om_time),2)))
   
   sequencePlots[[lakenames]] <-
     ggplot(data = data_plot %>% group_by(event_id) %>% count(event),
            aes(x = event_id, y = (n*100)/max(n), fill = event)) +
-    scale_fill_manual(values = rev(met.brewer("Redon", metric_n)), name = 'metric') + 
+    scale_fill_manual(values = rev(met.brewer("Redon", metric_n)), name = 'Metric', 
+                      labels = c('Ice off', 'Strat onset','Secchi max','Stability', 'Oxygen min', 'Strat offset','Ice on')) + 
     scale_y_continuous(expand = c(0,0)) +
     geom_bar(stat = 'identity') + ylab('Occurrence (%)') +
     xlab('') +

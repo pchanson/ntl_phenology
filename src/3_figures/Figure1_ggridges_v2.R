@@ -8,13 +8,13 @@ figure1_v2 <- function(path_in, path_out) {
                  # "doc_epiMax", 
                  "drsif_epiMin",  "totnuf_epiMin", "totpuf_epiMin", 
                  "totnuf_hypoMax","totpuf_hypoMax", 
-                 "anoxia_summer", "secchi_max", "secchi_min", "zoopDensity")
+                 "minimum_oxygen", "secchi_max", "secchi_min", "zoopDensity")
   
-  vars_label = c("","ice off", "strat onset", "stability", "energy", 'strat offset','ice on',
+  vars_label = c("","Ice off", "Strat onset", "Stability", "Energy", 'Strat offset','Ice on',
                  # 'DOC epi max', 
                  'Si epi min', 'TN epi min', 'TP epi min', 
                  'TN hypo max', 'TP hypo max',
-                 'anoxia', 'SecchiMax', 'SecchiMin', 'zoopDensity')
+                 'Oxygen min', 'Secchi max', 'Secchi min', 'Zoop Density')
   
   lakes_order = c("AL", "BM", "CB", "CR", "SP", "TB", "TR", "ME", "MO", "WI")
   

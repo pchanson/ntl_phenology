@@ -11,12 +11,12 @@ figure3 <- function(path_in, path_out, path_out2) {
   vars_order = c("iceoff", "straton", "stability", "energy","stratoff", "iceon",
                  "drsif_epiSpringMin", "drsif_epiMin",  "totnuf_epiMin", "totpuf_epiMin", 
     "totnuf_hypoMax","totpuf_hypoMax", 
-    "anoxia_summer", "secchi_springmax", "secchi_max", "secchi_min", "zoopDensity_spring", "zoopDensity")
+    "minimum_oxygen", "secchi_springmax", "secchi_max", "secchi_min", "zoopDensity_spring", "zoopDensity")
 
-  vars_labels = c("ice off", "strat onset", "stability", "energy", 'strat offset','ice on',
+  vars_labels = c("Ice off", "Strat onset", "Stability", "Energy", 'Strat offset','Ice on',
                   'Si spring min', 'Si epi min', 'TN epi min', 'TP epi min', 
                   'TN hypo max', 'TP hypo max',
-                  'anoxia', 'Secchi spring max', 'SecchiMax', 'SecchiMin','zoopSpring', 'zoopDensity')
+                  'Oxygen min', 'Secchi spring max', 'Secchi max', 'Secchi min','Zoop spring max', 'Zoop max')
   
   ##### Functions #####
   all_na <- function(x) all(is.na(x))

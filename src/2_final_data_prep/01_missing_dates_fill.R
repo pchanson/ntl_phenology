@@ -45,13 +45,13 @@ missing_dates_fill <- function(path_in, path_out, vars_order) {
   
   hold_data = na.omit(data.frame(n_lakes_wide %>%  ungroup() %>% select(-year, -N))) # , -doc_predict
   all = lm(doc_epiMax~(iceon+straton+stratoff+energy+
-                   stability+anoxia_summer+
+                   stability+minimum_oxygen+
                    secchi_max)*lakeid, data=hold_data)
   i_o = lm(doc_epiMax~1, data=hold_data)
   hold_step = step(i_o, scope=formula(all))
   
   doc_model = lm(doc_epiMax~(iceon+straton+stratoff+energy+
-                   stability+anoxia_summer+
+                   stability+minimum_oxygen+
                    secchi_max)*lakeid, 
                  data=n_lakes_wide, 
                  na.action = na.exclude)

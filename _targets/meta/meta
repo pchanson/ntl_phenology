@@ -1,38 +1,38 @@
 name|type|data|command|depend|seed|path|time|size|bytes|format|repository|iteration|parent|children|seconds|warnings|error
 combine_final_files|function|fce182cfc88ef346|||||||||||||||
-combine_final_files_csv|stem|21b6daffbe0a045a|36b4d6a0c33e426e|3f599feaf376bd70|885137793|Data/final_metric_files/final_combined_dates.csv|t19383.7998777164s|a7a9c52554cb07b7|222313|file|local|vector|||0.33||
+combine_final_files_csv|stem|cab51f406f97f037|36b4d6a0c33e426e|d518e7804442a598|885137793|Data/final_metric_files/final_combined_dates.csv|t19391.6873160676s|fc7ab37b3b5c2262|222685|file|local|vector|||0.409||
 figure1|function|0c96ede52d848063|||||||||||||||
 figure1_png|stem|a0e0ad62ecdc391c|008b9633fe02efde|4b68b96374bd550b|-1243988014||t19363.9448035592s|8619def19bb20a44|79|rds|local|vector|||5.628|no nonmissing arguments to min returning Inf. no nonmissing arguments to max returning Inf. 1m22mRemoved 234 rows containing nonfinite values stat_density_ridges.. no nonmissing arguments to max returning Inf. 1m22mUsing the size aesthietic with geom_segment was deprecated in ggplot2 3.4.0.36mℹ39m Please use the linewidth aesthetic instead.|
-figure1_v2|function|ae9c79cc1da5c1f5|||||||||||||||
-figure1_v2_png|stem|8de1c5408b366e8e|47d866b26632cf31|02e79086fdc8e1d6|-501755400||t19383.800077003s|0b52c5847220add9|82|rds|local|vector|||4.979|1m22mRemoved 99 rows containing nonfinite values stat_density_ridges.. 1m22mUsing the size aesthietic with geom_segment was deprecated in ggplot2 3.4.0.36mℹ39m Please use the linewidth aesthetic instead.. 1m22mRemoved 72 rows containing nonfinite values stat_density_ridges.. 1m22mRemoved 50 rows containing nonfinite values stat_density_ridges.. 1m22mRemoved 106 rows containing nonfinite values stat_density_ridges.. 1m22mRemoved 40 rows containing nonfinite values stat_density_ridges.. 1m22mRemoved 4 rows containing missing values geom_point.. 1m22mRemoved 2 rows containing missing values geom_point.. 1m22mRemoved 2 rows containing missing values geom_point.. 1m22mRemoved 2 rows containing missing values geom_point.|
+figure1_v2|function|02efe837ad23bd23|||||||||||||||
+figure1_v2_png|stem|8de1c5408b366e8e|47d866b26632cf31|e91d556bc8d98e89|-501755400||t19391.7049375378s|0b52c5847220add9|82|rds|local|vector|||5.578|1m22mRemoved 99 rows containing nonfinite values stat_density_ridges.. 1m22mUsing the size aesthietic with geom_segment was deprecated in ggplot2 3.4.0.36mℹ39m Please use the linewidth aesthetic instead.. 1m22mRemoved 72 rows containing nonfinite values stat_density_ridges.. 1m22mRemoved 50 rows containing nonfinite values stat_density_ridges.. 1m22mRemoved 106 rows containing nonfinite values stat_density_ridges.. 1m22mRemoved 40 rows containing nonfinite values stat_density_ridges.. 1m22mRemoved 4 rows containing missing values geom_point.. 1m22mRemoved 2 rows containing missing values geom_point.. 1m22mRemoved 2 rows containing missing values geom_point.. 1m22mRemoved 2 rows containing missing values geom_point.|
 figure2|function|9d7b266c41c9fe2d|||||||||||||||
-figure2_png|stem|ecfb1f1c2c33b584|76d61fe39b8ea5e8|5e225bdd43ded0c9|590527149||t19388.6162564941s|e961a0bcff3caad6|91|rds|local|vector|||2.004|1m22mRemoved 51 rows containing missing values geom_point.|
-figure3|function|f0668a49e07893a0|||||||||||||||
-figure3_png|stem|c3f32348153441a6|c8c02e1a7a37d016|ac0b1bdd8eae0e7e|2088233791||t19388.616233207s|a3c4b57a6f0085ec|90|rds|local|vector|||4.767|1m22mThe size argument of element_line is deprecated as of ggplot2 3.4.0.36mℹ39m Please use the linewidth argument instead.. 1m22mUsing size aesthetic for lines was deprecated in ggplot2 3.4.0.36mℹ39m Please use linewidth instead.. 1m22mRemoved 76 rows containing nonfinite values stat_boxplot.. 1m22mRemoved 50 rows containing nonfinite values stat_boxplot.. 1m22mRemoved 111 rows containing nonfinite values stat_boxplot.. 1m22mRemoved 72 rows containing nonfinite values stat_boxplot.. 1m22mRemoved 96 rows containing nonfinite values stat_boxplot.. 1m22mRemoved 80 rows containing nonfinite values stat_boxplot.. 1m22mRemoved 92 rows containing nonfinite values stat_boxplot.. 1m22mRemoved 76 rows containing nonfinite values stat_boxplot.. 1m22mRemoved 100 rows containing nonfinite values stat_boxplot.|
+figure2_png|stem|ecfb1f1c2c33b584|76d61fe39b8ea5e8|01887d1be231495a|590527149||t19391.6875622429s|e961a0bcff3caad6|91|rds|local|vector|||1.973|1m22mRemoved 51 rows containing missing values geom_point.|
+figure3|function|008f9562f0fa8d4f|||||||||||||||
+figure3_png|stem|c3f32348153441a6|c8c02e1a7a37d016|8a77648ec93c8f64|2088233791||t19391.7048727913s|a3c4b57a6f0085ec|90|rds|local|vector|||4.903|1m22mThe size argument of element_line is deprecated as of ggplot2 3.4.0.36mℹ39m Please use the linewidth argument instead.. 1m22mUsing size aesthetic for lines was deprecated in ggplot2 3.4.0.36mℹ39m Please use linewidth instead.. 1m22mRemoved 76 rows containing nonfinite values stat_boxplot.. 1m22mRemoved 50 rows containing nonfinite values stat_boxplot.. 1m22mRemoved 111 rows containing nonfinite values stat_boxplot.. 1m22mRemoved 72 rows containing nonfinite values stat_boxplot.. 1m22mRemoved 96 rows containing nonfinite values stat_boxplot.. 1m22mRemoved 80 rows containing nonfinite values stat_boxplot.. 1m22mRemoved 92 rows containing nonfinite values stat_boxplot.. 1m22mRemoved 76 rows containing nonfinite values stat_boxplot.. 1m22mRemoved 100 rows containing nonfinite values stat_boxplot.|
 figureSI_MK|function|4864799a14a3d4eb|||||||||||||||
-figureSI_MK_png|stem|3f524c3cc7b23d6c|1ed43c03658d9f84|6860bfc67e579363|1652080527||t19388.6177169741s|c4eb50e2171c1c4b|125545|rds|local|vector|||6.212||
-figureSI_withinLake|function|b03978486ece1c6c|||||||||||||||
-figureSI_withinLake_png|stem|23e69aa1fed2d8df|9d8c0a596d921e85|1da2a62a15791c43|-2017099572||t19387.9652816742s|e961a0bcff3caad6|91|rds|local|vector|||2.023|1m22mRemoved 324 rows containing missing values geom_point.. 1m22mRemoved 324 rows containing missing values geom_point.. 1m22mRemoved 324 rows containing missing values geom_point.|
+figureSI_MK_png|stem|6f8e78439c2d5069|1ed43c03658d9f84|a54b0c5cadd39f65|1652080527||t19391.7048159897s|dbda4ffa8d4e05a7|125538|rds|local|vector|||6.653||
+figureSI_withinLake|function|32dbe004f69fd39c|||||||||||||||
+figureSI_withinLake_png|stem|23e69aa1fed2d8df|9d8c0a596d921e85|995b9aeeabd160b1|-2017099572||t19391.7056395854s|e961a0bcff3caad6|91|rds|local|vector|||60.651|1m22mRemoved 324 rows containing missing values geom_point.. 1m22mRemoved 324 rows containing missing values geom_point.. 1m22mRemoved 324 rows containing missing values geom_point.|
 ice_csv|stem|34889b8665d21d80|fb46d4d4a759d012|a37ac3a0ea8a8720|469259864|Data/final_metric_files/ice.csv|t19363.7033402446s|84716486ab29f982|23053|file|local|vector|||3.362||
 ice_days|stem|34889b8665d21d80|fb46d4d4a759d012|a37ac3a0ea8a8720|-2133189578|Data/final_metric_files/ice.csv|t19363.6887946466s|84716486ab29f982|23053|file|local|vector|||3.206||
 icedates|function|1d8932f4806ff3be|||||||||||||||
-missing_dates_fill|function|8642d536829df1f0|||||||||||||||
-missing_dates_fill_csv|stem|8b1f5becab1589ce|d8c40976305e7806|b510d63a47efcb68|-2068274627|Data/analysis_ready/final_combined_dates_filled_v2.csv|t19383.7998858154s|4d94eff2c39e07b6|296436|file|local|vector|||0.695||
+missing_dates_fill|function|13a5869e94f886fc|||||||||||||||
+missing_dates_fill_csv|stem|61f4e0dd72287d32|d8c40976305e7806|91fb4e943be270c1|-2068274627|Data/analysis_ready/final_combined_dates_filled_v2.csv|t19391.6874100487s|561ccbd50aadf3b7|296787|file|local|vector|||0.661||
 nutrients|function|7ad55de6f2b9ded9|||||||||||||||
 nutrients_csv|stem|a855fd9f28443db2|a9155ed9c92c5464|2c3e2d516360b0e8|-1176877555|Data/final_metric_files/nutrients.csv|t19381.6335823442s|cd080da05322780c|74893|file|local|vector|||8.483||
 p1_targets_list|object|fa6807633c557806|||||||||||||||
-p2_targets_list|object|0d53020ae8761515|||||||||||||||
-p3_targets_list|object|5de6acc52e477d50|||||||||||||||
+p2_targets_list|object|42d32afa233d968a|||||||||||||||
+p3_targets_list|object|fdb4bf3af4432efb|||||||||||||||
 packages|object|664955cbe60fed0c|||||||||||||||
-physics|function|530734131812f35b|||||||||||||||
-physics_csv|stem|7b4c13c1d07a1ed7|1400b2b74adee83d|4fc298e7e732983a|973165131|Data/final_metric_files/physics.csv|t19363.7034585308s|5968a25f5554b9e9|61810|file|local|vector|||10.203|1m22mOne or more parsing issues, call problems on your data frame for details,e.g.  dat  vroom...  problemsdat|
+physics|function|92f729fea08b4f05|||||||||||||||
+physics_csv|stem|8dae0c92d52a1a9b|1400b2b74adee83d|11d29f3f886bdd8d|973165131|Data/final_metric_files/physics.csv|t19391.6873111081s|cc5327d343f445df|62189|file|local|vector|||22.48|1m22mOne or more parsing issues, call problems on your data frame for details,e.g.  dat  vroom...  problemsdat|
 physics_days|stem|7b4c13c1d07a1ed7|1400b2b74adee83d|4fc298e7e732983a|-1704211764|Data/final_metric_files/physics.csv|t19363.698205717s|5968a25f5554b9e9|61810|file|local|vector|||11.136|1m22mOne or more parsing issues, call problems on your data frame for details,e.g.  dat  vroom...  problemsdat|
 secchi|function|b9feddd6d6339c6e|||||||||||||||
 secchi_csv|stem|e2d184e563826df4|6535bf0199b45a4e|6e61fee0d2246ca9|1053825497|Data/final_metric_files/secchi.csv|t19383.7998738236s|1c5d013a47945ae9|39334|file|local|vector|||1.899||
 vars_label|stem|c1ed87b3d30a9fd6|a5e29de1cff94365|a3dad144c40657ed|-1723395617||t19366.8135546557s|274be9fab5df2fde|169|rds|local|vector|||0.017||
 vars_labels|stem|2897339bf92c654f|e8a76156ce53db8e|a3dad144c40657ed|1212328704||t19368.6812897728s|ec519ceac14e6e00|175|rds|local|vector|||0||
-vars_labels2|stem|6c15c88122eb0f19|579f95ea8fae8dff|a3dad144c40657ed|-391815847||t19388.6161016932s|3a40abf18adc8861|196|rds|local|vector|||0.18||
-vars_order|stem|4ade142bb7d3f574|08e92e4f6ef4c8ef|a3dad144c40657ed|382671554||t19383.7998507583s|a747ae66a3258038|209|rds|local|vector|||0||
-vars_order2|stem|9a61968429ddd5b0|ac583b6a8c0ced55|a3dad144c40657ed|-1189857479||t19388.6161018666s|3c187ffa31a31952|199|rds|local|vector|||0||
+vars_labels2|stem|70ef3ed29e6af209|350e494d3ae4d605|a3dad144c40657ed|-391815847||t19391.704737512s|2c02ccb1d6d3878b|191|rds|local|vector|||0.172||
+vars_order|stem|239e8488cd9fc1b9|6d831d301c7fed3f|a3dad144c40657ed|382671554||t19391.6874021294s|e102fd4cf0167a36|208|rds|local|vector|||0.018||
+vars_order2|stem|5e2d5d4f39e96007|177424ed6ad809f0|a3dad144c40657ed|-1189857479||t19391.688991495s|3c187ffa31a31952|199|rds|local|vector|||0.001||
 zoopDensity|function|8b7552c6cb4bbc6b|||||||||||||||
 zoopDensity_csv|stem|ee9fed5e06c5e807|9d108b893289ef03|e447022158a3e8e9|-320082380|Data/final_metric_files/zoop_density.csv|t19368.9205517128s|67082bf7c6e24d85|26362|file|local|vector|||11.17||
